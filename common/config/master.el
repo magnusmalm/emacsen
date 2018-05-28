@@ -2568,6 +2568,15 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
     :config
     (add-hook 'c-mode-hook 'c-turn-on-eldoc-mode))
 
+  (defun setup-flycheck-clang-project-path ()
+    (let ((root (ignore-errors (projectile-project-root))))
+      (when root
+	(add-to-list
+	 (make-variable-buffer-local 'flycheck-clang-include-path)
+	 root))))
+
+  (add-hook 'c-mode-hook 'setup-flycheck-clang-project-path)
+
   (defun my-c-mode-hook-func ()
     (electric-pair-mode 1)
     (company-mode 1)
