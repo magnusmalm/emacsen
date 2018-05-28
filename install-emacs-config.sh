@@ -58,7 +58,7 @@ for d in devel org irc mail; do
     fi
     mkdir "$d"
     for l in config init.el lisp straight; do
-	ln -vs "$(pwd)"/common/"$(l)" "$d"
+	ln -vs "$(pwd)"/common/"$l" "$d"
     done
 done
 
