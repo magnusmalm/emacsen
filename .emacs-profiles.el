@@ -14,4 +14,9 @@
 	   (server-name . "org")))
 
  ("mail" . ((user-emacs-directory . "~/emacsen/mail")
-	    (server-name . "mail"))))
+	    (server-name . "mail")))
+
+ ("wemo" . ((user-emacs-directory . "~/emacsen/wemo")
+	    (server-name . "wemo")))
+
+ )
