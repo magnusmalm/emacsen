@@ -47,7 +47,7 @@ if [[ -f ~/.emacs-profiles.el ]] ; then
     mv -v ~/.emacs "$tmp"
 fi
 
-cp -va .emacs-profiles.el ~/
+ln -vs "$(pwd)/".emacs-profiles.el ~/
 mkdir -v common/straight
 
 for d in devel org irc mail; do
