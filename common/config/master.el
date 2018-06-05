@@ -3143,9 +3143,6 @@ TAG is chosen interactively from the global tags completion table."
                                                       (org-return)
                                                     (org-return-indent))))
 
-    (use-package org-notmuch
-      :ensure nil)
-
     (use-package org-bullets
       :ensure t
       :init
