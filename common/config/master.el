@@ -3228,6 +3228,13 @@ TAG is chosen interactively from the global tags completion table."
 	   "* %?\n%u" :prepend t)
 	  )
 	)
+  (defun place-agenda-tags ()
+    "Put the agenda tags by the right border of the agenda window."
+    (setq org-agenda-tags-column (- 4 (window-width)))
+    (org-agenda-align-tags))
+  ;; Place tags close to the right-hand side of the window
+  (add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
+
 
 ;;;; KEYBINDINGS
 (when t
