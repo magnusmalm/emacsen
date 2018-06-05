@@ -3214,7 +3214,8 @@ TAG is chosen interactively from the global tags completion table."
       (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
    %(cfw:org-capture-day)")))
 
-    (use-package poporg)))
+    (use-package poporg))
+
   (setq org-capture-templates
 	'(
 	  ("j" "Journal entry" plain
