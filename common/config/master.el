@@ -3258,6 +3258,7 @@ TAG is chosen interactively from the global tags completion table."
 
   )
 
+(setf fill-column 80)
 
 ;;;; KEYBINDINGS
 (when t
