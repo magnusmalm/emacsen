@@ -1034,7 +1034,7 @@ monopolizing the minibuffer."
 
 (auto-insert-mode)
 
-(setf browse-url-browser-function 'browse-url-generic)
+(setf browse-url-browser-function 'browse-url-chromium)
 
 (defalias 'eb 'eval-buffer)
 (defalias 'er 'eval-region)
