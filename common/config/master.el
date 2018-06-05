@@ -3098,6 +3098,24 @@ TAG is chosen interactively from the global tags completion table."
 			  ("household" . ?H)
 			  ("economy" . ?e)))
 
+    (setq org-tag-faces
+	  '(("@home"
+             :foreground "Green3"
+             :background nil
+             :weight bold)
+            ("@work"
+             :foreground "DeepSkyBlue"
+             :background nil
+             :weight bold)
+            ("@computer"
+             :foreground "LightSeaGreen"
+             :background nil
+             :weight bold)
+            ("@mobile"
+             :foreground "Orange"
+             :background nil
+             :weight bold)))
+
     (setq org-journal-dir "~/sync/org/journal/")
     (setq org-directory "~/sync/org/")
     (setq org-default-notes-file "~/sync/org/notes.org")

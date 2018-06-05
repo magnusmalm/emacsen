@@ -59,4 +59,5 @@
  '(org-level-6 ((t (:foreground "SpringGreen2"))))
  '(org-level-7 ((t (:foreground "SpringGreen3"))))
  '(org-level-8 ((t (:foreground "YellowGreen"))))
+ '(org-tag ((t (:weight bold :underline))))
  '(org-tree-slide-header-overlay-face ((t (:foreground "yellow" :weight bold)))))
