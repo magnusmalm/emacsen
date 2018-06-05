@@ -2809,7 +2809,8 @@ Inserted by installing org-mode or when a release is made."
 
   (provide 'org-version)
 
-  (use-package org-plus-contrib
+  (use-package org
+    :demand t
     :ensure t
     :bind
     (("C-c M-l" . org-store-link)
