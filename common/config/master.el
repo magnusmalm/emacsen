@@ -3077,6 +3077,13 @@ TAG is chosen interactively from the global tags completion table."
 	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
 		      "DONE(d!)" "CANCELED(c@)")))
 
+    (setq org-todo-keyword-faces
+	  '(("TODO" . "LightSkyBlue")
+	    ("IN-PROGRESS" . "yellow2")
+	    ("WAIT" . "IndianRed")
+	    ("DONE" . "gold")
+            ("CANCELED" . "red")))
+
     (setq org-tag-alist '((:startgroup . nil)
 			  ("@work" . ?w)
 			  ("@home" . ?h)
