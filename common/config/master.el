@@ -3235,6 +3235,10 @@ TAG is chosen interactively from the global tags completion table."
   ;; Place tags close to the right-hand side of the window
   (add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
 
+  (setq org-tags-column 0)
+
+  )
+
 
 ;;;; KEYBINDINGS
 (when t
