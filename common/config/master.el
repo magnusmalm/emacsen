@@ -3099,19 +3099,6 @@ TAG is chosen interactively from the global tags completion table."
 			  ("economy" . ?e)))
 
     (setq org-journal-dir "~/sync/org/journal/")
-    (setq org-capture-templates
-	  '(
-	    ("j" "Journal entry" plain
-             (file+datetree+prompt "~/sync/org/journal/journal.org")
-             "%i\n\n**** %?\n" :empty-lines 1)
-	    ("t" "Task Entry" entry
-	     (file+headline "~/sync/org/tasks.org" "Todos")
-	     "* TODO %?\n%u" :prepend t)
-	    ("n" "Note" entry
-	     (file+headline "~/sync/org/notes.org" "Notes")
-	     "* %?\n%u" :prepend t)
-	    )
-	  )
     (setq org-directory "~/sync/org/")
     (setq org-default-notes-file "~/sync/org/notes.org")
     (setq org-default-tasks-file "~/sync/org/tasks.org")
@@ -3231,6 +3218,19 @@ TAG is chosen interactively from the global tags completion table."
    %(cfw:org-capture-day)")))
 
     (use-package poporg)))
+  (setq org-capture-templates
+	'(
+	  ("j" "Journal entry" plain
+           (file+olp+datetree "~/sync/org/journal/journal.org")
+           "%i\n\n**** %?\n" :empty-lines 1)
+	  ("t" "Task Entry" entry
+	   (file+headline "~/sync/org/tasks.org" "Todos")
+	   "* TODO %?\n%u" :prepend t)
+	  ("n" "Note" entry
+	   (file+headline "~/sync/org/notes.org" "Notes")
+	   "* %?\n%u" :prepend t)
+	  )
+	)
 
 ;;;; KEYBINDINGS
 (when t
