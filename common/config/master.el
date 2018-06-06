@@ -3412,3 +3412,5 @@ TAG is chosen interactively from the global tags completion table."
 
 (bind-key "C-M-<up>" 'gcm-scroll-up-5)
 (bind-key "C-M-<down>" 'gcm-scroll-down-5)
+
+(defun package--save-selected-packages (&rest opt) nil)
