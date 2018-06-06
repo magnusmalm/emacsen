@@ -3385,3 +3385,26 @@ TAG is chosen interactively from the global tags completion table."
 
 (bind-key "M->" 'split-window-vertically)
 (bind-key "M-<" 'split-window-horizontally)
+
+;; https://www.emacswiki.org/emacs/Scrolling#toc2
+(defun gcm-scroll-down ()
+  (interactive)
+  (scroll-up 1))
+
+(defun gcm-scroll-up ()
+  (interactive)
+  (scroll-down 1))
+
+{(defun gcm-scroll-down-5 ()
+   (interactive)
+   (scroll-up 5))
+
+(defun gcm-scroll-up-5 ()
+  (interactive)
+  (scroll-down 5))
+
+(bind-key "C-<up>" 'gcm-scroll-up)
+(bind-key "C-<down>" 'gcm-scroll-down)
+
+(bind-key "C-M-<up>" 'gcm-scroll-up-5)
+(bind-key "C-M-<down>" 'gcm-scroll-down-5)
