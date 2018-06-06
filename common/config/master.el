@@ -1438,6 +1438,10 @@ one by line."
   (setf projectile-keymap-prefix (kbd "C-x p"))
   (setf projectile-switch-project-action
         #'projectile-commander)
+  (setq projectile-project-root-files-top-down-recurring
+        (append '("compile_commands.json"
+                  ".cquery")
+                projectile-project-root-files-top-down-recurring))
   (def-projectile-commander-method ?s
     "Open a *shell* buffer for the project."
     ;; This requires a snapshot version of Projectile.
