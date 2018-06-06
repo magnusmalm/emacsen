@@ -11,6 +11,9 @@
  '(company-quickhelp-max-lines nil)
  '(company-quickhelp-use-propertized-text t)
  '(company-selection-wrap-around t)
+ '(erc-auto-query 'window-noselect)
+ '(erc-modules
+   '(fill move-to-prompt stamp spelling hl-nicks netsplit fill button match track completion readonly networks ring autojoin noncommands irccontrols move-to-prompt stamp menu list))
  '(irony-eldoc-use-unicode t)
  '(lsp-ui-doc-enable nil)
  '(lsp-ui-doc-position 'at-point)
