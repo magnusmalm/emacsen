@@ -18,9 +18,6 @@
  '(lsp-ui-sideline-ignore-duplicate t)
  '(lsp-ui-sideline-update-mode 'line)
  '(next-error-recenter '(4))
- '(nil nil t)
- '(package-selected-packages
-   '(flyspell-correct-popup super-save dtrt-indent solarized-theme elf-mode auto-indent-mode aggressive-indent yaml-tomato yaml-mode flycheck-irony flycheck-pos-tip flycheck bury-successful-compilation realgud zygospore ztree zoom zone-sl zone-rainbow zone-nyan zenburn-theme yafolding xkcd wttrin ws-butler windsize whole-line-or-region which-key wgrep-ag visual-regexp-steroids visual-ascii-mode visible-mark use-package syntax-subword symbol-overlay sx switch-window smex smart-tab smart-forward selected rainbow-identifiers pushover popup-kill-ring phi-search pcmpl-git pcmpl-args pass outshine multi-term mpdel man-commands magithub magit-lfs magit-imerge magit-gh-pulls lua-mode list-environment lispy linum-relative link-hint leerzeichen latex-preview-pane key-chord irony-eldoc iregister ibuffer-vc ibuffer-tramp ibuffer-projectile ibuffer-git hungry-delete highlight-symbol helpful guess-language google-this gitlab git-timemachine git-gutter-fringe+ git-gutter ggtags fontawesome flyspell-correct-ivy flimenu fill-column-indicator elpy edit-at-point easy-escape dumb-jump discover-my-major discover direnv diredfl dired-collapse crux counsel-projectile counsel-gtags company-statistics company-shell company-quickhelp company-irony company-flx company-c-headers common-lisp-snippets comment-dwim-2 color-theme clipmon cl-format ciel c-eldoc browse-kill-ring broadcast bm beginend beacon back-button auto-highlight-symbol auto-dictionary atomic-chrome anzu amx all-the-icons-dired alert ag ace-mc ace-jump-buffer 0xc)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
