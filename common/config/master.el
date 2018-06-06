@@ -3399,9 +3399,9 @@ TAG is chosen interactively from the global tags completion table."
   (interactive)
   (scroll-down 1))
 
-{(defun gcm-scroll-down-5 ()
-   (interactive)
-   (scroll-up 5))
+(defun gcm-scroll-down-5 ()
+  (interactive)
+  (scroll-up 5))
 
 (defun gcm-scroll-up-5 ()
   (interactive)
