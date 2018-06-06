@@ -21,6 +21,9 @@
  '(lsp-ui-sideline-ignore-duplicate t)
  '(lsp-ui-sideline-update-mode 'line)
  '(next-error-recenter '(4))
+ '(projectile-completion-system 'ivy)
+ '(projectile-globally-ignored-directories
+   '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work")))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
