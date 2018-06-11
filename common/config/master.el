@@ -27,7 +27,7 @@
       version-control t)
 
 (defconst emacs-tmp-dir
-  (format "%s%s%s/" temporary-file-directory "emacs" (user-uid)))
+  (format "%s%s%s/" temporary-file-directory "emacs" (user-real-login-name)))
 
 (setf auto-save-file-name-transforms
       `((".*" ,emacs-tmp-dir t)))
