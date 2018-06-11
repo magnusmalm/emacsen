@@ -19,7 +19,7 @@
 (setf backup-by-copying t)
 
 (setf backup-directory-alist
-      `(("." . ,(expand-file-name "var/backup-files-emacs" user-emacs-directory))))
+      `(("." . ,(expand-file-name "var/backups" user-emacs-directory))))
 
 (setf delete-old-versions t
       kept-new-versions 6
