@@ -119,7 +119,7 @@ Emacs buffers are those whose name starts with *."
 (use-package recentf
   :config
   (setf recentf-save-file (expand-file-name "var/recentf" user-emacs-directory))
-  (setf recentf-auto-cleanup 'never)
+  (setf recentf-auto-cleanup 60)
   (recentf-mode 1))
 
 (setf temp-buffer-resize-mode t)
