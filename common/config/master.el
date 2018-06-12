@@ -3202,6 +3202,11 @@ TAG is chosen interactively from the global tags completion table."
 		   :repo "emacsmirror/erc-nick-notify"
 		   :branch "master"))
 
+(use-package treemacs
+  :bind ("<f12>" . treemacs))
+
+(use-package treemacs-projectile)
+
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
 (bind-key "C-S-M-O" 'find-file-in-sync-dir)
