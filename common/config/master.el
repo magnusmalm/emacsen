@@ -2437,12 +2437,9 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 		magit-insert-unpulled-from-pushremote
 		magit-insert-unpushed-to-upstream
 		magit-insert-unpushed-to-pushremote
-		;; magit-insert-unpulled-cherries
-		;; magit-insert-unpushed-cherries
-		magit-insert-submodules
 		magit-insert-modules-unpulled-from-upstream
 		magit-insert-modules-unpulled-from-pushremote
-		magit-insert-modules-unpushed-to-upstream
+		magit-insert-modules-unpushed-to-upstream-or-recent
 		magit-insert-modules-unpushed-to-pushremote))
 
 	(magit-define-popup-switch 'magit-log-popup
