@@ -2475,6 +2475,11 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 	:config (magithub-feature-autoinject t))
 
       (use-package git-timemachine
+	:straight (:host github
+			 :repo "emacsmirror/git-timemachine"
+			 :branch "master")
+
+	;; https://github.com/emacsmirror/git-timemachine
 	:bind (("C-x M-t" . git-timemachine)
 	       ("C-x M-T" . my-git-timemachine))
 	:config
