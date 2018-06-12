@@ -1975,14 +1975,14 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package leerzeichen)
 
-(use-package zoom
-  :config
-  (zoom-mode t)
-  (defun size-callback ()
-    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-          (t                            '(0.618 . 0.618))))
-  (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode))
-  (setf zoom-size 'size-callback))
+;; (use-package zoom
+;;   :config
+;;   (zoom-mode t)
+;;   (defun size-callback ()
+;;     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+;;           (t                            '(0.618 . 0.618))))
+;;   (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
+;;   (setf zoom-size 'size-callback))
 
 (use-package xkcd)
 
