@@ -1205,7 +1205,9 @@ one by line."
              ("a" . sx-ask)
              ("s" . sx-search)))
 
-(use-package direnv)
+(use-package direnv
+  :config
+  (direnv-mode))
 
 (use-package guess-language
   :config
