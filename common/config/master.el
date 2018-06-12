@@ -147,7 +147,6 @@ Emacs buffers are those whose name starts with *."
 ;;;; COMPANY
 (use-package company
   :bind (
-	 ("M-TAB" . company-complete-common-or-cycle)
 	 ("M-<tab>" . company-complete-common-or-cycle)
 	 :map company-active-map
 	 ("M-k" . company-select-next)
