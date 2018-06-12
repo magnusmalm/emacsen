@@ -1973,10 +1973,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   :config
   (global-git-gutter-mode +1))
 
-;; (use-package git-gutter-fringe+
-;;   :config
-;;   (git-gutter+-toggle-fringe))
-
 (use-package leerzeichen)
 
 (use-package zoom
