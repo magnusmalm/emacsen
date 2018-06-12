@@ -27,6 +27,7 @@
  '(projectile-globally-ignored-directories
    '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work"))
  '(safe-local-variable-values '((eval setenv "PYTHONPATH" (projectile-project-root))))
+ '(swiper-action-recenter t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
