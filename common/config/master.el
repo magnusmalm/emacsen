@@ -1482,53 +1482,6 @@ one by line."
   (setf tramp-default-method "ssh")
   (setf password-cache-expiry (* 60 60 8)))
 
-(use-package rtags
-  :disabled
-  :config
-  ;; ensure that we use only rtags checking
-  ;; https://github.com/Andersbakken/rtags#optional-1
-  (defun setup-flycheck-rtags ()
-    (interactive)
-    (flycheck-select-checker 'rtags)
-    ;; RTags creates more accurate overlays.
-    (setq-local flycheck-highlighting-mode nil)
-    (setq-local flycheck-check-syntax-automatically nil))
-
-  ;; only run this if rtags is installed
-  (when (require 'rtags nil :noerror)
-    ;; make sure you have company-mode installed
-    (require 'company)
-    (define-key c-mode-map (kbd "M-.")
-      (function rtags-find-symbol-at-point))
-    (define-key c-mode-map (kbd "M-,")
-      (function rtags-find-references-at-point))
-    ;; install standard rtags keybindings. Do M-. on the symbol below to
-    ;; jump to definition and see the keybindings.
-    (rtags-enable-standard-keybindings)
-    ;; company completion setup
-    (setf rtags-autostart-diagnostics t)
-    (rtags-diagnostics)
-    (setf rtags-completions-enabled t)
-    ;; (push 'company-rtags company-backends)
-    (global-company-mode)
-    ;; (define-key c-mode-map (kbd "<C-tab>") (function company-complete))
-    ;; use rtags flycheck mode -- clang warnings shown inline
-    ;; (require 'flycheck-rtags)
-    ;; c-mode-hook is also called by c++-mode
-    ;; (add-hook 'c-mode-hook #'setup-flycheck-rtags)
-    ;; (add-hook 'c++-mode-hook #'setup-flycheck-rtags)
-    (add-hook 'c-mode-hook 'rtags-start-process-unless-running)
-    (add-hook 'c++-mode-hook 'rtags-start-process-unless-running))
-  (setf rtags-display-result-backend 'ivy))
-
-(use-package ivy-rtags
-  :disabled)
-
-(use-package flycheck-rtags
-  :disabled)
-
-(use-package company-rtags
-  :disabled)
 (setf search-default-mode 'character-fold-to-regexp)
 
 (use-package swiper
@@ -2025,14 +1978,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 ;;   (git-gutter+-toggle-fringe))
 
 (use-package leerzeichen)
-
-;; (use-package auto-highlight-symbol
-;;   :diminish auto-highlight-symbol-mode
-;;   :init
-;;   (setf ahs-default-range 'ahs-range-whole-buffer)
-;;   (setf ahs-idle-interval 0.3)
-;;   :config
-;;   (global-auto-highlight-symbol-mode t))
 
 (use-package zoom
   :config
@@ -2564,81 +2509,21 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
       (use-package cc-mode)
 
-      ;; (use-package irony
-      ;;   :ensure t
-      ;;   :config
-      ;;   (unless (irony--find-server-executable) (call-interactively #'irony-install-server))
-      ;;   (defun my-irony-mode-hook ()
-      ;;     (message "irony mode"))
-      ;;   (add-hook 'c-mode-hook 'irony-mode)
-      ;;   (add-hook 'c++-mode-hook 'irony-mode)
-      ;;   (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-      ;;   (setq-default irony-cdb-compilation-databases '(irony-cdb-libclang
-      ;;                                                   irony-cdb-clang-complete))
-      ;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+      (use-package lsp-mode
+	:config
+	;; (lsp-define-stdio-client lsp-python "python"
+	;; 			 #'projectile-project-root
+	;; 			 '("pyls"))
 
-      ;; (use-package company-irony
-      ;;   :config
-      ;;   (eval-after-load 'company
-      ;;     '(add-to-list 'company-backends 'company-irony)))
+	;; make sure this is activated when python-mode is activated
+	;; lsp-python-enable is created by macro above
+	)
 
-      ;; (use-package irony-eldoc
-      ;;   :after (eldoc irony)
-      ;;   :config
-      ;;   (add-hook 'irony-mode-hook #'irony-eldoc))
+      (use-package pipenv
+	:hook (python-mode . pipenv-mode))
 
-      ;; (use-package flycheck-irony
-      ;;   :demand t
-      ;;   :config
-      ;;   (eval-after-load 'flycheck
-      ;;     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
-
-      ;; (use-package ggtags
-      ;;   :demand t
-      ;;   :bind (:map ggtags-mode-map
-      ;; 	      ("C-c g s" . ggtags-find-other-symbol)
-      ;; 	      ("C-c g h" . ggtags-view-tag-history)
-      ;; 	      ("C-c g r" . ggtags-find-reference)
-      ;; 	      ("C-c g f" . ggtags-find-file)
-      ;; 	      ("C-c g c" . ggtags-create-tags)
-      ;; 	      ("C-c g u" . ggtags-update-tags)
-      ;; 	      ("M-," . pop-tag-mark))
-      ;;   :config
-      ;;   (defun ggtags-enable-in-my-modes ()
-      ;;     (when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-      ;;       (ggtags-mode 1)))
-      ;;   (add-hook 'c-mode-common-hook 'ggtags-enable-in-my-modes))
-
-      ;; (use-package counsel-gtags
-      ;;   :demand t
-      ;;   :bind (:map ggtags-mode-map
-      ;; 	      ("M-t" . counsel-gtags-find-definition)
-      ;; 	      ("M-r" . counsel-gtags-find-reference)
-      ;; 	      ("M-s" . counsel-gtags-find-symbol)
-      ;; 	      ("M-," . counsel-gtags-go-backward)
-      ;; 	      ("M-." . counsel-gtags-dwim))
-      ;;   :config
-      ;;   (defun counsel-gtags-mode-in-my-modes ()
-      ;;     (when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-      ;;       (counsel-gtags-mode 1)))
-
-      ;;   (add-hook 'c-mode-common-hook 'counsel-gtags-mode-in-my-modes))
-
-
-      ;; (use-package c-eldoc
-      ;;   :config
-      ;;   (add-hook 'c-mode-hook 'c-turn-on-eldoc-mode))
-
-      ;; (defun setup-flycheck-clang-project-path ()
-      ;;   (let ((root (ignore-errors (projectile-project-root))))
-      ;;     (when root
-      ;; 	(add-to-list
-      ;; 	 (make-variable-buffer-local 'flycheck-clang-include-path)
-      ;; 	 root))))
-
-      ;; (add-hook 'c-mode-hook 'setup-flycheck-clang-project-path)
-
-      (use-package lsp-mode)
+      (use-package lsp-python
+	:config (add-hook 'python-mode-hook #'lsp-python-enable))
 
       (use-package cquery
 	:config
@@ -2657,9 +2542,19 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
       (use-package lsp-ui
 	:config
-	(setf lsp-ui-sideline-show-symbol nil)
+	(setf lsp-ui-sideline-show-symbol t)
+	(defun my-cquery-find-vars ()
+	  (interactive)
+	  (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
+
+	(defun my-cquery-find-callers ()
+	  (interactive)
+	  (lsp-ui-peek-find-custom 'callers "$cquery/callers"))
+
 	(define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
 	(define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+	(bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
+	(bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
 	(add-hook 'lsp-mode 'lsp-ui-mode))
 
       (defun my-c-mode-hook-func ()
@@ -2714,27 +2609,15 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
 	 ("vj" . "|")))
 
-      (use-package company-c-headers
-	:config
-	(add-to-list 'company-backends 'company-c-headers))
+
 
       (use-package company-quickhelp
 	:bind (:map company-active-map
 		    ("M-h" . company-quickhelp-manual-begin))
 	:config
 	(progn
-	  (setf company-quickhelp-delay nil)
+	  (setf company-quickhelp-delay 1.0)
 	  (company-quickhelp-mode 1)))
-
-      (use-package dumb-jump
-	:bind (("C-c M-o" . dumb-jump-go-other-window)
-	       ("C-c M-." . dumb-jump-go)
-	       ("C-c M-," . dumb-jump-back)
-	       ("C-c M-i" . dumb-jump-go-prompt)
-	       ("C-c M-x" . dumb-jump-go-prefer-external)
-	       ("C-c M-z" . dumb-jump-go-prefer-external-other-window))
-	:config
-	(setf dumb-jump-selector 'ivy))
 
       (use-package realgud)
 

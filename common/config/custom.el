@@ -17,13 +17,16 @@
  '(irony-eldoc-use-unicode t)
  '(lsp-ui-doc-enable nil)
  '(lsp-ui-doc-position 'at-point)
+ '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-imenu-kind-position 'top)
+ '(lsp-ui-peek-peek-height 20)
  '(lsp-ui-sideline-ignore-duplicate t)
  '(lsp-ui-sideline-update-mode 'line)
  '(next-error-recenter '(4))
  '(projectile-completion-system 'ivy)
  '(projectile-globally-ignored-directories
-   '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work")))
+   '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work"))
+ '(safe-local-variable-values '((eval setenv "PYTHONPATH" (projectile-project-root))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -45,9 +48,14 @@
  '(fg:erc-color-face5 ((t (:foreground "indian red"))))
  '(fg:erc-color-face6 ((t (:foreground "orchid"))))
  '(font-lock-function-name-face ((t (:foreground "dark orange"))))
- '(hl-line ((t (:underline t))))
  '(lsp-face-highlight-textual ((t (:box (:line-width 1 :color "spring green")))))
+ '(lsp-ui-peek-filename ((t (:foreground "lawn green"))))
+ '(lsp-ui-peek-header ((t (:background "dim gray" :foreground "gold"))))
+ '(lsp-ui-peek-highlight ((t (:distant-foreground "white smoke" :foreground "white smoke" :box (:line-width -1 :color "yellow")))))
  '(lsp-ui-peek-line-number ((t (:foreground "dark gray"))))
+ '(lsp-ui-peek-list ((t (:background "dark slate gray"))))
+ '(lsp-ui-peek-peek ((t (:background "gray32"))))
+ '(lsp-ui-peek-selection ((t (:background "dim gray" :foreground "white smoke"))))
  '(magit-branch-current ((t (:foreground "green" :box 1 :weight bold))))
  '(magit-branch-local ((t (:foreground "lawn green" :weight bold))))
  '(magit-branch-remote ((t (:foreground "cyan" :weight bold))))
