@@ -177,10 +177,6 @@ Emacs buffers are those whose name starts with *."
   (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
   (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci))
 
-(use-package company-flx
-  :config (with-eval-after-load 'company
-            (company-flx-mode)))
-
 (use-package company-quickhelp
   :bind (:map company-active-map
 	      ("M-h" . company-quickhelp-manual-begin))
@@ -1106,12 +1102,6 @@ monopolizing the minibuffer."
   :config
   (setf uniquify-buffer-name-style 'forward))
 
-(use-package flx)
-
-(use-package smex
-  :config
-  (setf smex-save-file (expand-file-name "var/smex-items" user-emacs-directory)))
-
 (use-package crux
   :bind (("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
          ("C-c C-d" . crux-duplicate-current-line-or-region)
@@ -1558,6 +1548,18 @@ one by line."
     (insert (format "\\<%s\\>" (with-ivy-window (thing-at-point 'word)))))
   ;; (setf ivy-use-virtual-buffers nil)
   (setf swiper-include-line-number-in-search t))
+
+(use-package prescient
+  :config
+  (prescient-persist-mode))
+
+(use-package ivy-prescient
+  :config
+  (ivy-prescient-mode))
+
+(use-package company-prescient
+  :config
+  (company-prescient-mode))
 
 (use-package winner
   :ensure nil
