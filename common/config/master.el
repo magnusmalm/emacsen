@@ -2298,6 +2298,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
       (add-to-list 'erc-modules 'log)
       (add-to-list 'erc-modules 'notifications)
+      (setf erc-modules
+	    '(log notifications fill move-to-prompt stamp spelling hl-nicks netsplit fill
+		  button match track completion readonly networks ring
+		  autojoin noncommands irccontrols move-to-prompt stamp menu list))
 
       (erc-spelling-mode 1)
 
@@ -3202,6 +3206,12 @@ TAG is chosen interactively from the global tags completion table."
 		   :repo "AaronNGray/cflow"
 		   :branch "master"
 		   :files ("elisp/cflow-mode.el")))
+
+(use-package erc-nick-notify
+  :ensure nil
+  :straight (:host github
+		   :repo "emacsmirror/erc-nick-notify"
+		   :branch "master"))
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
