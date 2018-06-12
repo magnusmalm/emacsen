@@ -2511,21 +2511,7 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
       (use-package cc-mode)
 
-      (use-package lsp-mode
-	:config
-	;; (lsp-define-stdio-client lsp-python "python"
-	;; 			 #'projectile-project-root
-	;; 			 '("pyls"))
-
-	;; make sure this is activated when python-mode is activated
-	;; lsp-python-enable is created by macro above
-	)
-
-      (use-package pipenv
-	:hook (python-mode . pipenv-mode))
-
-      (use-package lsp-python
-	:config (add-hook 'python-mode-hook #'lsp-python-enable))
+      (use-package lsp-mode)
 
       (use-package cquery
 	:config
@@ -2558,6 +2544,12 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 	(bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
 	(bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
 	(add-hook 'lsp-mode 'lsp-ui-mode))
+
+      (use-package lsp-python
+	:config (add-hook 'python-mode-hook #'lsp-python-enable))
+
+      (use-package pipenv
+	:hook (python-mode . pipenv-mode))
 
       (defun my-c-mode-hook-func ()
 	(electric-pair-mode 1)
