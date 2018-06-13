@@ -2570,6 +2570,11 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 	;; lsp-python-enable is created by macro above
 	)
 
+      (use-package pipenv
+	:hook (python-mode . pipenv-mode))
+
+      (use-package lsp-python
+	:config (add-hook 'python-mode-hook #'lsp-python-enable))
 
       (use-package cquery
 	:config
