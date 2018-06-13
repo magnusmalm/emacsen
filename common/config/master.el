@@ -1075,6 +1075,15 @@ monopolizing the minibuffer."
               ("M-K" . ivy-scroll-up-command))
 
   :config
+  (setf counsel-find-file-ignore-regexp
+	(concat
+         ;; File names beginning with # or .
+         "\\(?:\\`[#.]\\)"
+         ;; File names ending with # or ~
+         "\\|\\(?:\\`.+?[#~]\\'\\)"
+	 ;; File names ending with .d or .o
+	 "\\|\\(?:\\`.+?[od]\\'\\)"
+	 ))
   (defun mmm/counsel-rg (arg)
     "C-u prefix => No initial input, proj scope
    C-0 prefix => No initial input, CWD scope"
