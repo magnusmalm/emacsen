@@ -1039,6 +1039,7 @@ monopolizing the minibuffer."
 
 (setf enable-recursive-minibuffers t)
 (minibuffer-depth-indicate-mode)
+(setf max-mini-window-height 0.5)
 
 (setf nsm-settings-file
       (expand-file-name "var/network-security.data/" user-emacs-directory))
