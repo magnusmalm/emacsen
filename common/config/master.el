@@ -14,6 +14,12 @@
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
+;;;; ENCRYPTION
+(setq auth-sources
+      '("~/.authinfo.gpg"))
+
+(setq epa-pinentry-mode 'loopback)
+
 ;;;; BACKUPS
 
 (setf backup-by-copying t)
