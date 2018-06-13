@@ -2529,7 +2529,47 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
       (use-package cc-mode)
 
-      (use-package lsp-mode)
+      (use-package lsp-mode
+	:config
+	;; (defun lsp--parser-on-message (p msg)
+	;;   "Called when the parser reads a complete message from the server."
+	;;   (let* ((json-data (lsp--read-json msg))
+	;; 	 (id (gethash "id" json-data nil))
+	;; 	 (client (lsp--workspace-client (lsp--parser-workspace p)))
+	;; 	 callback)
+	;;     (pcase (lsp--get-message-type json-data)
+	;;       ('response
+        ;;        (cl-assert id)
+        ;;        (setq callback (gethash (if (stringp id)
+	;; 				   (string-to-number id)
+	;; 				 id)
+	;; 			       (lsp--client-response-handlers client)
+	;; 			       nil))
+        ;;        (if callback
+	;; 	   (progn (funcall callback (gethash "result" json-data nil))
+	;; 		  (remhash id (lsp--client-response-handlers client)))
+	;; 	 (setf (lsp--parser-response-result p)
+	;; 	       (and json-data (gethash "result" json-data nil))
+	;; 	       (lsp--parser-waiting-for-response p) nil)))
+	;;       ('response-error
+        ;;        (let* ((err (gethash "error" json-data nil))
+	;; 	      (code (gethash "code" err nil)))
+	;; 	 (when (and json-data
+	;; 		    (not (= code  -32603))
+	;; 		    (not (memq code lsp--silent-errors)))
+	;; 	   (message (lsp--error-string err))))
+        ;;        (setf (lsp--parser-response-result p) nil
+	;; 	     (lsp--parser-waiting-for-response p) nil))
+	;;       ('notification (lsp--on-notification p json-data))
+	;;       ('request      (lsp--on-request p json-data)))))
+	;; (lsp-define-stdio-client lsp-python "python"
+	;; 			 #'projectile-project-root
+	;; 			 '("pyls"))
+
+	;; make sure this is activated when python-mode is activated
+	;; lsp-python-enable is created by macro above
+	)
+
 
       (use-package cquery
 	:config
