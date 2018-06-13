@@ -20,6 +20,8 @@
 
 (setq epa-pinentry-mode 'loopback)
 
+(add-to-list 'completion-ignored-extensions ".d")
+
 ;;;; BACKUPS
 
 (setf backup-by-copying t)
@@ -196,7 +198,7 @@ Emacs buffers are those whose name starts with *."
   (add-to-list 'company-backends 'company-shell)
   (add-hook 'shell-mode-hook
 	    (lambda () (setq-local company-backends
-			      '((company-shell company-files))))))
+				   '((company-shell company-files))))))
 
 ;;;; NOTIFICATIONS
 
@@ -1045,6 +1047,7 @@ monopolizing the minibuffer."
 
 (setf enable-recursive-minibuffers t)
 (minibuffer-depth-indicate-mode)
+(setf max-mini-window-height 0.5)
 
 (setf nsm-settings-file
       (expand-file-name "var/network-security.data/" user-emacs-directory))
@@ -1080,6 +1083,15 @@ monopolizing the minibuffer."
               ("M-K" . ivy-scroll-up-command))
 
   :config
+  (setf counsel-find-file-ignore-regexp
+	(concat
+         ;; File names beginning with # or .
+         "\\(?:\\`[#.]\\)"
+         ;; File names ending with # or ~
+         "\\|\\(?:\\`.+?[#~]\\'\\)"
+	 ;; File names ending with .d or .o
+	 "\\|\\(?:\\`.+?[od]\\'\\)"
+	 ))
   (defun mmm/counsel-rg (arg)
     "C-u prefix => No initial input, proj scope
    C-0 prefix => No initial input, CWD scope"
@@ -1981,14 +1993,14 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package leerzeichen)
 
-(use-package zoom
-  :config
-  (zoom-mode t)
-  (defun size-callback ()
-    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-          (t                            '(0.618 . 0.618))))
-  (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode))
-  (setf zoom-size 'size-callback))
+;; (use-package zoom
+;;   :config
+;;   (zoom-mode t)
+;;   (defun size-callback ()
+;;     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+;;           (t                            '(0.618 . 0.618))))
+;;   (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
+;;   (setf zoom-size 'size-callback))
 
 (use-package xkcd)
 
@@ -2326,8 +2338,8 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
       (defun erc-update-header-line-show-disconnected ()
 	"Use a different face in the header-line when disconnected."
 	(erc-with-server-buffer
-	 (cond ((erc-server-process-alive) 'erc-header-line)
-	       (t 'erc-header-line-disconnected))))
+	  (cond ((erc-server-process-alive) 'erc-header-line)
+		(t 'erc-header-line-disconnected))))
 
       (setf erc-header-line-face-method 'erc-update-header-line-show-disconnected)
       (setf erc-hide-list '("JOIN" "PART" "QUIT"))
@@ -2445,7 +2457,7 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 		magit-insert-unpushed-to-pushremote
 		magit-insert-modules-unpulled-from-upstream
 		magit-insert-modules-unpulled-from-pushremote
-		magit-insert-modules-unpushed-to-upstream-or-recent
+		magit-insert-modules-unpushed-to-upstream
 		magit-insert-modules-unpushed-to-pushremote))
 
 	(magit-define-popup-switch 'magit-log-popup
@@ -2517,21 +2529,7 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 
       (use-package cc-mode)
 
-      (use-package lsp-mode
-	:config
-	;; (lsp-define-stdio-client lsp-python "python"
-	;; 			 #'projectile-project-root
-	;; 			 '("pyls"))
-
-	;; make sure this is activated when python-mode is activated
-	;; lsp-python-enable is created by macro above
-	)
-
-      (use-package pipenv
-	:hook (python-mode . pipenv-mode))
-
-      (use-package lsp-python
-	:config (add-hook 'python-mode-hook #'lsp-python-enable))
+      (use-package lsp-mode)
 
       (use-package cquery
 	:config
@@ -2564,6 +2562,12 @@ WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
 	(bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
 	(bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
 	(add-hook 'lsp-mode 'lsp-ui-mode))
+
+      (use-package lsp-python
+	:config (add-hook 'python-mode-hook #'lsp-python-enable))
+
+      (use-package pipenv
+	:hook (python-mode . pipenv-mode))
 
       (defun my-c-mode-hook-func ()
 	(electric-pair-mode 1)
@@ -3215,6 +3219,11 @@ TAG is chosen interactively from the global tags completion table."
   :straight (:host github
 		   :repo "emacsmirror/erc-nick-notify"
 		   :branch "master"))
+
+(use-package treemacs
+  :bind ("<f12>" . treemacs))
+
+(use-package treemacs-projectile)
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
