@@ -14,6 +14,8 @@
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
+(add-to-list 'completion-ignored-extensions ".d")
+
 ;;;; BACKUPS
 
 (setf backup-by-copying t)
