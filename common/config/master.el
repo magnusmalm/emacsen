@@ -2158,7 +2158,9 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
       (require 'smtpmail)
       (require 'gnus-dired)
 
-      (setf mu4e-maildir "~/.mail/gmail")
+      (load-file "~/.secrets/emacs-mail.el")
+
+      (setf mu4e-maildir "~/.mail")
 
       ;; Directory to save attachments
       (setf mu4e-attachment-dir "~/attachments/")
