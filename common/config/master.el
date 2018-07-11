@@ -1730,10 +1730,14 @@ one by line."
      ("y" ivy-yank-action "yank")))
   (setf resize-mini-windows t))
 
-(use-package ivy-buffer-extend
-  :straight nil
-  :ensure nil
-  :load-path "lisp/")
+(use-package ivy-rich
+  :straight (:host github
+		   :repo "Yevgnen/ivy-rich"
+		   :branch "customize")
+  :init
+  (setf ivy-rich-path-style 'abbrev)
+  :config
+  (ivy-rich-mode 1))
 
 (setf shell-file-name "bash")
 (add-to-list 'exec-path "/usr/local/bin")
