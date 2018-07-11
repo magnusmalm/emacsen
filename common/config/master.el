@@ -352,6 +352,10 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (use-package dired-collapse)
 
+(use-package all-the-icons-dired
+  :diminish all-the-icons-dired-mode
+  :config
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
 ;;;; Copy Cut Paste, Paste previous and toggle letter case
 (defun xah-cut-line-or-region ()
@@ -2072,11 +2076,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   (define-key esc-map (kbd "C-s") 'vr/isearch-forward)) ;; C-M-s)
 
 (use-package all-the-icons)
-
-(use-package all-the-icons-dired
-  :diminish all-the-icons-dired-mode
-  :config
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
 (use-package git-gutter
   :bind(
