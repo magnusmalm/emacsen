@@ -1432,6 +1432,11 @@ one by line."
 
 (add-hook 'imenu-after-jump-hook 'recenter-no-redraw)
 
+(use-package imenu-list
+  :bind ("M-*" . imenu-list-smart-toggle)
+  :config
+  (setf imenu-list-auto-resize nil))
+
 (use-package flimenu
   :config
   (progn
