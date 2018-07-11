@@ -2007,6 +2007,13 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (load-theme 'zenburn t)
 
+(use-package smart-mode-line
+  :config
+  (sml/setup))
+
+(use-package smart-mode-line-powerline-theme)
+
+(use-package rich-minority
 (use-package fill-column-indicator
   :init
   (add-hook 'prog-mode-hook #'fci-mode)
