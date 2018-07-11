@@ -250,6 +250,15 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 (use-package broadcast
   :bind (("s-b" . broadcast-mode)))
 
+(use-package yasnippet
+  :defer 1
+  :diminish yas-minor-mode
+  :config (yas-global-mode))
+
+(use-package yasnippet-snippets
+  :after yasnippet
+  :config (yasnippet-snippets-initialize))
+
 ;;;; COMPANY
 (use-package company
   :bind (
