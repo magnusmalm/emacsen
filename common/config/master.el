@@ -2014,6 +2014,18 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 (use-package smart-mode-line-powerline-theme)
 
 (use-package rich-minority
+  :straight (:host github
+		   :repo "malabarba/rich-minority"
+		   :branch "master")
+  :init
+  (setq rm-whitelist
+	(format "^ \\(%s\\)$"
+		(mapconcat #'identity
+                           '("Fly.*" "Proj.*")
+                           "\\|")))
+  :config
+  (rich-minority-mode 1))
+
 (use-package fill-column-indicator
   :init
   (add-hook 'prog-mode-hook #'fci-mode)
