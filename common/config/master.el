@@ -503,9 +503,10 @@ in that cyclic order."
 (use-package easy-escape
   :diminish easy-escape-minor-mode
   :config
-  (progn
-    (add-hook 'lisp-mode-hook 'easy-escape-minor-mode)
-    (add-hook 'emacs-lisp-mode-hook 'easy-escape-minor-mode)))
+  (add-hook 'lisp-mode-hook 'my-lisp-mode-hook-fn)
+  (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook-fn))
+
+(defun my-lisp-mode-hook-fn ()
 
 (use-package whole-line-or-region
   :diminish whole-line-or-region-local-mode
