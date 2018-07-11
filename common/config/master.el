@@ -2260,21 +2260,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package emojify)
 
-(define-minor-mode minor-mode-blackout-mode
-  "Hides minor modes from the mode line."
-  t)
-
-(catch 'done
-  (mapc (lambda (x)
-	  (when (and (consp x)
-		     (equal (cadr x) '("" minor-mode-alist)))
-	    (let ((original (copy-sequence x)))
-	      (setcar x 'minor-mode-blackout-mode)
-	      (setcdr x (list "" original)))
-	    (throw 'done t)))
-	mode-line-modes))
-(global-set-key (kbd "C-c C-m") 'minor-mode-blackout-mode)
-
 (use-package undo-tree
   :bind (("M-Z" . undo-tree-redo)
 	 ("M-z" . undo-tree-undo))
