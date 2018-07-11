@@ -1432,6 +1432,11 @@ one by line."
 
 (add-hook 'imenu-after-jump-hook 'recenter-no-redraw)
 
+(use-package flimenu
+  :config
+  (progn
+    (flimenu-global-mode)))
+
 (use-package avy
   :config
   (setf avy-style 'pre)
@@ -1445,11 +1450,6 @@ one by line."
        "([[:alnum:]]"
        arg
        avy-style))))
-
-(use-package flimenu
-  :config
-  (progn
-    (flimenu-global-mode)))
 
 (use-package back-button
   :bind (("C-<right>" . back-button-local-forward)
