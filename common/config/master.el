@@ -304,10 +304,9 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (use-package company-shell
   :config
-  (add-to-list 'company-backends 'company-shell)
   (add-hook 'shell-mode-hook
 	    (lambda () (setq-local company-backends
-				   '((company-shell company-files))))))
+			      '((company-shell company-files))))))
 
 ;;;; NOTIFICATIONS
 
