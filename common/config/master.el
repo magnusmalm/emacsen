@@ -1556,7 +1556,7 @@ one by line."
   :bind (("H-p" . projectile-command-map))
   :config
   (setf projectile-enable-caching t)
-  (setf projectile-mode-line '(:eval (format " Proj[%s]" (projectile-project-name))))
+  (setf projectile-mode-line '(:eval (format " Proj:%s" (projectile-project-name))))
   (setf projectile-keymap-prefix (kbd "C-x p"))
   (setf projectile-switch-project-action
         #'projectile-commander)
