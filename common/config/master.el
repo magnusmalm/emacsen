@@ -283,11 +283,13 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
   (defun company-maybe-turn-on-fci (&rest ignore)
     (when company-fci-mode-on-p (fci-mode 1)))
 
+  (setf company-require-match nil)
   (setf company-show-numbers t)
   (setf company-minimum-prefix-length 2)
   (setf company-idle-delay 0.1)
   (setf company-global-modes '(not gud-mode))
 
+  (company-tng-configure-default)
   (add-hook 'company-completion-started-hook 'company-turn-off-fci)
   (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
   (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci))
