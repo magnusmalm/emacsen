@@ -43,6 +43,8 @@
 (setf auto-save-list-file-prefix
       emacs-tmp-dir)
 
+(use-package delight)
+
 ;;;; BUFFERS
 (use-package ibuffer
   :ensure nil
@@ -233,7 +235,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (use-package autorevert
   :commands auto-revert-mode
-  :diminish auto-revert-mode
+  :delight auto-revert-mode
   :init
   (add-hook 'find-file-hook #'(lambda () (auto-revert-mode 1)))
   :config
@@ -353,7 +355,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 (use-package dired-collapse)
 
 (use-package all-the-icons-dired
-  :diminish all-the-icons-dired-mode
+  :delight all-the-icons-dired-mode
   :config
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
@@ -461,7 +463,7 @@ in that cyclic order."
 (use-package wgrep-ag)
 
 (use-package hungry-delete
-  :diminish hungry-delete-mode
+  :delight
   :init
   (global-hungry-delete-mode))
 
@@ -501,7 +503,7 @@ in that cyclic order."
 (use-package ace-mc)
 
 (use-package easy-escape
-  :diminish easy-escape-minor-mode
+  :delight easy-escape-minor-mode
   :config
   (add-hook 'lisp-mode-hook 'my-lisp-mode-hook-fn)
   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook-fn))
@@ -509,7 +511,7 @@ in that cyclic order."
 (defun my-lisp-mode-hook-fn ()
 
 (use-package whole-line-or-region
-  :diminish whole-line-or-region-local-mode
+  :delight whole-line-or-region-local-mode
   :config
   (progn
     (whole-line-or-region-mode 1)))
@@ -522,7 +524,7 @@ in that cyclic order."
   :bind ("M-'" . comment-dwim-2))
 
 (use-package ws-butler
-  :diminish ws-butler-mode
+  :delight
   :config
   (progn
     (ws-butler-global-mode 1)))
@@ -583,6 +585,7 @@ in that cyclic order."
   :bind (("C-;" . iedit-dwim)))
 
 (use-package syntax-subword
+  :delight
   :ensure t
   :config
   (setf syntax-subword-skip-spaces t))
@@ -1298,7 +1301,7 @@ one by line."
   (setf pushover-api-key mmm/pushover-token))
 
 (use-package smart-tab
-  :diminish smart-tab-mode
+  :delight
   :config
   (global-smart-tab-mode 1))
 
@@ -1318,7 +1321,7 @@ one by line."
 
 (use-package subword
   :ensure nil
-  :diminish subword-mode
+  :delight subword-mode
   :config
   (global-subword-mode +1)
   (setf c-subword-mode t))
@@ -1358,7 +1361,7 @@ one by line."
 (use-package gitlab)
 
 (use-package which-key
-  :diminish which-key-mode
+  :delight
   :config
   (which-key-mode)
   (which-key-setup-side-window-bottom)
@@ -1536,8 +1539,9 @@ one by line."
 	  ("<left-fringe> <mouse-1>" . bm-toggle-mouse)))
 
 (use-package beginend
-  :diminish beginend-global-mode
-  :diminish beginend-prog-mode
+  :delight beginend-global-mode
+  :delight beginend-prog-mode
+  :delight beginend-magit-status-mode
   :config
   (beginend-global-mode))
 
@@ -1669,6 +1673,7 @@ one by line."
   (google-this-mode 1))
 
 (use-package anzu
+  :delight
   :bind (("M-%" . anzu-query-replace)
 	 ("C-M-%" . anzu-query-replace-regexp))
   :init (global-anzu-mode +1)
@@ -1678,6 +1683,7 @@ one by line."
   :bind ("π" . phi-search))
 
 (use-package ivy
+  :delight
   :bind* (("M-m" . ivy-switch-buffer)
   	  ("C-c C-r" . ivy-resume))
   :bind (:map ivy-minibuffer-map
@@ -1843,9 +1849,9 @@ one by line."
 	       (expand-file-name "dict/" user-emacs-directory))))
 
 (use-package abbrev
+  :delight
   :straight nil
   :ensure nil
-  :diminish abbrev-mode
   :config
   (if (file-exists-p abbrev-file-name)
       (quietly-read-abbrev-file))
@@ -2042,8 +2048,8 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
       (turn-on-fci-mode))))
 
 (use-package whitespace
-  :diminish whitespace-mode
-  :diminish global-whitespace-mode
+  :delight whitespace-mode
+  :delight global-whitespace-mode
   :init
   (progn
     (defun no-trailing-whitespace ()
@@ -2072,6 +2078,7 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 (use-package linum-relative)
 
 (use-package beacon
+  :delight
   :init (beacon-mode 1)
   :config
   (progn
@@ -2081,8 +2088,8 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
     (add-to-list 'beacon-dont-blink-major-modes 'eshell-mode)
     ;; Don't blink on next-line/previous-line at the top/bottom of the window
     (add-to-list 'beacon-dont-blink-commands 'next-line)
-    (add-to-list 'beacon-dont-blink-commands 'previous-line))
-  :diminish beacon-mode)
+    (add-to-list 'beacon-dont-blink-commands 'previous-line)))
+
 
 (use-package highlight-symbol
   :bind (("C-<f3>" . highlight-symbol)
@@ -2107,6 +2114,7 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 (use-package all-the-icons)
 
 (use-package git-gutter
+  :delight
   :bind(
 	("H-g C-g" . 'git-gutter)
 	("H-g v" . 'git-gutter:popup-hunk)
@@ -2251,6 +2259,7 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 (use-package mpdel)
 
 (use-package super-save
+  :delight
   :config
   (setf super-save-auto-save-when-idle t)
   (setf super-save-idle-duration 3)
@@ -2850,7 +2859,7 @@ and set the focus back to Emacs frame"
 ;;;; INDENTING
 
       (use-package aggressive-indent
-	:diminish aggressive-indent-mode
+	:delight
 	:config
 	(global-aggressive-indent-mode 1)
 	(add-to-list 'aggressive-indent-excluded-modes 'python-mode)
@@ -2862,6 +2871,7 @@ and set the focus back to Emacs frame"
       (use-package elf-mode)
 
       (use-package lispy
+	:delight
 	:init
 	(defun attic/lispy--eval ()
 	  (interactive)
