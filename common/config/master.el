@@ -1166,7 +1166,7 @@ monopolizing the minibuffer."
 (setf max-mini-window-height 0.5)
 
 (setf nsm-settings-file
-      (expand-file-name "var/network-security.data/" user-emacs-directory))
+      (expand-file-name "var/network-security.data" user-emacs-directory))
 
 ;;;; Annoyances
 (setf ring-bell-function 'ignore)
