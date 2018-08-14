@@ -2024,12 +2024,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (load-theme 'zenburn t)
 
-(use-package smart-mode-line
-  :config
-  (sml/setup))
-
-(use-package smart-mode-line-powerline-theme)
-
 (use-package fill-column-indicator
   :init
   (add-hook 'prog-mode-hook #'fci-mode)
@@ -3395,6 +3389,12 @@ TAG is chosen interactively from the global tags completion table."
   :bind ("<f12>" . treemacs))
 
 (use-package treemacs-projectile)
+
+(use-package smart-mode-line
+  :config
+  (sml/setup))
+
+(use-package smart-mode-line-powerline-theme)
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
