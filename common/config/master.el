@@ -17,6 +17,7 @@
 (setf semanticdb-default-save-directory
       (expand-file-name "var/semanticdb/" user-emacs-directory))
 
+(setf x-stretch-cursor t)
 ;;;; ENCRYPTION
 (setq auth-sources
       '("~/.authinfo.gpg"))
