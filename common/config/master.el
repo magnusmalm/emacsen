@@ -35,7 +35,9 @@
       version-control t)
 
 (defconst emacs-tmp-dir
-  (format "%s%s%s/" temporary-file-directory "emacs" (user-real-login-name)))
+  (format "%s%s%s@%s/" temporary-file-directory "emacs-" (user-real-login-name) system-name))
+
+(setf server-socket-dir emacs-tmp-dir)
 
 (setf auto-save-file-name-transforms
       `((".*" ,emacs-tmp-dir t)))
