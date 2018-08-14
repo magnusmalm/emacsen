@@ -18,6 +18,9 @@
       (expand-file-name "var/semanticdb/" user-emacs-directory))
 
 (setf x-stretch-cursor t)
+
+(setf vc-follow-symlinks t)
+
 ;;;; ENCRYPTION
 (setq auth-sources
       '("~/.authinfo.gpg"))
