@@ -473,6 +473,8 @@ in that cyclic order."
 (use-package wgrep)
 (use-package wgrep-ag)
 
+(use-package ripgrep)
+
 (use-package hungry-delete
   :delight
   :init
