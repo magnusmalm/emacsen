@@ -27,6 +27,8 @@
 
 (setq epa-pinentry-mode 'loopback)
 
+(setq plstore-cache-passphrase-for-symmetric-encryption t)
+
 (add-to-list 'completion-ignored-extensions ".d")
 
 ;;;; BACKUPS
