@@ -14,6 +14,9 @@
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
+(setf semanticdb-default-save-directory
+      (expand-file-name "var/semanticdb/" user-emacs-directory))
+
 ;;;; ENCRYPTION
 (setq auth-sources
       '("~/.authinfo.gpg"))
