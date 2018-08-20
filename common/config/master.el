@@ -365,6 +365,8 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (use-package dired-collapse)
 
+(use-package dired-hacks-utils)
+
 (use-package all-the-icons-dired
   :delight all-the-icons-dired-mode
   :config
