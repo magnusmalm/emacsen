@@ -2847,22 +2847,6 @@ and set the focus back to Emacs frame"
 
 (use-package auto-indent-mode)
 
-(use-package lispy
-  :delight
-  :init
-  (defun attic/lispy--eval ()
-    (interactive)
-    (if (equal major-mode 'scheme-mode)
-	(geiser-eval-next-sexp nil)
-      (special-lispy-eval)))
-  :config
-  (lispy-define-key lispy-mode-map-special "e" 'attic/lispy--eval)
-  (defun lispy-left-no-mark ()
-    (interactive)
-    (deactivate-mark)
-    (lispy-left 1))
-  :hook (emacs-lisp-mode . lispy-mode))
-
 (use-package elf-mode)
 
 (use-package common-lisp-snippets)
