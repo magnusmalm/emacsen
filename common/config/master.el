@@ -79,6 +79,31 @@
     (ibuffer-switch-to-saved-filter-groups "default"))
   (add-hook 'ibuffer-mode-hook 'oni:ibuffer-mode-func))
 
+(defun app-launcher ()
+  (interactive)
+  (with-current-buffer (get-buffer-create "*modal-ivy*")
+    (let ((frame (make-frame '((auto-raise . t)
+                               (left-fringe . 0)
+                               (line-spacing . 3)
+                               (menu-bar-lines . 0)
+                               (minibuffer . only)
+                               (right-fringe . 0)
+                               (undecorated . t)
+                               (unsplittable . t)
+                               (vertical-scroll-bars . nil)))))
+      (let ((ivy-height 20)
+            (ivy-count-format ""))
+	(ivy-read "Emacs acronyms: "
+                  '(" Emacs: Escape-Meta-Alt-Control-Shift "
+                    " Emacs: Eight Megabytes And Constantly Swapping "
+                    " Emacs: Even a Master of Arts Comes Simpler ")
+                  :action (lambda (funny-quote)
+                            (async-shell-command (format "notify-send \"Test\" %s" funny-quote)))
+                  :unwind (lambda ()
+                            (shell-command "notify-send \"Test\" done &")
+                            (delete-frame)
+                            (other-window 1)))))))
+
 (defun find-file-in-config-dir ()
   (interactive)
   (counsel-find-file (expand-file-name "config/" user-emacs-directory)))
@@ -498,6 +523,12 @@ in that cyclic order."
 	 ("<right>" . popup-kill-ring-current)
 	 ("<left>" . popup-kill-ring-hide)))
 
+(use-package multi-line
+  :straight (:host github
+		   :repo "IvanMalison/multi-line")
+  :bind ("C-c d" . multi-line))
+
+
 (use-package multiple-cursors
   :bind (("C-S-c C-S-c" . mc/edit-lines)
 	 ("C->" . mc/mark-next-like-this)
@@ -524,6 +555,8 @@ in that cyclic order."
   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook-fn))
 
 (defun my-lisp-mode-hook-fn ()
+  (easy-escape-minor-mode 1)
+  (setq-local company-backends (add-to-list 'company-backends 'company-elisp)))
 
 (use-package whole-line-or-region
   :delight whole-line-or-region-local-mode
@@ -932,6 +965,21 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
               (ivy-imenu-get-candidates-from (delete (assoc "*Rescan*" items) items))
               :action (lambda (k) (goto-char k)))))
 
+(defun goto-line-show ()
+  "Show line numbers temporarily, while prompting for the line number input."
+  (interactive)
+  (unwind-protect
+      (progn
+        (linum-mode 1)
+        (call-interactively #'goto-line))
+    (linum-mode -1)))
+(bind-key "s-L" 'goto-line-show)
+
+(defun current-time-microseconds ()
+  (let* ((nowtime (current-time))
+         (now-ms (nth 2 nowtime)))
+    (concat (format-time-string "[%Y-%m-%d %T" nowtime) (format ".%d] " now-ms))))
+
 (defun mmm/date-iso ()
   "Insert the current date, short format, eg. 2016-12-09."
   (interactive)
@@ -1131,6 +1179,20 @@ abort completely with `C-g'."
 
 (column-number-mode t)
 
+
+(use-package minibuffer
+  :straight nil
+  :ensure nil
+  :config
+  (setf read-file-name-completion-ignore-case t)
+  (setf completion-ignore-case t)
+  (setf resize-mini-windows t)
+  (file-name-shadow-mode 1)
+
+  (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
+
+(use-package vlf)
+
 ;;; https://github.com/hlissner/doom-emacs/blob/master/core/autoload/minibuffer.el
 (defun doom/minibuffer-kill-word ()
   "Kill a word, backwards, but only if the cursor is after
@@ -1166,7 +1228,7 @@ monopolizing the minibuffer."
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
-(auto-insert-mode)
+(add-to-list 'auto-mode-alist '("\\.conf\\'" . javascript-mode))
 
 (setf browse-url-browser-function 'browse-url-chromium)
 
@@ -1223,6 +1285,24 @@ monopolizing the minibuffer."
 	 ;; File names ending with .d or .o
 	 "\\|\\(?:\\`.+?[od]\\'\\)"
 	 ))
+
+  (defun counsel-yank-bash-history ()
+    "Yank the bash history"
+    (interactive)
+    (let (hist-cmd collection val)
+      (shell-command "history -r")	; reload history
+      (setq collection
+            (nreverse
+             (split-string (with-temp-buffer (insert-file-contents (file-truename "~/.bash_history"))
+                                             (buffer-string))
+                           "\n"
+                           t)))
+      (when (and collection (> (length collection) 0)
+		 (setq val (if (= 1 (length collection)) (car collection)
+                             (ivy-read (format "Bash history:") collection))))
+        (kill-new val)
+        (message "%s => kill-ring" val))))
+
   (defun mmm/counsel-rg (arg)
     "C-u prefix => No initial input, proj scope
    C-0 prefix => No initial input, CWD scope"
@@ -1257,7 +1337,6 @@ monopolizing the minibuffer."
          ("C-x M-r" . crux-rename-file-and-buffer)
          ("C-<return>" . crux-smart-open-line-above)
          ("C-c I" . crux-find-user-init-file)
-         ("C-c n" . crux-cleanup-buffer-or-region)
          ("M-h" . crux-move-beginning-of-line))
   :init (require 'crux)
   :config
@@ -1374,6 +1453,7 @@ one by line."
 ;; Keywords: vc
 
 (use-package gitlab)
+(use-package ivy-gitlab)
 
 (use-package which-key
   :delight
@@ -1415,6 +1495,9 @@ one by line."
 (defun dired-tinyhappybits ()
   (interactive)
   (dired "/notmuch:~/"))
+
+
+(load (expand-file-name "~/.roswell/helper.el"))
 
 (setf inferior-lisp-program "/usr/local/bin/sbcl")
 (setf slime-contribs '(slime-fancy))
@@ -1573,7 +1656,7 @@ one by line."
 	 ("M-<left>" . smart-backward)
 	 ("M-<right>" . smart-forward)))
 
-(setf znc-identifier "okinawa")
+(setf znc-identifier (system-name))
 
 (use-package projectile
   ;; Space-p => π (see ~/.xmodmap)
@@ -1597,6 +1680,16 @@ one by line."
     "Run `compile' in the project."
     (projectile-compile-project nil))
   (projectile-mode))
+
+(use-package org-projectile
+  :bind (("C-c n p" . org-projectile-project-todo-completing-read)
+         ("C-c c" . org-capture))
+  :config
+  (progn
+    (setq org-projectile-projects-file
+          "~/sync/org/projects.org")
+    (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
+    (push (org-projectile-project-todo-entry) org-capture-templates)))
 
 (use-package counsel-projectile
   :config
@@ -1640,14 +1733,13 @@ one by line."
 (setf search-default-mode 'character-fold-to-regexp)
 
 (use-package swiper
-  :bind (("C-c u" . swiper-all)
-	 :map  ivy-minibuffer-map
-	 ("C-7" . swiper-mc)
-	 :map swiper-map
-	 ("M-I" . ivy-scroll-down-command)
-	 ("M-K" . ivy-scroll-up-command)
-         ("M-." . insert-symbol-at-point)
-         ("M-," . insert-word-at-point))
+  :bind (:map  ivy-minibuffer-map
+	       ("C-7" . swiper-mc)
+	       :map swiper-map
+	       ("M-I" . ivy-scroll-down-command)
+	       ("M-K" . ivy-scroll-up-command)
+               ("M-." . insert-symbol-at-point)
+               ("M-," . insert-word-at-point))
   :config
   (defun insert-symbol-at-point ()
     (interactive)
@@ -1756,24 +1848,39 @@ one by line."
      ("y" ivy-yank-action "yank")))
   (setf resize-mini-windows t))
 
-(use-package ivy-rich
-  :straight (:host github
-		   :repo "Yevgnen/ivy-rich"
-		   :branch "customize")
-  :init
-  (setf ivy-rich-path-style 'abbrev)
-  :config
-  (ivy-rich-mode 1))
+(use-package ivy-buffer-extend
+  :straight nil
+  :ensure nil
+  :load-path "lisp/")
+
+;; (use-package ivy-rich
+;;   :straight (:host github
+;; 		   :repo "Yevgnen/ivy-rich"
+;; 		   :branch "customize")
+;;   :init
+;;   (setf ivy-rich-path-style 'abbrev)
+;;   :config
+;;   (ivy-rich-mode 1))
+
+;; (use-package ivy-posframe
+;;   :config
+;;   (setf ivy-display-function #'ivy-posframe-display-at-point)
+;;   (ivy-posframe-enable))
 
 (setf shell-file-name "bash")
 (add-to-list 'exec-path "/usr/local/bin")
 
+(use-package exec-path-from-shell
+  :config
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "HISTFILE"))
+
 (defun setup-eshell ()
   (define-key eshell-mode-map (kbd "<tab>") 'completion-at-point)
-  (define-key eshell-mode-map "C-a" 'eshell-maybe-bol))
+  (define-key eshell-mode-map "C-a" 'eshell-maybe-bol)
+  (setq eshell-buffer-shorthand t))
 
 (add-hook 'eshell-mode-hook 'setup-eshell)
-
 
 (use-package multi-term
   :init
@@ -1781,8 +1888,6 @@ one by line."
   (setf multi-term-scroll-to-bottom-on-output 'this)
   :config
   (setf multi-term-program "/bin/bash"))
-
-(use-package multi-term)
 
 (use-package pcmpl-args)
 (use-package pcmpl-git)
@@ -1870,7 +1975,7 @@ one by line."
   :config
   (if (file-exists-p abbrev-file-name)
       (quietly-read-abbrev-file))
-  ;;;; ispell + abbrev = cool auto-complete
+;;;; ispell + abbrev = cool auto-complete
   (setf abbrev-file-name
 	(expand-file-name "personal_abbrev.txt" user-emacs-directory))
   (setf save-abbrevs t)
@@ -1954,6 +2059,7 @@ Uses `current-date-time-format' for the formatting the date/time."
 (setf initial-scratch-message nil)
 (setf initial-buffer-choice "~/")
 
+(setf scroll-margin 3)
 (setf scroll-step            1
       scroll-conservatively  10000)
 
@@ -2081,11 +2187,15 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
     (setf beacon-color "#cccec4")
     ;; Don't blink on specific major modes
     (add-to-list 'beacon-dont-blink-major-modes 'shell-mode)
+    (add-to-list 'beacon-dont-blink-major-modes 'term-mode)
     (add-to-list 'beacon-dont-blink-major-modes 'eshell-mode)
     ;; Don't blink on next-line/previous-line at the top/bottom of the window
     (add-to-list 'beacon-dont-blink-commands 'next-line)
     (add-to-list 'beacon-dont-blink-commands 'previous-line)))
 
+(use-package rainbow-delimiters
+  :config
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package highlight-symbol
   :bind (("C-<f3>" . highlight-symbol)
@@ -2133,14 +2243,14 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package leerzeichen)
 
-;; (use-package zoom
-;;   :config
-;;   (zoom-mode t)
-;;   (defun size-callback ()
-;;     (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-;;           (t                            '(0.618 . 0.618))))
-;;   (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
-;;   (setf zoom-size 'size-callback))
+(use-package zoom
+  :config
+  (zoom-mode t)
+  (defun size-callback ()
+    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+          (t                            '(0.618 . 0.618))))
+  (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
+  (setf zoom-size 'size-callback))
 
 (use-package xkcd)
 
@@ -2149,7 +2259,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   :config
   (add-hook 'after-init-hook 'global-color-identifiers-mode))
 
-(use-package yafolding)
+(use-package yafolding
+  :bind* (("C-M-<return>" . 'yafolding-toggle-element))
+  :config
+  (yafolding-mode 1))
 
 (use-package origami
   :bind (("C-<return>" . 'origami-recursively-toggle-node))
@@ -2221,6 +2334,71 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   (setf aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (setf aw-leading-char-style 'path))
 
+(defun delete-window-balance ()
+  "Delete window and rebalance the remaining ones."
+  (interactive)
+  (delete-window)
+  (balance-windows))
+
+(defun split-window-below-focus ()
+  "Split window horizontally and move focus to other window."
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+
+(defun split-window-right-focus ()
+  "Split window vertically and move focus to other window."
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+
+(bind-key "s-0" #'delete-window-balance)
+(bind-key "s-1" #'delete-other-windows)
+(bind-key "s-2" #'split-window-below-focus)
+(bind-key "s-3" #'split-window-right-focus)
+
+
+;; Window layout management
+(use-package eyebrowse
+  :defer 1
+  :bind
+  ("<f5>" . eyebrowse-switch-to-window-config-1)
+  ("<f6>" . eyebrowse-switch-to-window-config-2)
+  ("<f7>" . eyebrowse-switch-to-window-config-3)
+  ("<f8>" . eyebrowse-switch-to-window-config-4)
+  :config
+  (eyebrowse-mode 1)
+  (setq-default eyebrowse-new-workspace t))
+
+;; A simple window layout stack hack
+;; https://emacs.stackexchange.com/a/2714
+(defvar winstack-stack '()
+  "A Stack holding window configurations.
+Use `winstack-push' and
+`winstack-pop' to modify it.")
+
+(defun winstack-push()
+  "Push the current window configuration onto `winstack-stack'."
+  (interactive)
+  (if (and (window-configuration-p (first winstack-stack))
+           (compare-window-configurations (first winstack-stack) (current-window-configuration)))
+      (message "Current config already pushed")
+    (progn (push (current-window-configuration) winstack-stack)
+           (message (concat "pushed " (number-to-string
+                                       (length (window-list (selected-frame)))) " frame config")))))
+
+(defun winstack-pop()
+  "Pop the last window configuration off `winstack-stack' and apply it."
+  (interactive)
+  (if (first winstack-stack)
+      (progn (set-window-configuration (pop winstack-stack))
+             (message "popped"))
+    (message "End of window stack")))
+(bind-key "C-c u" #'winstack-push)
+(bind-key "C-c o" #'winstack-pop)
+
 (defun dired-wrdc155-ftp ()
   (interactive)
   (dired "/ssh:magma@ftp.labs.westermo.se:/srv/ftp/share/malm/"))
@@ -2257,8 +2435,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 (use-package super-save
   :delight
   :config
-  (setf super-save-auto-save-when-idle t)
-  (setf super-save-idle-duration 3)
   (super-save-mode +1))
 
 (setf next-error-highlight 3)
@@ -2272,871 +2448,906 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   :config
   (global-undo-tree-mode))
 
-(use-package latex-preview-pane)
-
-(if (server-is "irc")
-    (progn
-      (message "Loading IRC stuff...")
-
-      (require 'erc)
-      (require 'erc-match)
-      (require 'erc-imenu)
-
-      (add-to-list 'erc-modules 'log)
-      (add-to-list 'erc-modules 'notifications)
-      (setf erc-modules
-	    '(log notifications fill move-to-prompt stamp spelling hl-nicks netsplit fill
-		  button match track completion readonly networks ring
-		  autojoin noncommands irccontrols move-to-prompt stamp menu list))
-
-      (erc-spelling-mode 1)
-
-      (setf erc-prompt  (lambda () (concat (buffer-name) "> ")))
-
-      (add-hook 'erc-mode-hook 'flyspell-mode) ;start flyspell-mode
-      (setf ispell-dictionary "svenska")    ;set the default dictionary
-
-      (setf erc-save-buffer-on-part t)
-      (setf erc-log-channels-directory "~/.erc/logs/")
-
-      (defface erc-header-line-disconnected
-	'((t (:inherit magit-diff-removed)))
-	"Face to use when ERC has been disconnected.")
-
-      (defun erc-update-header-line-show-disconnected ()
-	"Use a different face in the header-line when disconnected."
-	(erc-with-server-buffer
-	  (cond ((erc-server-process-alive) 'erc-header-line)
-		(t 'erc-header-line-disconnected))))
-
-      (setf erc-header-line-face-method 'erc-update-header-line-show-disconnected)
-      (setf erc-hide-list '("JOIN" "PART" "QUIT"))
-
-      (require 'erc-input-fill)
-
-      (setf erc-timestamp-only-if-changed-flag nil
-	    erc-timestamp-format "%H:%M "
-	    erc-fill-prefix "    | "
-	    erc-insert-timestamp-function 'erc-insert-timestamp-left)
-
-      (setf erc-auto-query 'buffer)
-
-      (use-package erc-hl-nicks)
-
-      (use-package erc-colorize
-	:ensure t
-	:config
-	(erc-colorize-mode 1))
-
-
-      (eval-after-load 'erc-track
-	'(progn
-	   (defun erc-bar-move-back (n)
-	     "Moves back n message lines. Ignores wrapping, and server messages."
-	     (interactive "nHow many lines ? ")
-	     (re-search-backward "^.*<.*>" nil t n))
-
-	   (defun erc-bar-update-overlay ()
-	     "Update the overlay for current buffer, based on the content of
-erc-modified-channels-alist. Should be executed on window change."
-	     (interactive)
-	     (let* ((info (assq (current-buffer) erc-modified-channels-alist))
-		    (count (cadr info)))
-	       (if (and info (> count erc-bar-threshold))
-		   (save-excursion
-		     (end-of-buffer)
-		     (when (erc-bar-move-back count)
-		       (let ((inhibit-field-text-motion t))
-			 (move-overlay erc-bar-overlay
-				       (line-beginning-position)
-				       (line-end-position)
-				       (current-buffer)))))
-		 (delete-overlay erc-bar-overlay))))
-
-	   (defvar erc-bar-threshold 1
-	     "Display bar when there are more than erc-bar-threshold unread messages.")
-	   (defvar erc-bar-overlay nil
-	     "Overlay used to set bar")
-	   (setf erc-bar-overlay (make-overlay 0 0))
-	   (overlay-put erc-bar-overlay 'face '(:underline "black"))
-	   ;;put the hook before erc-modified-channels-update
-	   (defadvice erc-track-mode (after erc-bar-setup-hook
-					    (&rest args) activate)
-	     ;;remove and add, so we know it's in the first place
-	     (remove-hook 'window-configuration-change-hook 'erc-bar-update-overlay)
-	     (add-hook 'window-configuration-change-hook 'erc-bar-update-overlay))
-	   (add-hook 'erc-send-completed-hook (lambda (str)
-						(erc-bar-update-overlay)))))
-
-      (defun fit-window-to-buffer-width (&optional window max-width min-width)
-	"Fit WINDOW according to its buffer's width.
-WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
-`fit-window-to-buffer'."
-	(interactive)
-	(let ((fit-window-to-buffer-horizontally 'only))
-	  (fit-window-to-buffer window nil nil max-width min-width)))
-      (message "Loading IRC stuff done!")))
-
-(if (server-is "devel")
-    (progn
-      (message "Loading DEVEL stuff...")
-      (use-package magit
-	:bind (("C-c m" . magit-status)
-	       ("C-c l" . magit-log-buffer-file)
-	       ("C-c M-g" . magit-dispatch-popup))
-	:config
-	(setenv "GIT_PAGER" "")
-	(setf magit-commit-arguments (quote ("--signoff")))
-	(setf magit-set-upstream-on-push t)
-	(setf magit-revert-buffers 1)
-	(setf magit-log-show-refname-after-summary t)
-	(setf magit-completing-read-function 'ivy-completing-read)
-	(setf magit-use-sticky-arguments nil)
-	(setf magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
-
-	(setf magit-status-margin '(nil age magit-log-margin-width nil 18))
-
-	(setf magit-status-headers-hook
-	      '(magit-insert-error-header
-		magit-insert-repo-header
-		magit-insert-remote-header
-		magit-insert-diff-filter-header
-		magit-insert-head-branch-header
-		magit-insert-upstream-branch-header
-		magit-insert-push-branch-header
-		magit-insert-tags-header))
-
-	(setf magit-status-sections-hook
-	      '(magit-insert-status-headers
-		magit-insert-merge-log
-		magit-insert-rebase-sequence
-		magit-insert-am-sequence
-		magit-insert-sequencer-sequence
-		magit-insert-bisect-output
-		magit-insert-bisect-rest
-		magit-insert-bisect-log
-		magit-insert-untracked-files
-		magit-insert-unstaged-changes
-		magit-insert-staged-changes
-		magit-insert-stashes
-		magit-insert-unpulled-from-upstream
-		magit-insert-unpulled-from-pushremote
-		magit-insert-unpushed-to-upstream
-		magit-insert-unpushed-to-pushremote
-		magit-insert-modules-unpulled-from-upstream
-		magit-insert-modules-unpulled-from-pushremote
-		magit-insert-modules-unpushed-to-upstream
-		magit-insert-modules-unpushed-to-pushremote))
-
-	(magit-define-popup-switch 'magit-log-popup
-	  ?m "Omit merge commits" "--no-merges")
-
-	(magit-define-popup-switch
-	  'magit-log-popup
-	  ?1 "First parent" "--first-parent")
-
-	(autoload 'org-read-date "org")
-
-	(defun magit-org-read-date (prompt &optional _default)
-	  (org-read-date 'with-time nil nil prompt))
-
-	(magit-define-popup-option 'magit-log-popup
-	  ?s "Since date" "--since=" #'magit-org-read-date)
-
-	(magit-define-popup-option 'magit-log-popup
-	  ?u "Until date" "--until=" #'magit-org-read-date)
-
-	(add-hook 'after-save-hook 'magit-after-save-refresh-status)
-	(setf magit-save-repository-buffers 'dontask))
-
-      (use-package magit-lfs
-	:ensure t)
-
-      (use-package magit-gh-pulls
-	:ensure t
-	:config
-	(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
-
-      (use-package magithub
-	:after magit
-	:config (magithub-feature-autoinject t))
-
-      (use-package git-timemachine
-	:straight (:host github
-			 :repo "emacsmirror/git-timemachine"
-			 :branch "master")
-
-	;; https://github.com/emacsmirror/git-timemachine
-	:bind (("C-x M-t" . git-timemachine)
-	       ("C-x M-T" . my-git-timemachine))
-	:config
-	;; http://blog.binchen.org/posts/enhance-emacs-git-gutter-with-ivy-mode.html
-	(defun my-git-timemachine-show-selected-revision ()
-	  "Show last (current) revision of file."
-	  (interactive)
-	  (let* ((collection (mapcar (lambda (rev)
-				       ;; re-shape list for the ivy-read
-				       (cons (concat (substring-no-properties (nth 0 rev) 0 7) "|" (nth 5 rev) "|" (nth 6 rev)) rev))
-				     (git-timemachine--revisions))))
-	    (ivy-read "commits:"
-		      collection
-		      :action (lambda (rev)
-				;; compatible with ivy 9+ and ivy 8
-				(unless (string-match-p "^[a-z0-9]*$" (car rev))
-				  (setf rev (cdr rev)))
-				(git-timemachine-show-revision rev)))))
-
-	(defun my-git-timemachine ()
-	  "Open git snapshot with the selected version.  Based on ivy-mode."
-	  (interactive)
-	  (unless (featurep 'git-timemachine)
-	    (require 'git-timemachine))
-	  (git-timemachine--start #'my-git-timemachine-show-selected-revision)))
-
-      (use-package magit-imerge)
-
-      (use-package cc-mode)
-
-      (use-package lsp-mode
-	:config
-	;; (defun lsp--parser-on-message (p msg)
-	;;   "Called when the parser reads a complete message from the server."
-	;;   (let* ((json-data (lsp--read-json msg))
-	;; 	 (id (gethash "id" json-data nil))
-	;; 	 (client (lsp--workspace-client (lsp--parser-workspace p)))
-	;; 	 callback)
-	;;     (pcase (lsp--get-message-type json-data)
-	;;       ('response
-        ;;        (cl-assert id)
-        ;;        (setq callback (gethash (if (stringp id)
-	;; 				   (string-to-number id)
-	;; 				 id)
-	;; 			       (lsp--client-response-handlers client)
-	;; 			       nil))
-        ;;        (if callback
-	;; 	   (progn (funcall callback (gethash "result" json-data nil))
-	;; 		  (remhash id (lsp--client-response-handlers client)))
-	;; 	 (setf (lsp--parser-response-result p)
-	;; 	       (and json-data (gethash "result" json-data nil))
-	;; 	       (lsp--parser-waiting-for-response p) nil)))
-	;;       ('response-error
-        ;;        (let* ((err (gethash "error" json-data nil))
-	;; 	      (code (gethash "code" err nil)))
-	;; 	 (when (and json-data
-	;; 		    (not (= code  -32603))
-	;; 		    (not (memq code lsp--silent-errors)))
-	;; 	   (message (lsp--error-string err))))
-        ;;        (setf (lsp--parser-response-result p) nil
-	;; 	     (lsp--parser-waiting-for-response p) nil))
-	;;       ('notification (lsp--on-notification p json-data))
-	;;       ('request      (lsp--on-request p json-data)))))
-	;; (lsp-define-stdio-client lsp-python "python"
-	;; 			 #'projectile-project-root
-	;; 			 '("pyls"))
-
-	;; make sure this is activated when python-mode is activated
-	;; lsp-python-enable is created by macro above
-	)
-
-      (use-package pipenv
-	:hook (python-mode . pipenv-mode))
-
-      (use-package lsp-python
-	:config (add-hook 'python-mode-hook #'lsp-python-enable))
-
-      (use-package cquery
-	:config
-	(setf cquery-extra-init-params '(:completion (:detailedLabel t)))
-	(setf cquery-sem-highlight-method 'font-lock)
-	(cquery-use-default-rainbow-sem-highlight))
-
-      (use-package company-lsp
-	:config
-	(setf company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)
-	(setf company-lsp-async t)
-	)
-
-      (use-package ivy-xref
-	:init (setf xref-show-xrefs-function #'ivy-xref-show-xrefs))
-
-      (use-package lsp-ui
-	:config
-	(setf lsp-ui-sideline-show-symbol t)
-	(defun my-cquery-find-vars ()
-	  (interactive)
-	  (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
-
-	(defun my-cquery-find-callers ()
-	  (interactive)
-	  (lsp-ui-peek-find-custom 'callers "$cquery/callers"))
-
-	(define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-	(define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-	(bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
-	(bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
-	(add-hook 'lsp-mode 'lsp-ui-mode))
-
-      (use-package lsp-python
-	:config (add-hook 'python-mode-hook #'lsp-python-enable))
-
-      (use-package pipenv
-	:hook (python-mode . pipenv-mode))
-
-      (defun my-c-mode-hook-func ()
-	(electric-pair-mode 1)
-	(company-mode 1)
-	;; (irony-mode 1)
-	(key-chord-mode 1)
-	(lsp-cquery-enable)
-	(lsp-ui-mode)
-	(add-to-list 'write-file-functions 'delete-trailing-whitespace)
-	(add-to-list 'company-backends 'company-lsp))
-      (add-hook 'c-mode-hook 'my-c-mode-hook-func)
-
-      (defun insert-semicolorn ()
-	"Add semicolon at the end of the line and return to current position"
-	(interactive)
-	(save-excursion
-	  (end-of-line)
-	  (insert ";")))
-
-      ;; TODO: Move these
-      (mapc
-       (lambda (keyscommand)
-	 (key-chord-define-global
-	  (car keyscommand) (cdr keyscommand)))
-       '(
-	 ("1j" . "!")
-	 ("2j" . "@")
-	 ("3j" . "#")
-	 ("4j" . "$")
-	 ("5j" . "%")
-	 ("6f" . "^")
-	 ("7f" . "&")
-	 ("8f" . "*")
-
-	 ("PP" . counsel-projectile-switch-project)
-	 ("PO" . counsel-projectile-find-file)
-	 ("PS" . counsel-projectile-ag)
-	 ("PC" . projectile-compile-project)
-	 ("PB" . projectile-switch-to-buffer)
-	 ("PD" . projectile-dired)
-
-	 ("0c" . compile)
-
-	 ("1p" . pwd)
-
-	 ("qq" . avy-goto-char-timer)
-	 ("QQ" . avy-goto-word-1)
-	 ("1q" . avy-goto-subword-1)
-	 ("0q" . avy-goto-char)
-	 ("1l" . avy-goto-line)
-
-	 ("vj" . "|")))
-
-
-
-      (use-package company-quickhelp
-	:bind (:map company-active-map
-		    ("M-h" . company-quickhelp-manual-begin))
-	:config
-	(progn
-	  (setf company-quickhelp-delay 1.0)
-	  (company-quickhelp-mode 1)))
-
-      (use-package realgud)
-
-      (use-package bury-successful-compilation
-	:config
-	(bury-successful-compilation 1))
-
-      (defun notify-compilation-result(buffer msg)
-	"Notify that the compilation is finished,
+(message "Loading IRC stuff...")
+
+(require 'erc)
+(require 'erc-match)
+(require 'erc-imenu)
+
+(add-to-list 'erc-modules 'log)
+(add-to-list 'erc-modules 'notifications)
+(setf erc-modules
+      '(log notifications fill move-to-prompt stamp spelling hl-nicks netsplit fill
+	    button match track completion readonly networks ring
+	    autojoin noncommands irccontrols move-to-prompt stamp menu list))
+
+(erc-spelling-mode 1)
+
+(setf erc-prompt  (lambda () (concat (buffer-name) "> ")))
+
+(add-hook 'erc-mode-hook 'flyspell-mode) ;start flyspell-mode
+(setf ispell-dictionary "svenska") ;set the default dictionary
+
+(setf erc-save-buffer-on-part t)
+(setf erc-log-channels-directory "~/.erc/logs/")
+(setf erc-server-reconnect-timeout 5)
+(setf erc-server-reconnect-attempts t)
+
+(defface erc-header-line-disconnected
+  '((t (:inherit magit-diff-removed)))
+  "Face to use when ERC has been disconnected.")
+
+(defun erc-update-header-line-show-disconnected ()
+  "Use a different face in the header-line when disconnected."
+  (erc-with-server-buffer
+    (cond ((erc-server-process-alive) 'erc-header-line)
+	  (t 'erc-header-line-disconnected))))
+
+(setf erc-header-line-face-method 'erc-update-header-line-show-disconnected)
+;; (setf erc-hide-list '("JOIN" "PART" "QUIT"))
+
+(require 'erc-input-fill)
+
+(setf erc-timestamp-only-if-changed-flag nil
+      erc-timestamp-format "%H:%M "
+      erc-fill-prefix "    | "
+      erc-insert-timestamp-function 'erc-insert-timestamp-left)
+
+(setf erc-auto-query 'buffer)
+
+(use-package erc-hl-nicks)
+
+(use-package erc-colorize
+  :ensure t
+  :config
+  (erc-colorize-mode 1))
+
+
+(eval-after-load 'erc-track
+  '(progn
+     (defun erc-bar-move-back (n)
+       "Moves back n message lines. Ignores wrapping, and server messages."
+       (interactive "nHow many lines ? ")
+       (re-search-backward "^.*<.*>" nil t n))
+
+     (defun erc-bar-update-overlay ()
+       "Update the overlay for current buffer, based on the content of
+	     erc-modified-channels-alist. Should be executed on window change."
+       (interactive)
+       (let* ((info (assq (current-buffer) erc-modified-channels-alist))
+	      (count (cadr info)))
+	 (if (and info (> count erc-bar-threshold))
+	     (save-excursion
+	       (end-of-buffer)
+	       (when (erc-bar-move-back count)
+		 (let ((inhibit-field-text-motion t))
+		   (move-overlay erc-bar-overlay
+				 (line-beginning-position)
+				 (line-end-position)
+				 (current-buffer)))))
+	   (delete-overlay erc-bar-overlay))))
+
+     (defvar erc-bar-threshold 1
+       "Display bar when there are more than erc-bar-threshold unread messages.")
+     (defvar erc-bar-overlay nil
+       "Overlay used to set bar")
+     (setf erc-bar-overlay (make-overlay 0 0))
+     (overlay-put erc-bar-overlay 'face '(:underline "black"))
+     ;;put the hook before erc-modified-channels-update
+     (defadvice erc-track-mode (after erc-bar-setup-hook
+				      (&rest args) activate)
+       ;;remove and add, so we know it's in the first place
+       (remove-hook 'window-configuration-change-hook 'erc-bar-update-overlay)
+       (add-hook 'window-configuration-change-hook 'erc-bar-update-overlay))
+     (add-hook 'erc-send-completed-hook (lambda (str)
+					  (erc-bar-update-overlay)))))
+
+(defun fit-window-to-buffer-width (&optional window max-width min-width)
+  "Fit WINDOW according to its buffer's width.
+	     WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
+	     `fit-window-to-buffer'."
+  (interactive)
+  (let ((fit-window-to-buffer-horizontally 'only))
+    (fit-window-to-buffer window nil nil max-width min-width)))
+(message "Loading IRC stuff done!")
+
+(message "Loading DEVEL stuff...")
+(use-package magit
+  :bind (("C-c m" . magit-status)
+	 ("s-m" . magit-status)
+	 ("C-c l" . magit-log-buffer-file)
+	 ("C-c M-g" . magit-dispatch-popup))
+  :config
+  (setenv "GIT_PAGER" "")
+  (setf magit-commit-arguments (quote ("--signoff")))
+  (setf magit-set-upstream-on-push t)
+  (setf magit-revert-buffers 1)
+  (setf magit-log-show-refname-after-summary t)
+  (setf magit-completing-read-function 'ivy-completing-read)
+  (setf magit-use-sticky-arguments nil)
+  (setf magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+
+  (setf magit-status-margin '(nil age magit-log-margin-width nil 18))
+
+  (setf magit-status-headers-hook
+	'(magit-insert-error-header
+	  magit-insert-repo-header
+	  magit-insert-remote-header
+	  magit-insert-diff-filter-header
+	  magit-insert-head-branch-header
+	  magit-insert-upstream-branch-header
+	  magit-insert-push-branch-header
+	  magit-insert-tags-header))
+
+  (setf magit-status-sections-hook
+	'(magit-insert-status-headers
+	  magit-insert-merge-log
+	  magit-insert-rebase-sequence
+	  magit-insert-am-sequence
+	  magit-insert-sequencer-sequence
+	  magit-insert-bisect-output
+	  magit-insert-bisect-rest
+	  magit-insert-bisect-log
+	  magit-insert-untracked-files
+	  magit-insert-unstaged-changes
+	  magit-insert-staged-changes
+	  magit-insert-stashes
+	  magit-insert-unpulled-from-upstream
+	  magit-insert-unpulled-from-pushremote
+	  magit-insert-unpushed-to-upstream
+	  magit-insert-unpushed-to-pushremote
+	  magit-insert-modules-unpulled-from-upstream
+	  magit-insert-modules-unpulled-from-pushremote
+	  magit-insert-modules-unpushed-to-upstream
+	  magit-insert-modules-unpushed-to-pushremote))
+
+  (magit-define-popup-switch 'magit-log-popup
+    ?m "Omit merge commits" "--no-merges")
+
+  (magit-define-popup-switch
+    'magit-log-popup
+    ?1 "First parent" "--first-parent")
+
+  (autoload 'org-read-date "org")
+
+  (defun magit-org-read-date (prompt &optional _default)
+    (org-read-date 'with-time nil nil prompt))
+
+  (magit-define-popup-option 'magit-log-popup
+    ?s "Since date" "--since=" #'magit-org-read-date)
+
+  (magit-define-popup-option 'magit-log-popup
+    ?u "Until date" "--until=" #'magit-org-read-date)
+
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status)
+  (setf magit-save-repository-buffers 'dontask))
+
+(use-package magit-rockstar
+  :config
+  (magit-define-popup-action 'magit-rebase-popup
+    ?R "Rockstar" 'magit-rockstar)
+
+  (magit-define-popup-action 'magit-commit-popup
+    ?n "Reshelve" 'magit-reshelve))
+
+(use-package magit-todos
+  :straight (:host github  :repo "magnusmalm/magit-todos"
+		   :upstream
+		   (:host github :repo "alphapapa/magit-todos"))
+  :config
+  (magit-todos-mode 1))
+
+(use-package doom-todo-ivy
+  :straight (:host github
+      		   :repo "jsmestad/doom-todo-ivy"))
+
+;; https://github.com/jsmestad/doom-todo-ivy
+
+(use-package magit-lfs
+  :ensure t)
+
+;; (use-package magit-gh-pulls
+;; 	:ensure t
+;; 	:config
+;; 	(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
+
+;; (use-package magithub
+;; 	:after magit
+;; 	:config (magithub-feature-autoinject t))
+
+(use-package git-timemachine
+  :straight (:host github
+		   :repo "emacsmirror/git-timemachine"
+		   :branch "master")
+
+  ;; https://github.com/emacsmirror/git-timemachine
+  :bind (("C-x M-t" . git-timemachine)
+	 ("C-x M-T" . my-git-timemachine))
+  :config
+  ;; http://blog.binchen.org/posts/enhance-emacs-git-gutter-with-ivy-mode.html
+  (defun my-git-timemachine-show-selected-revision ()
+    "Show last (current) revision of file."
+    (interactive)
+    (let* ((collection (mapcar (lambda (rev)
+				 ;; re-shape list for the ivy-read
+				 (cons (concat (substring-no-properties (nth 0 rev) 0 7) "|" (nth 5 rev) "|" (nth 6 rev)) rev))
+			       (git-timemachine--revisions))))
+      (ivy-read "commits:"
+		collection
+		:action (lambda (rev)
+			  ;; compatible with ivy 9+ and ivy 8
+			  (unless (string-match-p "^[a-z0-9]*$" (car rev))
+			    (setf rev (cdr rev)))
+			  (git-timemachine-show-revision rev)))))
+
+  (defun my-git-timemachine ()
+    "Open git snapshot with the selected version.  Based on ivy-mode."
+    (interactive)
+    (unless (featurep 'git-timemachine)
+      (require 'git-timemachine))
+    (git-timemachine--start #'my-git-timemachine-show-selected-revision)))
+
+;; (use-package magit-imerge)
+
+(use-package cc-mode
+  :config
+  (defun reformat-region (&optional b e)
+    (interactive "r")
+    (when (not (buffer-file-name))
+      (error "A buffer must be associated with a file in order to use REFORMAT-REGION."))
+    (when (not (executable-find "clang-format"))
+      (error "clang-format not found."))
+    (shell-command-on-region b e
+                             "clang-format"
+                             (current-buffer) t)
+    (indent-region b e)
+    ))
+
+;; (use-package ccls
+;; 	:config
+;; 	(setf ccls-executable "/home/magnus/src/ccls/Release/ccls"))
+;; (use-package lsp-mode)
+
+(use-package pipenv
+  :hook (python-mode . pipenv-mode))
+
+(use-package lsp-python
+  :config (add-hook 'python-mode-hook #'lsp-python-enable))
+
+(use-package cquery
+  :config
+  (setf cquery-extra-init-params '(:completion (:detailedLabel t)))
+  (setf cquery-sem-highlight-method 'font-lock)
+  (cquery-use-default-rainbow-sem-highlight))
+
+(use-package company-lsp
+  :config
+  (setf company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)
+  (setf company-lsp-async t)
+  )
+
+(use-package ivy-xref
+  :init (setf xref-show-xrefs-function #'ivy-xref-show-xrefs))
+
+(use-package lsp-ui
+  :config
+  (setf lsp-ui-sideline-show-symbol t)
+  (defun my-cquery-find-vars ()
+    (interactive)
+    (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
+
+  (defun my-cquery-find-callers ()
+    (interactive)
+    (lsp-ui-peek-find-custom 'callers "$cquery/callers"))
+
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  (bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
+  (bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
+  (add-hook 'lsp-mode 'lsp-ui-mode))
+
+;; (use-package irony
+;; 	:config
+;; 	(add-hook 'c-mode-hook 'irony-mode)
+;; 	(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(defun my-c-mode-hook-func ()
+  ;; (semantic-mode 1)
+  (rainbow-identifiers-mode -1)
+  (setf fill-column 80)
+  (yas-minor-mode)
+  (electric-pair-mode 1)
+  (company-mode 1)
+  ;; (irony-mode 1)
+  (key-chord-mode 1)
+  (lsp-cquery-enable)
+  ;; (lsp-ccls-enable)
+  (lsp-ui-mode)
+  (add-to-list 'write-file-functions 'delete-trailing-whitespace)
+  (add-to-list 'company-backends 'company-lsp)
+  ;; (add-to-list 'company-backends 'company-irony)
+  (setq-local company-backends (add-to-list 'company-backends 'company-lsp))
+  ;; (setq-local company-backends (add-to-list 'company-backends 'company-irony))
+  )
+(add-hook 'c-mode-hook 'my-c-mode-hook-func)
+
+(defun insert-semicolorn ()
+  "Add semicolon at the end of the line and return to current position"
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (insert ";")))
+
+(use-package company-quickhelp
+  :bind (:map company-active-map
+	      ("M-h" . company-quickhelp-manual-begin))
+  :config
+  (progn
+    (setf company-quickhelp-delay 1.0)
+    (company-quickhelp-mode 1)))
+
+(use-package realgud)
+
+(setf compilation-scroll-output t)
+(use-package bury-successful-compilation
+  :config
+  (bury-successful-compilation 1))
+
+(defun notify-compilation-result(buffer msg)
+  "Notify that the compilation is finished,
 close the *compilation* buffer if the compilation is successful,
 and set the focus back to Emacs frame"
-	(if (string-match "^finished" msg)
-	    (progn
-	      (notify "Compilation" "Compilation Successful"))
-	  (notify "Compilation" "Compilation Failed")))
+  (if (string-match "^finished" msg)
+      (progn
+	(notify "Compilation" "Compilation Successful"))
+    (notify "Compilation" "Compilation Failed")))
 
-      (add-to-list 'compilation-finish-functions
-		   'notify-compilation-result)
+(add-to-list 'compilation-finish-functions
+	     'notify-compilation-result)
 
-      (use-package ediff
-	:ensure nil
-	:config
-	(setf ediff-window-setup-function 'ediff-setup-windows-plain)
-	(setf ediff-split-window-function 'split-window-horizontally)
-	(add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+(use-package ediff
+  :ensure nil
+  :config
+  (setf ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setf ediff-split-window-function 'split-window-horizontally)
+  (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
 
-      (use-package flycheck
-	:demand t
-	:init
-	(add-hook 'prog-mode-hook #'flycheck-mode)
-	:config
-	(setf flycheck-display-errors-function nil)
-	(use-package flycheck-pos-tip
-	  :config
-	  (setf flycheck-pos-tip-timeout (* 60 10))
-	  (flycheck-pos-tip-mode)))
+(use-package flycheck
+  :demand t
+  :init
+  (add-hook 'prog-mode-hook #'flycheck-mode)
+  :config
+  (setf flycheck-display-errors-function nil)
+  (use-package flycheck-pos-tip
+    :config
+    (setf flycheck-pos-tip-timeout (* 60 10))
+    (flycheck-pos-tip-mode)))
 
-      (use-package flycheck-irony
-	:demand t
-	:config
-	(eval-after-load 'flycheck
-	  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
+;; (use-package flycheck-irony
+;; 	:demand t
+;; 	:config
+;; 	(eval-after-load 'flycheck
+;; 	  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
 
 ;;;; YAML MODE
 
-      (use-package yaml-mode)
+(use-package yaml-mode)
 
-      (use-package yaml-tomato)
+(use-package yaml-tomato)
 
 ;;;; INDENTING
 
-      (use-package aggressive-indent
-	:delight
-	:config
-	(global-aggressive-indent-mode 1)
-	(add-to-list 'aggressive-indent-excluded-modes 'python-mode)
-	(add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
-	(add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+(use-package aggressive-indent
+  :delight
+  :config
+  (global-aggressive-indent-mode 1)
+  (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
+  (add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
 
-      (use-package auto-indent-mode)
+(use-package auto-indent-mode)
 
-      (use-package elf-mode)
+(use-package lispy
+  :delight
+  :init
+  (defun attic/lispy--eval ()
+    (interactive)
+    (if (equal major-mode 'scheme-mode)
+	(geiser-eval-next-sexp nil)
+      (special-lispy-eval)))
+  :config
+  (lispy-define-key lispy-mode-map-special "e" 'attic/lispy--eval)
+  (defun lispy-left-no-mark ()
+    (interactive)
+    (deactivate-mark)
+    (lispy-left 1))
+  :hook (emacs-lisp-mode . lispy-mode))
 
-      (use-package lispy
-	:delight
-	:init
-	(defun attic/lispy--eval ()
-	  (interactive)
-	  (if (equal major-mode 'scheme-mode)
-	      (geiser-eval-next-sexp nil)
-	    (special-lispy-eval)))
-	:config
-	(lispy-define-key lispy-mode-map-special "e" 'attic/lispy--eval)
-	(defun lispy-left-no-mark ()
-	  (interactive)
-	  (deactivate-mark)
-	  (lispy-left 1)))
+(use-package elf-mode)
 
-      (use-package common-lisp-snippets)
+(use-package common-lisp-snippets)
 
-      (use-package lua-mode
-	:config
-	(setf lua-default-application "luajit"))
+(use-package lua-mode
+  :config
+  (setf lua-default-application "luajit"))
 
-      (use-package elpy
-	:config
-	(setf elpy-rpc-backend "jedi")
-	(elpy-enable))
+(use-package elpy
+  :config
+  (setf elpy-rpc-backend "jedi")
+  (elpy-enable))
 
-      (message "Loading DEVEL stuff done")))
+(message "Loading DEVEL stuff done")
+;; Source: https://www.reddit.com/r/emacs/comments/89yofa/keychord_mode/
 
 
-(if (server-is "org")
-    (progn
-      (message "Loading ORG stuff...")
+(use-package key-chord
+  :ensure t
+  :config
+  (key-chord-mode 1)
+  (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer)
+  (key-chord-define-global "uu" 'undo-tree-visualize)
+  (key-chord-define-global "ZZ" 'undo)
+  (key-chord-define-global "XX" 'counsel-M-x)
+  (key-chord-define-global "yy" 'popup-kill-ring)
+  (key-chord-define-global "YY" 'counsel-yank-pop)
+  (key-chord-define-global "  " ". ")
 
-      ;; Hack to make loading latest org mode work.
-      ;; org-git-version, org-release
-      (require 'subr-x)
-      (straight-use-package 'git)
+  ;; This create a prefix keymap
+  ;; https://stackoverflow.com/questions/25473660/how-do-i-use-a-key-chord-combination-as-a-prefix-binding
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "o" 'avy-goto-subword-1)
+    (define-key sub-keymap "O" 'avy-goto-word-1)
+    (define-key sub-keymap "l" 'avy-goto-line)
+    (define-key sub-keymap "b" 'avy-goto-char)
+    (define-key sub-keymap "B" 'avy-goto-char-timer)
+    (key-chord-define-global "qq" sub-keymap))
 
-      (defun org-git-version ()
-	"The Git version of org-mode.
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "t" 'air-org-set-tags)
+    (define-key sub-keymap "T" 'org-change-tag-in-region)
+    (define-key sub-keymap "a" 'org-agenda)
+    (define-key sub-keymap "c" 'org-capture)
+    (key-chord-define-global "OO" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "p" 'counsel-projectile-switch-project)
+    (define-key sub-keymap "f" 'counsel-projectile-find-file)
+    (define-key sub-keymap "s" 'counsel-projectile-rg)
+    (define-key sub-keymap "c" 'projectile-compile-project)
+    (define-key sub-keymap "b" 'projectile-switch-to-buffer)
+    (define-key sub-keymap "d" 'projectile-dired)
+    (define-key sub-keymap "m" 'magit-status)
+    (define-key sub-keymap "l" 'multi-line)
+    (define-key sub-keymap "t" 'org-projectile-project-todo-completing-read)
+    (define-key sub-keymap "c" 'org-capture)
+    (key-chord-define-global "ww" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "a" "!")
+    (define-key sub-keymap "q" "@")
+    (define-key sub-keymap "s" "\"")
+    (define-key sub-keymap "f" "#")
+    (define-key sub-keymap "d" "$")
+    (define-key sub-keymap "g" "%")
+    (define-key sub-keymap "h" "&")
+    (define-key sub-keymap "j" "/")
+    (define-key sub-keymap "i" "\\")
+    (define-key sub-keymap "k" "\\")
+    (define-key sub-keymap "u" "'")
+    (define-key sub-keymap "l" "*")
+    (define-key sub-keymap "v" "|")
+    (define-key sub-keymap "o" "|")
+    (define-key sub-keymap "ö" "'")
+    (define-key sub-keymap "c" 'compile)
+    (define-key sub-keymap "p" 'pwd)
+    (key-chord-define-global "ii" sub-keymap))
+
+
+  (message "Loading ORG stuff...")
+
+  ;; Hack to make loading latest org mode work.
+  ;; org-git-version, org-release
+  (require 'subr-x)
+  (straight-use-package 'git)
+
+  (defun org-git-version ()
+    "The Git version of org-mode.
 Inserted by installing org-mode or when a release is made."
-	(require 'git)
-	(let ((git-repo (expand-file-name
-			 "straight/repos/org/" user-emacs-directory)))
-	  (string-trim
-	   (git-run "describe"
-		    "--match=release\*"
-		    "--abbrev=6"
-		    "HEAD"))))
+    (require 'git)
+    (let ((git-repo (expand-file-name
+		     "straight/repos/org/" user-emacs-directory)))
+      (string-trim
+       (git-run "describe"
+		"--match=release\*"
+		"--abbrev=6"
+		"HEAD"))))
 
-      (defun org-release ()
-	"The release version of org-mode.
+  (defun org-release ()
+    "The release version of org-mode.
 Inserted by installing org-mode or when a release is made."
-	(require 'git)
-	(let ((git-repo (expand-file-name
-			 "straight/repos/org/" user-emacs-directory)))
-	  (string-trim
-	   (string-remove-prefix
-	    "release_"
-	    (git-run "describe"
-		     "--match=release\*"
-		     "--abbrev=0"
-		     "HEAD")))))
+    (require 'git)
+    (let ((git-repo (expand-file-name
+		     "straight/repos/org/" user-emacs-directory)))
+      (string-trim
+       (string-remove-prefix
+	"release_"
+	(git-run "describe"
+		 "--match=release\*"
+		 "--abbrev=0"
+		 "HEAD")))))
 
-      (provide 'org-version)
+  (provide 'org-version)
 
-      (use-package org
-	:demand t
-	:ensure t
-	:bind
-	(("C-c M-l" . org-store-link)
-	 ("C-c C-l" . org-insert-link)
-	 ("C-c a" . org-agenda)
-	 ("C-c c" . org-capture)
-	 ("<pause>" . org-capture)
-	 ("C-M-|" . indent-rigidly)
-	 ("M-<left>" . org-do-promote)
-	 ("M-<right>" . org-do-demote)
-	 ("M-S-<left>" . org-promote-subtree)
-	 ("M-S-<right>" . org-demote-subtree)
-	 ("M-S-<up>" . org-move-subtree-up)
-	 ("M-S-<down>" . org-move-subtree-down)
-	 ("C-c C-e" . org-export-dispatch)
-	 ("C-c C-S-E" . hydra-org-clock/body)
+  (use-package org
+    :demand t
+    :ensure t
+    :bind
+    (("C-c M-l" . org-store-link)
+     ("C-c C-l" . org-insert-link)
+     ("C-c a" . org-agenda)
+     ("C-c c" . org-capture)
+     ("<pause>" . org-capture)
+     ("C-M-|" . indent-rigidly)
+     ("M-<left>" . org-do-promote)
+     ("M-<right>" . org-do-demote)
+     ("M-S-<left>" . org-promote-subtree)
+     ("M-S-<right>" . org-demote-subtree)
+     ("M-S-<up>" . org-move-subtree-up)
+     ("M-S-<down>" . org-move-subtree-down)
+     ("C-c C-e" . org-export-dispatch)
+     ("C-c C-S-E" . hydra-org-clock/body)
 
-	 ("C-c C-q" .   air-org-set-tags)
+     ("C-c C-q" .   air-org-set-tags)
 
-	 ("C-c c" .   air-org-task-capture)
-	 ("C-C t a" . mmm-pop-to-org-agenda)
-	 ("C-c t n" . air-pop-to-org-notes)
-	 ("C-c t t" . air-pop-to-org-todo)
-	 ("C-c t c" . my-open-calendar)
-	 ("C-c t A" . org-agenda)
+     ("C-c c" .   air-org-task-capture)
+     ("C-C t a" . mmm-pop-to-org-agenda)
+     ("C-c t n" . air-pop-to-org-notes)
+     ("C-c t t" . air-pop-to-org-todo)
+     ("C-c t c" . my-open-calendar)
+     ("C-c t A" . org-agenda)
 
-	 ("C-c f k" . org-search-view)
-	 ("C-c f t" . org-tags-view)
-	 ("C-c f i" . air-org-goto-custom-id)
-	 :map org-mode-map
-	 ("<" . mmm-org-insert-template))
+     ("C-c f k" . org-search-view)
+     ("C-c f t" . org-tags-view)
+     ("C-c f i" . air-org-goto-custom-id)
+     :map org-mode-map
+     ("<" . mmm-org-insert-template))
 
-	;; :ensure org-plus-contrib
-	:init
-	(defun air-pop-to-org-todo (&optional split)
-	  "Visit my main TODO list, in the current window or a SPLIT."
-	  (interactive "P")
-	  (air--pop-to-file org-default-tasks-file split))
+    ;; :ensure org-plus-contrib
+    :init
+    (defun air-pop-to-org-todo (&optional split)
+      "Visit my main TODO list, in the current window or a SPLIT."
+      (interactive "P")
+      (air--pop-to-file org-default-tasks-file split))
 
-	(defun air-pop-to-org-notes (&optional split)
-	  "Visit my main TODO list, in the current window or a SPLIT."
-	  (interactive "P")
-	  (air--pop-to-file org-default-notes-file split))
+    (defun air-pop-to-org-notes (&optional split)
+      "Visit my main TODO list, in the current window or a SPLIT."
+      (interactive "P")
+      (air--pop-to-file org-default-notes-file split))
 
-	(defun air-org-task-capture (&optional vanilla)
-	  "Capture a task with my default template.
+    (defun air-org-task-capture (&optional vanilla)
+      "Capture a task with my default template.
 If VANILLA is non-nil, run the standard `org-capture'."
-	  (interactive "P")
-	  (if vanilla
-	      (org-capture)
-	    (org-capture nil "t")))
+      (interactive "P")
+      (if vanilla
+	  (org-capture)
+	(org-capture nil "t")))
 
-	(defun air--pop-to-org-agenda-view (key &optional split)
-	  "Visit the org agenda KEY, in the current window or a SPLIT."
-	  ;; I don't know why this works, but it works.
-	  (let ((current-prefix-arg nil))
-	    (org-agenda nil key))
-	  (when (not split)
-	    (delete-other-windows)))
+    (defun air--pop-to-org-agenda-view (key &optional split)
+      "Visit the org agenda KEY, in the current window or a SPLIT."
+      ;; I don't know why this works, but it works.
+      (let ((current-prefix-arg nil))
+	(org-agenda nil key))
+      (when (not split)
+	(delete-other-windows)))
 
-	(defun mmm-org-insert-template ()
-	  (interactive)
-	  (if (looking-back "^")
-	      (hydra-org-template/body)
-	    (self-insert-command 1)))
+    (defun mmm-org-insert-template ()
+      (interactive)
+      (if (looking-back "^")
+	  (hydra-org-template/body)
+	(self-insert-command 1)))
 
-	(defun air-org-skip-subtree-if-priority (priority)
-	  "Skip an agenda subtree if it has a priority of PRIORITY.
+    (defun air-org-skip-subtree-if-priority (priority)
+      "Skip an agenda subtree if it has a priority of PRIORITY.
 
 PRIORITY may be one of the characters ?A, ?B, or ?C."
-	  (let ((subtree-end (save-excursion (org-end-of-subtree t)))
-		(pri-value (* 1000 (- org-lowest-priority priority)))
-		(pri-current (org-get-priority (thing-at-point 'line t))))
-	    (if (= pri-value pri-current)
-		subtree-end
-	      nil)))
+      (let ((subtree-end (save-excursion (org-end-of-subtree t)))
+	    (pri-value (* 1000 (- org-lowest-priority priority)))
+	    (pri-current (org-get-priority (thing-at-point 'line t))))
+	(if (= pri-value pri-current)
+	    subtree-end
+	  nil)))
 
-	(defun air-org-skip-subtree-if-habit ()
-	  "Skip an agenda entry if it has a STYLE property equal to \"habit\"."
-	  (let ((subtree-end (save-excursion (org-end-of-subtree t))))
-	    (if (string= (org-entry-get nil "STYLE") "habit")
-		subtree-end
-	      nil)))
+    (defun air-org-skip-subtree-if-habit ()
+      "Skip an agenda entry if it has a STYLE property equal to \"habit\"."
+      (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+	(if (string= (org-entry-get nil "STYLE") "habit")
+	    subtree-end
+	  nil)))
 
-	(defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
-	       (unless (file-directory-p dir)
-		 (error "Not a directory `%s'" dir))
-	       (unless (equal (directory-files dir nil org-agenda-file-regexp t) nil)
-		 (add-to-list 'org-agenda-files dir))
-	       (dolist (file (directory-files dir nil nil t))
-		 (unless (member file '("." ".."))
-		   (let ((file (concat dir file "/")))
-		     (when (file-directory-p file)
-		       (load-org-agenda-files-recursively file))))))
+    (defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
+	   (unless (file-directory-p dir)
+	     (error "Not a directory `%s'" dir))
+	   (unless (equal (directory-files dir nil org-agenda-file-regexp t) nil)
+	     (add-to-list 'org-agenda-files dir))
+	   (dolist (file (directory-files dir nil nil t))
+	     (unless (member file '("." ".."))
+	       (let ((file (concat dir file "/")))
+		 (when (file-directory-p file)
+		   (load-org-agenda-files-recursively file))))))
 
-	(defun mmm-pop-to-org-agenda (split)
-	  "Visit the org agenda, in the current window or a SPLIT."
-	  (interactive "P")
-	  (org-agenda-list)
-	  (when (not split)
-	    (delete-other-windows)))
+    (defun mmm-pop-to-org-agenda (split)
+      "Visit the org agenda, in the current window or a SPLIT."
+      (interactive "P")
+      (org-agenda-list)
+      (when (not split)
+	(delete-other-windows)))
 
-	(defun hot-expand (str)
-	  "Expand org template."
-	  (insert str)
-	  (org-try-structure-completion))
+    (defun hot-expand (str)
+      "Expand org template."
+      (insert str)
+      (org-try-structure-completion))
 
-	(defun air--org-display-tag (tag &optional focus)
-	  "Display entries tagged with TAG in a fit window.
+    (defun air--org-display-tag (tag &optional focus)
+      "Display entries tagged with TAG in a fit window.
 Do not make the new window current unless FOCUS is set."
-	  (org-tags-view nil tag)
-	  (fit-window-to-buffer)
-	  (unless focus
-	    (other-window 1)))
+      (org-tags-view nil tag)
+      (fit-window-to-buffer)
+      (unless focus
+	(other-window 1)))
 
-	(defun air-org-display-any-tag ()
-	  "Display entries tagged with a tag selected interactively."
-	  (interactive)
-	  (air--org-display-tag (air--org-select-tag)))
+    (defun air-org-display-any-tag ()
+      "Display entries tagged with a tag selected interactively."
+      (interactive)
+      (air--org-display-tag (air--org-select-tag)))
 
-	(defun air--org-select-tag ()
-	  "Interactively select or enter a single tag."
-	  (let ((org-last-tags-completion-table
-		 (if (derived-mode-p 'org-mode)
-		     (org-uniquify
-		      (delq nil (append (org-get-buffer-tags)
-					(org-global-tags-completion-table))))
-		   (org-global-tags-completion-table))))
-	    (completing-read
-	     "Tag: " 'org-tags-completion-function nil nil nil
-	     'org-tags-history)))
+    (defun air--org-select-tag ()
+      "Interactively select or enter a single tag."
+      (let ((org-last-tags-completion-table
+	     (if (derived-mode-p 'org-mode)
+		 (org-uniquify
+		  (delq nil (append (org-get-buffer-tags)
+				    (org-global-tags-completion-table))))
+	       (org-global-tags-completion-table))))
+	(completing-read
+	 "Tag: " 'org-tags-completion-function nil nil nil
+	 'org-tags-history)))
 
-	(defun air--org-global-custom-ids ()
-	  "Find custom ID fields in all org agenda files."
-	  (let ((files (org-agenda-files))
-		file
-		air-all-org-custom-ids)
-	    (while (setf file (pop files))
-	      (with-current-buffer (org-get-agenda-file-buffer file)
-		(save-excursion
-		  (save-restriction
-		    (widen)
-		    (goto-char (point-min))
-		    (while (re-search-forward "^[ \t]*:CUSTOM_ID:[ \t]+\\(\\S-+\\)[ \t]*$"
-					      nil t)
-		      (add-to-list 'air-all-org-custom-ids
-				   `(,(match-string-no-properties 1)
-				     ,(concat file ":" (number-to-string (line-number-at-pos))))))))))
-	    air-all-org-custom-ids))
-
-	(defun air--org-find-custom-id (custom-id)
-	  "Return the location of CUSTOM-ID."
-	  (let* ((all-custom-ids (air--org-global-custom-ids)))
-	    (let* ((val (cadr (assoc custom-id all-custom-ids)))
-		   (id-parts (split-string val ":"))
-		   (file (car id-parts))
-		   (line (string-to-int (cadr id-parts))))
-	      (with-current-buffer (org-get-agenda-file-buffer file)
+    (defun air--org-global-custom-ids ()
+      "Find custom ID fields in all org agenda files."
+      (let ((files (org-agenda-files))
+	    file
+	    air-all-org-custom-ids)
+	(while (setf file (pop files))
+	  (with-current-buffer (org-get-agenda-file-buffer file)
+	    (save-excursion
+	      (save-restriction
+		(widen)
 		(goto-char (point-min))
-		(forward-line line)
-		(org-reveal)
-		(org-up-element)
-		(list (current-buffer) (point))))))
+		(while (re-search-forward "^[ \t]*:CUSTOM_ID:[ \t]+\\(\\S-+\\)[ \t]*$"
+					  nil t)
+		  (add-to-list 'air-all-org-custom-ids
+			       `(,(match-string-no-properties 1)
+				 ,(concat file ":" (number-to-string (line-number-at-pos))))))))))
+	air-all-org-custom-ids))
 
-	(defun air-org-goto-custom-id (&optional split)
-	  "Go to the location of a custom ID read interactively, maybe in a SPLIT."
-	  (interactive "P")
-	  (let* ((all-custom-ids (air--org-global-custom-ids))
-		 (custom-id (completing-read
-			     "Custom ID: "
-			     all-custom-ids))
-		 (id-location (air--org-find-custom-id custom-id)))
-	    (when id-location
-	      (let* ((buf (car id-location))
-		     (loc (cadr id-location)))
-		(pop-to-buffer buf (if split t nil))
-		(goto-char loc)
-		(org-reveal)))))
+    (defun air--org-find-custom-id (custom-id)
+      "Return the location of CUSTOM-ID."
+      (let* ((all-custom-ids (air--org-global-custom-ids)))
+	(let* ((val (cadr (assoc custom-id all-custom-ids)))
+	       (id-parts (split-string val ":"))
+	       (file (car id-parts))
+	       (line (string-to-int (cadr id-parts))))
+	  (with-current-buffer (org-get-agenda-file-buffer file)
+	    (goto-char (point-min))
+	    (forward-line line)
+	    (org-reveal)
+	    (org-up-element)
+	    (list (current-buffer) (point))))))
 
-	(defun air-org-insert-custom-id-link ()
-	  "Insert an Org link to a custom ID selected interactively."
-	  (interactive)
-	  (let* ((all-custom-ids (air--org-global-custom-ids))
-		 (custom-id (completing-read
-			     "Custom ID: "
-			     all-custom-ids)))
-	    (when custom-id
-	      (let* ((val (cadr (assoc custom-id all-custom-ids)))
-		     (id-parts (split-string val ":"))
-		     (file (car id-parts))
-		     (line (string-to-int (cadr id-parts))))
-		(org-insert-link nil (concat file "::#" custom-id) custom-id)))))
+    (defun air-org-goto-custom-id (&optional split)
+      "Go to the location of a custom ID read interactively, maybe in a SPLIT."
+      (interactive "P")
+      (let* ((all-custom-ids (air--org-global-custom-ids))
+	     (custom-id (completing-read
+			 "Custom ID: "
+			 all-custom-ids))
+	     (id-location (air--org-find-custom-id custom-id)))
+	(when id-location
+	  (let* ((buf (car id-location))
+		 (loc (cadr id-location)))
+	    (pop-to-buffer buf (if split t nil))
+	    (goto-char loc)
+	    (org-reveal)))))
 
-	(defun air--org-swap-tags (tags)
-	  "Replace any tags on the current headline with TAGS.
+    (defun air-org-insert-custom-id-link ()
+      "Insert an Org link to a custom ID selected interactively."
+      (interactive)
+      (let* ((all-custom-ids (air--org-global-custom-ids))
+	     (custom-id (completing-read
+			 "Custom ID: "
+			 all-custom-ids)))
+	(when custom-id
+	  (let* ((val (cadr (assoc custom-id all-custom-ids)))
+		 (id-parts (split-string val ":"))
+		 (file (car id-parts))
+		 (line (string-to-int (cadr id-parts))))
+	    (org-insert-link nil (concat file "::#" custom-id) custom-id)))))
+
+    (defun air--org-swap-tags (tags)
+      "Replace any tags on the current headline with TAGS.
 The assumption is that TAGS will be a string conforming to Org Mode's
 tag format specifications, or nil to remove all tags."
-	  (let ((old-tags (org-get-tags-string))
-		(tags (if tags
-			  (concat " " tags)
-			"")))
-	    (save-excursion
-	      (beginning-of-line)
-	      (re-search-forward
-	       (concat "[ \t]*" (regexp-quote old-tags) "[ \t]*$")
-	       (line-end-position) t)
-	      (replace-match tags)
-	      (org-set-tags t))))
+      (let ((old-tags (org-get-tags-string))
+	    (tags (if tags
+		      (concat " " tags)
+		    "")))
+	(save-excursion
+	  (beginning-of-line)
+	  (re-search-forward
+	   (concat "[ \t]*" (regexp-quote old-tags) "[ \t]*$")
+	   (line-end-position) t)
+	  (replace-match tags)
+	  (org-set-tags t))))
 
-	(defun air-org-set-tags (tag)
-	  "Add TAG if it is not in the list of tags, remove it otherwise.
+    (defun air-org-set-tags (tag)
+      "Add TAG if it is not in the list of tags, remove it otherwise.
 TAG is chosen interactively from the global tags completion table."
-	  (interactive (list (air--org-select-tag)))
-	  (let* ((cur-list (org-get-tags))
-		 (new-tags (mapconcat 'identity
-				      (if (member tag cur-list)
-					  (delete tag cur-list)
-					(append cur-list (list tag)))
-				      ":"))
-		 (new (if (> (length new-tags) 1) (concat " :" new-tags ":")
-			nil)))
-	    (air--org-swap-tags new)))
+      (interactive (list (air--org-select-tag)))
+      (let* ((cur-list (org-get-tags))
+	     (new-tags (mapconcat 'identity
+				  (if (member tag cur-list)
+				      (delete tag cur-list)
+				    (append cur-list (list tag)))
+				  ":"))
+	     (new (if (> (length new-tags) 1) (concat " :" new-tags ":")
+		    nil)))
+	(air--org-swap-tags new)))
 
-	:config
-	(setf org-agenda-custom-commands
-	      '(("d" "Daily agenda and all TODOs"
-		 ((tags "PRIORITY=\"A\""
-			((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-			 (org-agenda-overriding-header "High-priority unfinished tasks:")))
-		  (agenda "" ((org-agenda-span 'day)))
-		  (alltodo ""
-			   ((org-agenda-skip-function '(or (air-org-skip-subtree-if-habit)
-							   (air-org-skip-subtree-if-priority ?A)
-							   (org-agenda-skip-if nil '(scheduled deadline))))
-			    (org-agenda-overriding-header "ALL normal priority tasks:"))))
-		 ((org-agenda-compact-blocks t)))))
+    :config
+    (setq org-confirm-elisp-link-function nil)
+    (setf org-agenda-custom-commands
+	  '(("d" "Daily agenda and all TODOs"
+	     ((tags "PRIORITY=\"A\""
+		    ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+		     (org-agenda-overriding-header "High-priority unfinished tasks:")))
+	      (agenda "" ((org-agenda-span 'day)))
+	      (alltodo ""
+		       ((org-agenda-skip-function '(or (air-org-skip-subtree-if-habit)
+						       (air-org-skip-subtree-if-priority ?A)
+						       (org-agenda-skip-if nil '(scheduled deadline))))
+			(org-agenda-overriding-header "ALL normal priority tasks:"))))
+	     ((org-agenda-compact-blocks t)))))
 
-	(setf org-refile-targets '((nil :maxlevel . 2)
-				   (org-agenda-files :maxlevel . 2)))
+    (setf org-refile-targets '((nil :maxlevel . 2)
+			       (org-agenda-files :maxlevel . 2)))
 
-	(setf org-refile-use-outline-path t)
-	(setf org-refile-allow-creating-parent-nodes 'confirm)
-	(setf org-modules '(org-habit))
-	(setf org-agenda-include-diary nil)
+    (setf org-refile-use-outline-path t)
+    (setf org-refile-allow-creating-parent-nodes 'confirm)
+    (setf org-modules '(org-habit))
+    (setf org-agenda-include-diary nil)
 
-	(setf org-log-done (quote time))
-	(setf org-log-redeadline (quote time))
-	(setf org-log-reschedule (quote time))
+    (setf org-log-done (quote time))
+    (setf org-log-redeadline (quote time))
+    (setf org-log-reschedule (quote time))
 
-	(setf org-pretty-entities t)
+    (setf org-pretty-entities t)
 
-	(setf org-log-into-drawer t)
-	(setf org-use-speed-commands t
-	      org-hide-emphasis-markers t
-	      org-src-fontify-natively t   ;; Pretty code blocks
-	      org-src-tab-acts-natively t
-	      org-confirm-babel-evaluate nil)
-	(setf org-src-fontify-natively t)
-	(setf org-src-tab-acts-natively t)
-	(setf org-return-follows-link t)
+    (setf org-log-into-drawer t)
+    (setf org-use-speed-commands t
+	  org-hide-emphasis-markers t
+	  org-src-fontify-natively t ;; Pretty code blocks
+	  org-src-tab-acts-natively t
+	  org-confirm-babel-evaluate nil)
+    (setf org-src-fontify-natively t)
+    (setf org-src-tab-acts-natively t)
+    (setf org-return-follows-link t)
 
-	(setf org-ellipsis "⤵")
-	(setf org-todo-keywords
-	      '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
-			  "DONE(d!)" "CANCELED(c@)")))
+    (setf org-ellipsis "⤵")
+    (setf org-todo-keywords
+	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
+		      "DONE(d!)" "CANCELED(c@)")))
 
-	(setf org-todo-keyword-faces
-	      '(("TODO" . "LightSkyBlue")
-		("IN-PROGRESS" . "yellow2")
-		("WAIT" . "IndianRed")
-		("DONE" . "gold")
-		("CANCELED" . "red")))
+    (setf org-todo-keyword-faces
+	  '(("TODO" . "LightSkyBlue")
+	    ("IN-PROGRESS" . "yellow2")
+	    ("WAIT" . "IndianRed")
+	    ("DONE" . "gold")
+	    ("CANCELED" . "red")))
 
-	(setf org-tag-alist '((:startgroup . nil)
-			      ("@work" . ?w)
-			      ("@home" . ?h)
-			      ("@computer" . ?l)
-			      ("@mobile" . ?p)
-			      (:endgroup . nil)
-			      ("ttdp" . ?t)
-			      ("config" . ?c)
-			      ("emacs" . ?E)
-			      ("org" . ?o)
-			      ("meeting" . ?M)
-			      ("household" . ?H)
-			      ("economy" . ?e)))
+    (setf org-tag-alist '((:startgroup . nil)
+			  ("@work" . ?w)
+			  ("@home" . ?h)
+			  ("@computer" . ?l)
+			  ("@mobile" . ?p)
+			  (:endgroup . nil)
+			  ("ttdp" . ?t)
+			  ("config" . ?c)
+			  ("emacs" . ?E)
+			  ("org" . ?o)
+			  ("meeting" . ?M)
+			  ("household" . ?H)
+			  ("economy" . ?e)))
 
-	(setf org-tag-faces
-	      '(("@home"
-		 :foreground "Green3"
-		 :background nil
-		 :weight bold)
-		("@work"
-		 :foreground "DeepSkyBlue"
-		 :background nil
-		 :weight bold)
-		("@computer"
-		 :foreground "LightSeaGreen"
-		 :background nil
-		 :weight bold)
-		("@mobile"
-		 :foreground "Orange"
-		 :background nil
-		 :weight bold)))
+    (setf org-tag-faces
+	  '(("@home"
+	     :foreground "Green3"
+	     :background nil
+	     :weight bold)
+	    ("@work"
+	     :foreground "DeepSkyBlue"
+	     :background nil
+	     :weight bold)
+	    ("@computer"
+	     :foreground "LightSeaGreen"
+	     :background nil
+	     :weight bold)
+	    ("@mobile"
+	     :foreground "Orange"
+	     :background nil
+	     :weight bold)))
 
-	(setf org-journal-dir "~/sync/org/journal/")
-	(setf org-directory "~/sync/org/")
-	(setf org-default-notes-file "~/sync/org/notes.org")
-	(setf org-default-tasks-file "~/sync/org/tasks.org")
+    (setf org-journal-dir "~/sync/org/journal/")
+    (setf org-directory "~/sync/org/")
+    (setf org-default-notes-file "~/sync/org/notes.org")
+    (setf org-default-tasks-file "~/sync/org/tasks.org")
 
-	;; Collect all .org from my Org directory and subdirs
-	(setf org-agenda-file-regexp "\\`[^.].*\\.org\\'") ; default value
+    ;; Collect all .org from my Org directory and subdirs
+    (setf org-agenda-file-regexp "\\`[^.].*\\.org\\'") ; default value
 
-	(load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
+    (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
 
-	(org-babel-do-load-languages
-	 'org-babel-load-languages
-	 '((awk . t)
-	   (emacs-lisp . t)
-	   (python . t)
-	   (ruby . t)
-	   ))
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((awk . t)
+       (emacs-lisp . t)
+       (python . t)
+       (ruby . t)
+       ))
 
-	(font-lock-add-keywords
-	 'org-mode
-	 '(("^ +\\([-*]\\) "
-	    (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+    (font-lock-add-keywords
+     'org-mode
+     '(("^ +\\([-*]\\) "
+	(0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-	(add-hook 'org-mode-hook 'auto-fill-mode)
-	(add-hook 'org-mode-hook 'flyspell-mode)
+    (add-hook 'org-mode-hook 'auto-fill-mode)
+    (add-hook 'org-mode-hook 'flyspell-mode)
 
-	(defun mmm/org-capture-mode-hook ()
-	  (bind-keys :map org-capture-mode-map
-		     ("C-d" . insert-current-time)
-		     ("M->" . org-priority-up)
-		     ("M-<" . org-priority-down)
-		     ("C-t" . air-org-set-tags)))
-	(add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
+    (defun mmm/org-capture-mode-hook ()
+      (bind-keys :map org-capture-mode-map
+		 ("C-d" . insert-current-time)
+		 ("M->" . org-priority-up)
+		 ("M-<" . org-priority-down)
+		 ("C-t" . air-org-set-tags)))
+    (add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
 
-	(define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
-	(define-key org-mode-map (kbd "M-C-p") 'org-beginning-of-item-list)
-	(define-key org-mode-map (kbd "M-C-u") 'outline-up-heading)
-	(define-key org-mode-map (kbd "M-C-w") 'org-table-copy-region)
-	(define-key org-mode-map (kbd "M-C-y") 'org-table-paste-rectangle)
+    (define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
+    (define-key org-mode-map (kbd "M-C-p") 'org-beginning-of-item-list)
+    (define-key org-mode-map (kbd "M-C-u") 'outline-up-heading)
+    (define-key org-mode-map (kbd "M-C-w") 'org-table-copy-region)
+    (define-key org-mode-map (kbd "M-C-y") 'org-table-paste-rectangle)
 
-	(define-key org-mode-map [remap org-return] (lambda () (interactive)
-						      (if (org-in-src-block-p)
-							  (org-return)
-							(org-return-indent))))
+    (define-key org-mode-map [remap org-return] (lambda () (interactive)
+						  (if (org-in-src-block-p)
+						      (org-return)
+						    (org-return-indent))))
 
-	(use-package org-bullets
-	  :ensure t
-	  :init
-	  (add-hook 'org-mode-hook 'org-bullets-mode)
-	  (setf org-bullets-bullet-list '("\u2022")))
+    (use-package org-bullets
+      :ensure t
+      :init
+      (add-hook 'org-mode-hook 'org-bullets-mode)
+      (setf org-bullets-bullet-list '("\u2022")))
 
-	(use-package ox-html5slide
-	  :ensure t
-	  :init
-	  (setf org-html-postamble nil)
-	  (setf org-export-with-section-numbers nil)
-	  (setf org-export-with-toc nil)
-	  (setf org-html-head-extra "
+    (use-package ox-html5slide
+      :ensure t
+      :init
+      (setf org-html-postamble nil)
+      (setf org-export-with-section-numbers nil)
+      (setf org-export-with-toc nil)
+      (setf org-html-head-extra "
        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
        <style type='text/css'>
@@ -3148,231 +3359,238 @@ TAG is chosen interactively from the global tags completion table."
           }
        </style>"))
 
-	(use-package org-gcal)
+    (use-package org-gcal)
 
-	(use-package ox-reveal
-	  :init
-	  (setf org-reveal-postamble "Magnus Malm")
-	  (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
+    (use-package ox-reveal
+      :init
+      (setf org-reveal-postamble "Magnus Malm")
+      (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
 
-	(use-package org-pdfview)
+    (use-package org-pdfview)
 
-	(use-package ical2org
-	  :ensure nil
-	  :load-path "lisp/"
-	  :config
-	  (setf ical2org/completing-read #'ivy-completing-read))
+    (use-package ical2org
+      :ensure nil
+      :load-path "lisp/"
+      :config
+      (setf ical2org/completing-read #'ivy-completing-read))
 
-	(use-package calfw-ical)
-	(use-package calfw-org)
+    (use-package calfw-ical)
+    (use-package calfw-org)
 
-	(use-package calfw
-	  :config
-	  (setf calendar-week-start-day 1)
-	  (setf cfw:fchar-junction ?╬
-    		cfw:fchar-vertical-line ?║
-    		cfw:fchar-horizontal-line ?═
-    		cfw:fchar-left-junction ?╠
-    		cfw:fchar-right-junction ?╣
-    		cfw:fchar-top-junction ?╦
-    		cfw:fchar-top-left-corner ?╔
-    		cfw:fchar-top-right-corner ?╗)
+    (use-package calfw
+      :config
+      (setf calendar-week-start-day 1)
+      (setf cfw:fchar-junction ?╬
+    	    cfw:fchar-vertical-line ?║
+    	    cfw:fchar-horizontal-line ?═
+    	    cfw:fchar-left-junction ?╠
+    	    cfw:fchar-right-junction ?╣
+    	    cfw:fchar-top-junction ?╦
+    	    cfw:fchar-top-left-corner ?╔
+    	    cfw:fchar-top-right-corner ?╗)
 
-	  (setf mmm/cfw-sources
-  		(list
-  		 (cfw:org-create-source "Green")
-  		 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
-  					 (second mmm/cfw-cal-magnus)
-  					 (third mmm/cfw-cal-magnus))
-  		 (cfw:ical-create-source (first mmm/cfw-cal-misc)
-  					 (second mmm/cfw-cal-misc)
-  					 (third mmm/cfw-cal-misc))))
-	  (defun my-open-calendar ()
-	    (interactive)
-	    (cfw:open-calendar-buffer
-	     :contents-sources mmm/cfw-sources))
+      (setf mmm/cfw-sources
+  	    (list
+  	     (cfw:org-create-source "Green")
+  	     (cfw:ical-create-source (first mmm/cfw-cal-magnus)
+  				     (second mmm/cfw-cal-magnus)
+  				     (third mmm/cfw-cal-magnus))
+  	     (cfw:ical-create-source (first mmm/cfw-cal-misc)
+  				     (second mmm/cfw-cal-misc)
+  				     (third mmm/cfw-cal-misc))))
+      (defun my-open-calendar ()
+	(interactive)
+	(cfw:open-calendar-buffer
+	 :contents-sources mmm/cfw-sources))
 
-	  (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
+      (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
    %(cfw:org-capture-day)")))
 
-	(use-package poporg))
+    (use-package poporg))
 
-      (setf org-capture-templates
-	    '(
-	      ("j" "Journal entry" plain
-	       (file+olp+datetree "~/sync/org/journal/journal.org")
-	       "%i\n\n**** %?\n" :empty-lines 1)
-	      ("t" "Task Entry" entry
-	       (file+headline "~/sync/org/tasks.org" "Todos")
-	       "* TODO %?\n%u" :prepend t)
-	      ("n" "Note" entry
-	       (file+headline "~/sync/org/notes.org" "Notes")
-	       "* %?\n%u" :prepend t)
-	      )
-	    )
-      (defun place-agenda-tags ()
-	"Put the agenda tags by the right border of the agenda window."
-	(setf org-agenda-tags-column (- 4 (window-width)))
-	(org-agenda-align-tags))
-      ;; Place tags close to the right-hand side of the window
-      (add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
+  (setf org-capture-templates
+	'(
+	  ("T" "todo" entry (file+headline "~/sync/org/tasks.org" "Todos")
+           "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
+	   :prepend t)
+	  ("j" "Journal entry" plain
+	   (file+olp+datetree "~/sync/org/journal/journal.org")
+	   "%i\n\n**** %?\n" :empty-lines 1)
+	  ("t" "Task Entry" entry
+	   (file+headline "~/sync/org/tasks.org" "Todos")
+	   "* TODO %?\n%u" :prepend t)
+	  ("n" "Note" entry
+	   (file+headline "~/sync/org/notes.org" "Notes")
+	   "* %?\n%u" :prepend t)
+	  )
+	)
 
-      (setf org-tags-column 0)))
-      (message "Loading MAIL stuff...")
+  (defun place-agenda-tags ()
+    "Put the agenda tags by the right border of the agenda window."
+    (setf org-agenda-tags-column (- 4 (window-width)))
+    (org-agenda-align-tags))
+  ;; Place tags close to the right-hand side of the window
+  (add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
 
-      (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+  (setf org-tags-column 0)
 
-      (require 'mu4e)
-      (require 'smtpmail)
-      (require 'gnus-dired)
-      (require'org-mu4e)
-      (setq org-mu4e-link-query-in-headers-mode nil)
+  (use-package org-web-tools)
 
-      (setf mu4e-maildir "~/.mail")
+  (message "Loading MAIL stuff...")
 
-      (load-file "~/.secrets/emacs-mail.el")
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
 
-      ;; Directory to save attachments
-      (setf mu4e-attachment-dir "~/attachments/")
-      ;; List of mail accounts.
-      (defvar my-mu4e-account-alist nil)
-      ;; List of email signatures that can be added to a mail.
-      (defvar mu4e-mail-sigs nil)
-      ;; Shortcuts to often visited mailboxes
+  (require 'mu4e)
+  (require 'smtpmail)
+  (require 'gnus-dired)
+  (require'org-mu4e)
+  (setq org-mu4e-link-query-in-headers-mode nil)
 
-      (setq mu4e-maildir-shortcuts
-  	    '( ("/gmail/archive" . ?A)
-  	       ("/gmail/drafts" . ?D)
-	       ("/gmail/inbox" . ?I)
-  	       ("/gmail/sent" . ?S)
-	       ("/gmail/trash" . ?T)
+  (setf mu4e-maildir "~/.mail")
 
-	       ("/work/drafts" . ?d)
-	       ("/work/inbox"  . ?i)
-  	       ("/work/sent" . ?s)
-	       ("/work/trash" . ?t)))
+  (load-file "~/.secrets/emacs-mail.el")
 
-      (setf mu4e-compose-complete-only-personal t)
-      ;; If non-nil _and_ mu4e is running, get mail in the background periodically
-      ;; Value in minutes
-      (setf mu4e-update-interval nil)
+  ;; Directory to save attachments
+  (setf mu4e-attachment-dir "~/attachments/")
+  ;; List of mail accounts.
+  (defvar my-mu4e-account-alist nil)
+  ;; List of email signatures that can be added to a mail.
+  (defvar mu4e-mail-sigs nil)
+  ;; Shortcuts to often visited mailboxes
 
-      (setf mu4e-use-fancy-chars t)
-      (setf mu4e-headers-date-format "%Y-%m-%d %H:%M")
-      (setf mu4e-headers-skip-duplicates t)
-      (setf mu4e-headers-include-related t)
-      (setf mu4e-view-date-format "%a %Y-%m-%d %H:%M")
-      (setf gnus-dired-mail-mode 'mu4e-user-agent)
-      (setf mu4e-change-filenames-when-moving t)
-      ;; show full addresses in view message (instead of just names)
-      ;; toggle per name with M-RET
-      (setf mu4e-view-show-addresses t)
+  (setq mu4e-maildir-shortcuts
+	'( ("/gmail/archive" . ?A)
+  	   ("/gmail/drafts" . ?D)
+	   ("/gmail/inbox" . ?I)
+  	   ("/gmail/sent" . ?S)
+	   ("/gmail/trash" . ?T)
 
-      (setf message-send-mail-function 'smtpmail-send-it)
-      (setf starttls-use-gnutls t)
-      (setf smtpmail-debug-info t)
+	   ("/work/drafts" . ?d)
+	   ("/work/inbox"  . ?i)
+  	   ("/work/sent" . ?s)
+	   ("/work/trash" . ?t)))
 
-      ;; when you want to use some external command for html->text
-      ;; conversion, e.g. the  html2text  program
-      ;; (cpbotha: html2text sees to work better than the built-in one)
-      (setf mu4e-html2text-command "html2text")
+  (setf mu4e-compose-complete-only-personal t)
+  ;; If non-nil _and_ mu4e is running, get mail in the background periodically
+  ;; Value in minutes
+  (setf mu4e-update-interval nil)
 
-      ;; mu4e-action-view-in-browser is built into mu4e
-      ;; by adding it to these lists of custom actions
-      ;; it can be invoked by first pressing a, then selecting
-      (add-to-list 'mu4e-headers-actions
-		   '("in browser" . mu4e-action-view-in-browser) t)
-      (add-to-list 'mu4e-view-actions
-		   '("in browser" . mu4e-action-view-in-browser) t)
+  (setf mu4e-use-fancy-chars t)
+  (setf mu4e-headers-date-format "%Y-%m-%d %H:%M")
+  (setf mu4e-headers-skip-duplicates t)
+  (setf mu4e-headers-include-related t)
+  (setf mu4e-view-date-format "%a %Y-%m-%d %H:%M")
+  (setf gnus-dired-mail-mode 'mu4e-user-agent)
+  (setf mu4e-change-filenames-when-moving t)
+  ;; show full addresses in view message (instead of just names)
+  ;; toggle per name with M-RET
+  (setf mu4e-view-show-addresses t)
 
-      ;; the headers to show in the headers list   a pair of a field
-      ;; and its width, with `nil  meaning  unlimited
-      ;; (better only use that for the last field.
-      ;; These are the defaults:
-      (setf mu4e-headers-fields
-	    '( (:date . 20)
-	       (:maildir . 20)
-	       (:flags . 6)
-	       (:from-or-to . 35)
-	       (:subject . nil)))
+  (setf message-send-mail-function 'smtpmail-send-it)
+  (setf starttls-use-gnutls t)
+  (setf smtpmail-debug-info t)
 
-      ;; enable inline images
-      (setf mu4e-view-show-images t)
+  ;; when you want to use some external command for html->text
+  ;; conversion, e.g. the  html2text  program
+  ;; (cpbotha: html2text sees to work better than the built-in one)
+  (setf mu4e-html2text-command "html2text")
 
-      (setq mu4e-context-policy 'pick-first)
+  ;; mu4e-action-view-in-browser is built into mu4e
+  ;; by adding it to these lists of custom actions
+  ;; it can be invoked by first pressing a, then selecting
+  (add-to-list 'mu4e-headers-actions
+	       '("in browser" . mu4e-action-view-in-browser) t)
+  (add-to-list 'mu4e-view-actions
+	       '("in browser" . mu4e-action-view-in-browser) t)
 
-      (setq mu4e-compose-context-policy nil)
+  ;; the headers to show in the headers list   a pair of a field
+  ;; and its width, with `nil  meaning  unlimited
+  ;; (better only use that for the last field.
+  ;; These are the defaults:
+  (setf mu4e-headers-fields
+	'( (:date . 20)
+	   (:maildir . 20)
+	   (:flags . 6)
+	   (:from-or-to . 35)
+	   (:subject . nil)))
 
-      (setq message-kill-buffer-on-exit t)
+  ;; enable inline images
+  (setf mu4e-view-show-images t)
 
-      ;; use imagemagick, if available
-      (when (fboundp 'imagemagick-register-types)
-	(imagemagick-register-types))
+  (setq mu4e-context-policy 'pick-first)
 
-      (add-hook 'mu4e-compose-mode-hook
-		(defun my-do-compose-stuff ()
-		  "My settings for message composition."
-		  (set-fill-column 72)
-		  (super-save-mode -1)
-		  (flyspell-mode)))
+  (setq mu4e-compose-context-policy nil)
 
-      (setf mu4e-compose-signature-auto-include t)
+  (setq message-kill-buffer-on-exit t)
 
-      (defun my-render-html-message ()
-	(let ((dom (libxml-parse-html-region (point-min) (point-max))))
-	  (erase-buffer)
-	  (shr-insert-document dom)
-	  (goto-char (point-min))))
+  ;; use imagemagick, if available
+  (when (fboundp 'imagemagick-register-types)
+    (imagemagick-register-types))
 
-      (setf mu4e-html2text-command 'my-render-html-message)
-      ;; make the `gnus-dired-mail-buffers' function also work on
-      ;; message-mode derived modes, such as mu4e-compose-mode
-      (defun gnus-dired-mail-buffers ()
-	"Return a list of active message buffers."
-	(let (buffers)
-	  (save-current-buffer
-	    (dolist (buffer (buffer-list t))
-	      (set-buffer buffer)
-	      (when (and (derived-mode-p 'message-mode)
-			 (null message-sent-message-via))
-		(push (buffer-name buffer) buffers))))
-	  (nreverse buffers)))
-      (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+  (add-hook 'mu4e-compose-mode-hook
+	    (defun my-do-compose-stuff ()
+	      "My settings for message composition."
+	      (set-fill-column 72)
+	      (super-save-mode -1)
+	      (flyspell-mode)))
 
-      ;; works only for emacs with xwidget support
-      (defun my-mu4e-action-view-with-xwidget (msg)
-	"View the body of the message inside xwidget-webkit."
-	(unless (fboundp 'xwidget-webkit-browse-url)
-	  (mu4e-error "No xwidget support available"))
-	(let* ((html (mu4e-message-field msg :body-html))
-	       (txt (mu4e-message-field msg :body-txt))
-	       (tmpfile (format "%s%x.html" temporary-file-directory (random t))))
-	  (unless (or html txt)
-	    (mu4e-error "No body part for this message"))
-	  (with-temp-buffer
-	    ;; simplistic -- but note that it's only an example...
-	    (insert (or html (concat "<pre>" txt "</pre>")))
-	    (write-file tmpfile)
-	    (xwidget-webkit-browse-url (concat "file://" tmpfile) t))))
+  (setf mu4e-compose-signature-auto-include t)
 
-      (add-to-list 'mu4e-view-actions
-		   '("xViewXWidget" . my-mu4e-action-view-with-xwidget) t)
+  (defun my-render-html-message ()
+    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+      (erase-buffer)
+      (shr-insert-document dom)
+      (goto-char (point-min))))
 
-      (use-package org-caldav
-	:config
-	(defun my-org-caldav-advice (orig-fun &rest args)
-	  (let ((xml-default-ns-bak xml-default-ns)
-		(org-version-bak org-version))
-	    (setq xml-default-ns '(("" . "DAV:")))
-	    (setq org-version "8.2.7")
-	    (apply orig-fun args)
-	    (setq xml-default-ns xml-default-ns-bak)
-	    (setq org-version org-version-bak)))
-	(advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
-	(setf org-caldav-uuid-extension ".EML")
-	(setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))
+  (setf mu4e-html2text-command 'my-render-html-message)
+  ;; make the `gnus-dired-mail-buffers' function also work on
+  ;; message-mode derived modes, such as mu4e-compose-mode
+  (defun gnus-dired-mail-buffers ()
+    "Return a list of active message buffers."
+    (let (buffers)
+      (save-current-buffer
+	(dolist (buffer (buffer-list t))
+	  (set-buffer buffer)
+	  (when (and (derived-mode-p 'message-mode)
+		     (null message-sent-message-via))
+	    (push (buffer-name buffer) buffers))))
+      (nreverse buffers)))
+  (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
 
-      (message "Loading MAIL stuff done!")))
+  ;; works only for emacs with xwidget support
+  (defun my-mu4e-action-view-with-xwidget (msg)
+    "View the body of the message inside xwidget-webkit."
+    (unless (fboundp 'xwidget-webkit-browse-url)
+      (mu4e-error "No xwidget support available"))
+    (let* ((html (mu4e-message-field msg :body-html))
+	   (txt (mu4e-message-field msg :body-txt))
+	   (tmpfile (format "%s%x.html" temporary-file-directory (random t))))
+      (unless (or html txt)
+	(mu4e-error "No body part for this message"))
+      (with-temp-buffer
+	;; simplistic -- but note that it's only an example...
+	(insert (or html (concat "<pre>" txt "</pre>")))
+	(write-file tmpfile)
+	(xwidget-webkit-browse-url (concat "file://" tmpfile) t))))
+
+  (add-to-list 'mu4e-view-actions
+	       '("xViewXWidget" . my-mu4e-action-view-with-xwidget) t)
+
+  (use-package org-caldav
+    :config
+    (defun my-org-caldav-advice (orig-fun &rest args)
+      (let ((xml-default-ns-bak xml-default-ns)
+	    (org-version-bak org-version))
+	(setq xml-default-ns '(("" . "DAV:")))
+	(setq org-version "8.2.7")
+	(apply orig-fun args)
+	(setq xml-default-ns xml-default-ns-bak)
+	(setq org-version org-version-bak)))
+    (advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
+    (setf org-caldav-uuid-extension ".EML")
+    (setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))
+
+  (message "Loading MAIL stuff done!"))
 
 (setf fill-column 80)
 
@@ -3389,10 +3607,12 @@ TAG is chosen interactively from the global tags completion table."
 		   :repo "emacsmirror/erc-nick-notify"
 		   :branch "master"))
 
-(use-package treemacs
-  :bind ("<f12>" . treemacs))
+(use-package treemacs)
 
 (use-package treemacs-projectile)
+
+(use-package simple-mpc)
+
 
 (use-package smart-mode-line
   :config
@@ -3496,5 +3716,9 @@ TAG is chosen interactively from the global tags completion table."
 
 (bind-key "C-M-<up>" 'gcm-scroll-up-5)
 (bind-key "C-M-<down>" 'gcm-scroll-down-5)
+
+(bind-key "<f9>" 'menu-bar-open)
+(bind-key "<f10>" 'mu4e)
+(bind-key "<f12>" 'org-agenda)
 
 (defun package--save-selected-packages (&rest opt) nil)

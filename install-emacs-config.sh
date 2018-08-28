@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+# This script will install my Emacs configuration.
+# It must be run from the root of the cloned repo.
+#
+# Steps:
+#
+# 1) git clone https://github.com/magnusmalm/emacs.git ~/emacsen
+# _OR_
+# 1) git clone git@github.com:magnusmalm/emacs.git ~/emacsen
+# 2) cd ~/emacsen
+# 3) ./install-emacs-config.sh
+#
+#
+
 set -euxo pipefail
 
 chemacs_dir=~/src/chemacs
