@@ -2206,6 +2206,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package all-the-icons)
 
+(use-package all-the-icons-ivy
+  :config
+  (all-the-icons-ivy-setup))
+
 (use-package git-gutter
   :delight
   :bind(
