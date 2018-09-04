@@ -2649,14 +2649,14 @@ Use `winstack-push' and
 (use-package magit-lfs
   :ensure t)
 
-;; (use-package magit-gh-pulls
-;; 	:ensure t
-;; 	:config
-;; 	(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
+(use-package magit-gh-pulls
+  :ensure t
+  :config
+  (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
 
-;; (use-package magithub
-;; 	:after magit
-;; 	:config (magithub-feature-autoinject t))
+(use-package magithub
+  :after magit
+  :config (magithub-feature-autoinject t))
 
 (use-package git-timemachine
   :straight (:host github
