@@ -3675,6 +3675,13 @@ TAG is chosen interactively from the global tags completion table."
 		   :repo "walseb/blimp")
   :hook (image-mode . blimp-mode))
 
+(use-package keychain-environment
+  :straight (:host github
+		   :repo "tarsius/keychain-environment")
+  :config
+  (keychain-refresh-environment))
+
+
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
 (bind-key "C-S-M-O" 'find-file-in-sync-dir)
