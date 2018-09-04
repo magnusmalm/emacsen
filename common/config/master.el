@@ -3634,6 +3634,7 @@ TAG is chosen interactively from the global tags completion table."
 
 (use-package simple-mpc)
 
+(use-package mingus)
 
 (use-package smart-mode-line
   :config
