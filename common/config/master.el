@@ -3642,6 +3642,11 @@ TAG is chosen interactively from the global tags completion table."
 
 (use-package smart-mode-line-powerline-theme)
 
+(use-package blimp
+  :straight (:host github
+		   :repo "walseb/blimp")
+  :hook (image-mode . blimp-mode))
+
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
 (bind-key "C-S-M-O" 'find-file-in-sync-dir)
