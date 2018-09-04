@@ -3747,6 +3747,7 @@ TAG is chosen interactively from the global tags completion table."
 
 (bind-key "<f9>" 'menu-bar-open)
 (bind-key "<f10>" 'mu4e)
-(bind-key "<f12>" 'org-agenda)
+(bind-key "<f12>" 'org-agenda-list)
+(bind-key "S-<f12>" 'org-agenda)
 
 (defun package--save-selected-packages (&rest opt) nil)
