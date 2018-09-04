@@ -1565,13 +1565,7 @@ one by line."
   (back-button-mode 1))
 
 (use-package link-hint
-  :ensure t
-  :bind
-  ("C-c C-v o" . link-hint-open-link)
-  ("C-c C-v c" . link-hint-copy-link)
-  ("H-l" . link-hint-open-link)
-  ("H-L" . link-hint-copy-link)
-
+  :defer 1
   :config
   (setf link-hint-avy-style 'pre)
   (setf link-hint-avy-background t))
@@ -1627,14 +1621,7 @@ one by line."
   ;; called before the buffer is reverted (like `vc-before-checkin-hook').
   ;; Then new bookmarks can be saved before the buffer is reverted.
   ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
-
-  :bind* (("C-<f2>" . bm-toggle)
-	  ("<f2>" . bm-next)
-	  ("S-<f2>" . bm-previous)
-	  ("<left-fringe> <mouse-5>" . bm-next-mouse)
-	  ("<left-fringe> <mouse-4>" . bm-previous-mouse)
-	  ("<left-fringe> <mouse-1>" . bm-toggle-mouse)))
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 (use-package beginend
   :delight beginend-global-mode
@@ -2363,11 +2350,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 ;; Window layout management
 (use-package eyebrowse
   :defer 1
-  :bind
-  ("<f5>" . eyebrowse-switch-to-window-config-1)
-  ("<f6>" . eyebrowse-switch-to-window-config-2)
-  ("<f7>" . eyebrowse-switch-to-window-config-3)
-  ("<f8>" . eyebrowse-switch-to-window-config-4)
   :config
   (eyebrowse-mode 1)
   (setq-default eyebrowse-new-workspace t))
@@ -2889,10 +2871,43 @@ and set the focus back to Emacs frame"
 
   (let
       ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "W" 'eyebrowse-switch-to-window-config)
+    (define-key sub-keymap "A" 'eyebrowse-switch-to-window-config-1)
+    (define-key sub-keymap "S" 'eyebrowse-switch-to-window-config-2)
+    (define-key sub-keymap "D" 'eyebrowse-switch-to-window-config-3)
+    (define-key sub-keymap "F" 'eyebrowse-switch-to-window-config-4)
+    (define-key sub-keymap "C" 'eyebrowse-create-window-config)
+    (define-key sub-keymap "K" 'eyebrowse-close-window-config)
+    (define-key sub-keymap " " 'eyebrowse-last-window-config)
+    (define-key sub-keymap "N" 'eyebrowse-next-window-config)
+    (define-key sub-keymap "P" 'eyebrowse-prev-window-config)
+    (define-key sub-keymap "R" 'eyebrowse-rename-window-config)
+    (key-chord-define-global "WW" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "B" 'bm-toggle)
+    (define-key sub-keymap "N" 'bm-next)
+    (define-key sub-keymap "P" 'bm-previous)
+    (define-key sub-keymap "L" 'bm-show-all)
+    (define-key sub-keymap "K" 'bm-remove-all-all-buffers)
+    (key-chord-define-global "BB" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "L" 'link-hint-open-link)
+    (define-key sub-keymap "C" 'link-hint-copy-link)
+    (key-chord-define-global "LL" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
     (define-key sub-keymap "t" 'air-org-set-tags)
     (define-key sub-keymap "T" 'org-change-tag-in-region)
-    (define-key sub-keymap "a" 'org-agenda)
+    (define-key sub-keymap "A" 'org-agenda)
     (define-key sub-keymap "c" 'org-capture)
+    (define-key sub-keymap "a" 'org-agenda-list)
+    (define-key sub-keymap "d" 'org-export-dispatch)
+    (define-key sub-keymap "D" 'org-export-dispatch)
     (key-chord-define-global "OO" sub-keymap))
 
   (let
@@ -2928,7 +2943,7 @@ and set the focus back to Emacs frame"
     (define-key sub-keymap "ö" "'")
     (define-key sub-keymap "c" 'compile)
     (define-key sub-keymap "p" 'pwd)
-    (key-chord-define-global "ii" sub-keymap))
+    (key-chord-define-global "ii" sub-keymap)))
 
 
   (message "Loading ORG stuff...")
