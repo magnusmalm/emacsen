@@ -2243,6 +2243,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
   (setf zoom-size 'size-callback))
 
+(use-package default-text-scale
+  :config
+  (setf default-text-scale-amount 12))
+
 (use-package xkcd)
 
 (use-package color-identifiers-mode
@@ -3686,8 +3690,9 @@ TAG is chosen interactively from the global tags completion table."
 (bind-key "\C-i" 'endless/ispell-word-then-abbrev ctl-x-map)
 
 ;; C-x C-0 restores the default font size
-(bind-key* "C-+" 'modi/global-font-size-incr)
-(bind-key* "C--" 'modi/global-font-size-decr)
+(bind-key* "C-+" 'default-text-scale-increase)
+(bind-key* "C--" 'default-text-scale-decrease)
+(bind-key* "C-=" 'default-text-scale-reset)
 (bind-key* "C-x C-0" 'modi/global-font-size-reset)
 (bind-key "C-S-w" 'delete-frame)
 (bind-key "M-Z" 'zap-to-char)
