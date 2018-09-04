@@ -2877,6 +2877,7 @@ and set the focus back to Emacs frame"
   (key-chord-define-global "XX" 'counsel-M-x)
   (key-chord-define-global "yy" 'popup-kill-ring)
   (key-chord-define-global "YY" 'counsel-yank-pop)
+  (key-chord-define-global "MM" 'magit-file-popup)
   (key-chord-define-global "  " ". ")
 
   ;; This create a prefix keymap
