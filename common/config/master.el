@@ -2612,6 +2612,19 @@ Use `winstack-push' and
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
 
+(use-package smerge
+  :straight nil
+  :ensure nil
+  :bind (:map smerge-mode-map
+	      ("k" . smerge-next)
+	      ("n" . smerge-next)
+	      ("i" . smerge-prev)
+	      ("p" . smerge-prev)
+	      ("u" . smerge-keep-upper)
+	      ("l" . smerge-keep-lower)
+	      ("u" . smerge-keep-all)
+	      ("e" . smerge-ediff)))
+
 (use-package magit-rockstar
   :config
   (magit-define-popup-action 'magit-rebase-popup
