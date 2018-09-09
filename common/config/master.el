@@ -3491,7 +3491,14 @@ TAG is chosen interactively from the global tags completion table."
 (load-file "~/.secrets/emacs-mail.el")
 
 ;; Directory to save attachments
-(setf mu4e-attachment-dir "~/attachments/")
+(setq mu4e-attachment-dir
+      (lambda (fname mtype)
+        (cond
+         ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
+	 ((and fname (string-match "\\.pdf$" fname))  "~/sync/Documents")
+         ;; ... other cases  ...
+         (t "~/sync/Downloads"))))
+
 ;; List of mail accounts.
 (defvar my-mu4e-account-alist nil)
 ;; List of email signatures that can be added to a mail.
