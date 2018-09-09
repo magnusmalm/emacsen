@@ -1497,15 +1497,7 @@ one by line."
   (dired "/notmuch:~/"))
 
 
-(load (expand-file-name "~/.roswell/helper.el"))
-
-(setf inferior-lisp-program "/usr/local/bin/sbcl")
-(setf slime-contribs '(slime-fancy))
-
-(setf inferior-lisp-program "ros -Q run")
-
 (setf user-full-name "Magnus Malm")
-
 
 ;;;; Imenu
 (defun my-shell-mode-setup-imenu ()
@@ -3681,6 +3673,8 @@ TAG is chosen interactively from the global tags completion table."
   :config
   (keychain-refresh-environment))
 
+(load (expand-file-name "~/quicklisp/slime-helper.el"))
+(setq inferior-lisp-program "/usr/local/bin/sbcl")
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
