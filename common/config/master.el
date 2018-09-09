@@ -3353,24 +3353,24 @@ TAG is chosen interactively from the global tags completion table."
   (setq org-super-agenda-groups
 	'((:log t)  ; Automatically named "Log"
 	  (:name "Schedule"
-		 :time-grid t)
+  		 :time-grid t)
 	  (:name "Today"
-		 :scheduled today)
+  		 :scheduled today)
 	  (:habit t)
 	  (:name "Due today"
-		 :deadline today)
+  		 :deadline today)
 	  (:name "Overdue"
-		 :deadline past)
+  		 :deadline past)
 	  (:name "Due soon"
-		 :deadline future)
+  		 :deadline future)
 	  (:name "Unimportant"
-		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
-		 :order 100)
+  		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
+  		 :order 100)
 	  (:name "Waiting..."
-		 :todo "WAITING"
-		 :order 98)
+  		 :todo "WAIT"
+  		 :order 98)
 	  (:name "Scheduled earlier"
-		 :scheduled past)))
+  		 :scheduled past)))
   :config
   (org-super-agenda-mode 1))
 
