@@ -2634,9 +2634,7 @@ Use `winstack-push' and
     ?n "Reshelve" 'magit-reshelve))
 
 (use-package magit-todos
-  :straight (:host github  :repo "magnusmalm/magit-todos"
-		   :upstream
-		   (:host github :repo "alphapapa/magit-todos"))
+  :straight (:host github :repo "alphapapa/magit-todos")
   :config
   (magit-todos-mode 1))
 
