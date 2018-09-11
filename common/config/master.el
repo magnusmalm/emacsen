@@ -1497,15 +1497,7 @@ one by line."
   (dired "/notmuch:~/"))
 
 
-(load (expand-file-name "~/.roswell/helper.el"))
-
-(setf inferior-lisp-program "/usr/local/bin/sbcl")
-(setf slime-contribs '(slime-fancy))
-
-(setf inferior-lisp-program "ros -Q run")
-
 (setf user-full-name "Magnus Malm")
-
 
 ;;;; Imenu
 (defun my-shell-mode-setup-imenu ()
@@ -1565,13 +1557,7 @@ one by line."
   (back-button-mode 1))
 
 (use-package link-hint
-  :ensure t
-  :bind
-  ("C-c C-v o" . link-hint-open-link)
-  ("C-c C-v c" . link-hint-copy-link)
-  ("H-l" . link-hint-open-link)
-  ("H-L" . link-hint-copy-link)
-
+  :defer 1
   :config
   (setf link-hint-avy-style 'pre)
   (setf link-hint-avy-background t))
@@ -1627,14 +1613,7 @@ one by line."
   ;; called before the buffer is reverted (like `vc-before-checkin-hook').
   ;; Then new bookmarks can be saved before the buffer is reverted.
   ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
-
-  :bind* (("C-<f2>" . bm-toggle)
-	  ("<f2>" . bm-next)
-	  ("S-<f2>" . bm-previous)
-	  ("<left-fringe> <mouse-5>" . bm-next-mouse)
-	  ("<left-fringe> <mouse-4>" . bm-previous-mouse)
-	  ("<left-fringe> <mouse-1>" . bm-toggle-mouse)))
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 (use-package beginend
   :delight beginend-global-mode
@@ -2219,6 +2198,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 
 (use-package all-the-icons)
 
+(use-package all-the-icons-ivy
+  :config
+  (all-the-icons-ivy-setup))
+
 (use-package git-gutter
   :delight
   :bind(
@@ -2251,6 +2234,10 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
           (t                            '(0.618 . 0.618))))
   (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
   (setf zoom-size 'size-callback))
+
+(use-package default-text-scale
+  :config
+  (setf default-text-scale-amount 12))
 
 (use-package xkcd)
 
@@ -2363,11 +2350,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
 ;; Window layout management
 (use-package eyebrowse
   :defer 1
-  :bind
-  ("<f5>" . eyebrowse-switch-to-window-config-1)
-  ("<f6>" . eyebrowse-switch-to-window-config-2)
-  ("<f7>" . eyebrowse-switch-to-window-config-3)
-  ("<f8>" . eyebrowse-switch-to-window-config-4)
   :config
   (eyebrowse-mode 1)
   (setq-default eyebrowse-new-workspace t))
@@ -2630,6 +2612,19 @@ Use `winstack-push' and
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
 
+(use-package smerge
+  :straight nil
+  :ensure nil
+  :bind (:map smerge-mode-map
+	      ("k" . smerge-next)
+	      ("n" . smerge-next)
+	      ("i" . smerge-prev)
+	      ("p" . smerge-prev)
+	      ("u" . smerge-keep-upper)
+	      ("l" . smerge-keep-lower)
+	      ("u" . smerge-keep-all)
+	      ("e" . smerge-ediff)))
+
 (use-package magit-rockstar
   :config
   (magit-define-popup-action 'magit-rebase-popup
@@ -2654,14 +2649,14 @@ Use `winstack-push' and
 (use-package magit-lfs
   :ensure t)
 
-;; (use-package magit-gh-pulls
-;; 	:ensure t
-;; 	:config
-;; 	(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
+(use-package magit-gh-pulls
+  :ensure t
+  :config
+  (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
 
-;; (use-package magithub
-;; 	:after magit
-;; 	:config (magithub-feature-autoinject t))
+(use-package magithub
+  :after magit
+  :config (magithub-feature-autoinject t))
 
 (use-package git-timemachine
   :straight (:host github
@@ -2855,22 +2850,6 @@ and set the focus back to Emacs frame"
 
 (use-package auto-indent-mode)
 
-(use-package lispy
-  :delight
-  :init
-  (defun attic/lispy--eval ()
-    (interactive)
-    (if (equal major-mode 'scheme-mode)
-	(geiser-eval-next-sexp nil)
-      (special-lispy-eval)))
-  :config
-  (lispy-define-key lispy-mode-map-special "e" 'attic/lispy--eval)
-  (defun lispy-left-no-mark ()
-    (interactive)
-    (deactivate-mark)
-    (lispy-left 1))
-  :hook (emacs-lisp-mode . lispy-mode))
-
 (use-package elf-mode)
 
 (use-package common-lisp-snippets)
@@ -2898,6 +2877,7 @@ and set the focus back to Emacs frame"
   (key-chord-define-global "XX" 'counsel-M-x)
   (key-chord-define-global "yy" 'popup-kill-ring)
   (key-chord-define-global "YY" 'counsel-yank-pop)
+  (key-chord-define-global "MM" 'magit-file-popup)
   (key-chord-define-global "  " ". ")
 
   ;; This create a prefix keymap
@@ -2913,10 +2893,43 @@ and set the focus back to Emacs frame"
 
   (let
       ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "W" 'eyebrowse-switch-to-window-config)
+    (define-key sub-keymap "A" 'eyebrowse-switch-to-window-config-1)
+    (define-key sub-keymap "S" 'eyebrowse-switch-to-window-config-2)
+    (define-key sub-keymap "D" 'eyebrowse-switch-to-window-config-3)
+    (define-key sub-keymap "F" 'eyebrowse-switch-to-window-config-4)
+    (define-key sub-keymap "C" 'eyebrowse-create-window-config)
+    (define-key sub-keymap "K" 'eyebrowse-close-window-config)
+    (define-key sub-keymap " " 'eyebrowse-last-window-config)
+    (define-key sub-keymap "N" 'eyebrowse-next-window-config)
+    (define-key sub-keymap "P" 'eyebrowse-prev-window-config)
+    (define-key sub-keymap "R" 'eyebrowse-rename-window-config)
+    (key-chord-define-global "WW" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "B" 'bm-toggle)
+    (define-key sub-keymap "N" 'bm-next)
+    (define-key sub-keymap "P" 'bm-previous)
+    (define-key sub-keymap "L" 'bm-show-all)
+    (define-key sub-keymap "K" 'bm-remove-all-all-buffers)
+    (key-chord-define-global "BB" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
+    (define-key sub-keymap "L" 'link-hint-open-link)
+    (define-key sub-keymap "C" 'link-hint-copy-link)
+    (key-chord-define-global "LL" sub-keymap))
+
+  (let
+      ((sub-keymap (make-sparse-keymap)))
     (define-key sub-keymap "t" 'air-org-set-tags)
     (define-key sub-keymap "T" 'org-change-tag-in-region)
-    (define-key sub-keymap "a" 'org-agenda)
+    (define-key sub-keymap "A" 'org-agenda)
     (define-key sub-keymap "c" 'org-capture)
+    (define-key sub-keymap "a" 'org-agenda-list)
+    (define-key sub-keymap "d" 'org-export-dispatch)
+    (define-key sub-keymap "D" 'org-export-dispatch)
     (key-chord-define-global "OO" sub-keymap))
 
   (let
@@ -2952,410 +2965,436 @@ and set the focus back to Emacs frame"
     (define-key sub-keymap "ö" "'")
     (define-key sub-keymap "c" 'compile)
     (define-key sub-keymap "p" 'pwd)
-    (key-chord-define-global "ii" sub-keymap))
+    (key-chord-define-global "ii" sub-keymap)))
 
 
-  (message "Loading ORG stuff...")
+(message "Loading ORG stuff...")
 
-  ;; Hack to make loading latest org mode work.
-  ;; org-git-version, org-release
-  (require 'subr-x)
-  (straight-use-package 'git)
+;; Hack to make loading latest org mode work.
+;; org-git-version, org-release
+(require 'subr-x)
+(straight-use-package 'git)
 
-  (defun org-git-version ()
-    "The Git version of org-mode.
+(defun org-git-version ()
+  "The Git version of org-mode.
 Inserted by installing org-mode or when a release is made."
-    (require 'git)
-    (let ((git-repo (expand-file-name
-		     "straight/repos/org/" user-emacs-directory)))
-      (string-trim
-       (git-run "describe"
-		"--match=release\*"
-		"--abbrev=6"
-		"HEAD"))))
+  (require 'git)
+  (let ((git-repo (expand-file-name
+		   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (git-run "describe"
+	      "--match=release\*"
+	      "--abbrev=6"
+	      "HEAD"))))
 
-  (defun org-release ()
-    "The release version of org-mode.
+(defun org-release ()
+  "The release version of org-mode.
 Inserted by installing org-mode or when a release is made."
-    (require 'git)
-    (let ((git-repo (expand-file-name
-		     "straight/repos/org/" user-emacs-directory)))
-      (string-trim
-       (string-remove-prefix
-	"release_"
-	(git-run "describe"
-		 "--match=release\*"
-		 "--abbrev=0"
-		 "HEAD")))))
+  (require 'git)
+  (let ((git-repo (expand-file-name
+		   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (string-remove-prefix
+      "release_"
+      (git-run "describe"
+	       "--match=release\*"
+	       "--abbrev=0"
+	       "HEAD")))))
 
-  (provide 'org-version)
+(provide 'org-version)
 
-  (use-package org
-    :demand t
-    :ensure t
-    :bind
-    (("C-c M-l" . org-store-link)
-     ("C-c C-l" . org-insert-link)
-     ("C-c a" . org-agenda)
-     ("C-c c" . org-capture)
-     ("<pause>" . org-capture)
-     ("C-M-|" . indent-rigidly)
-     ("M-<left>" . org-do-promote)
-     ("M-<right>" . org-do-demote)
-     ("M-S-<left>" . org-promote-subtree)
-     ("M-S-<right>" . org-demote-subtree)
-     ("M-S-<up>" . org-move-subtree-up)
-     ("M-S-<down>" . org-move-subtree-down)
-     ("C-c C-e" . org-export-dispatch)
-     ("C-c C-S-E" . hydra-org-clock/body)
+(use-package org
+  :demand t
+  :ensure t
+  :bind
+  (("C-c M-l" . org-store-link)
+   ("C-c C-l" . org-insert-link)
+   ("C-c a" . org-agenda)
+   ("C-c c" . org-capture)
+   ("<pause>" . org-capture)
+   ("C-M-|" . indent-rigidly)
+   ("M-<left>" . org-do-promote)
+   ("M-<right>" . org-do-demote)
+   ("M-S-<left>" . org-promote-subtree)
+   ("M-S-<right>" . org-demote-subtree)
+   ("M-S-<up>" . org-move-subtree-up)
+   ("M-S-<down>" . org-move-subtree-down)
+   ("C-c C-e" . org-export-dispatch)
+   ("C-c C-S-E" . hydra-org-clock/body)
 
-     ("C-c C-q" .   air-org-set-tags)
+   ("C-c C-q" .   air-org-set-tags)
 
-     ("C-c c" .   air-org-task-capture)
-     ("C-C t a" . mmm-pop-to-org-agenda)
-     ("C-c t n" . air-pop-to-org-notes)
-     ("C-c t t" . air-pop-to-org-todo)
-     ("C-c t c" . my-open-calendar)
-     ("C-c t A" . org-agenda)
+   ("C-c c" .   air-org-task-capture)
+   ("C-C t a" . mmm-pop-to-org-agenda)
+   ("C-c t n" . air-pop-to-org-notes)
+   ("C-c t t" . air-pop-to-org-todo)
+   ("C-c t c" . my-open-calendar)
+   ("C-c t A" . org-agenda)
 
-     ("C-c f k" . org-search-view)
-     ("C-c f t" . org-tags-view)
-     ("C-c f i" . air-org-goto-custom-id)
-     :map org-mode-map
-     ("<" . mmm-org-insert-template))
+   ("C-c f k" . org-search-view)
+   ("C-c f t" . org-tags-view)
+   ("C-c f i" . air-org-goto-custom-id)
+   :map org-mode-map
+   ("<" . mmm-org-insert-template))
 
-    ;; :ensure org-plus-contrib
-    :init
-    (defun air-pop-to-org-todo (&optional split)
-      "Visit my main TODO list, in the current window or a SPLIT."
-      (interactive "P")
-      (air--pop-to-file org-default-tasks-file split))
+  ;; :ensure org-plus-contrib
+  :init
+  (defun air-pop-to-org-todo (&optional split)
+    "Visit my main TODO list, in the current window or a SPLIT."
+    (interactive "P")
+    (air--pop-to-file org-default-tasks-file split))
 
-    (defun air-pop-to-org-notes (&optional split)
-      "Visit my main TODO list, in the current window or a SPLIT."
-      (interactive "P")
-      (air--pop-to-file org-default-notes-file split))
+  (defun air-pop-to-org-notes (&optional split)
+    "Visit my main TODO list, in the current window or a SPLIT."
+    (interactive "P")
+    (air--pop-to-file org-default-notes-file split))
 
-    (defun air-org-task-capture (&optional vanilla)
-      "Capture a task with my default template.
+  (defun air-org-task-capture (&optional vanilla)
+    "Capture a task with my default template.
 If VANILLA is non-nil, run the standard `org-capture'."
-      (interactive "P")
-      (if vanilla
-	  (org-capture)
-	(org-capture nil "t")))
+    (interactive "P")
+    (if vanilla
+	(org-capture)
+      (org-capture nil "t")))
 
-    (defun air--pop-to-org-agenda-view (key &optional split)
-      "Visit the org agenda KEY, in the current window or a SPLIT."
-      ;; I don't know why this works, but it works.
-      (let ((current-prefix-arg nil))
-	(org-agenda nil key))
-      (when (not split)
-	(delete-other-windows)))
+  (defun air--pop-to-org-agenda-view (key &optional split)
+    "Visit the org agenda KEY, in the current window or a SPLIT."
+    ;; I don't know why this works, but it works.
+    (let ((current-prefix-arg nil))
+      (org-agenda nil key))
+    (when (not split)
+      (delete-other-windows)))
 
-    (defun mmm-org-insert-template ()
-      (interactive)
-      (if (looking-back "^")
-	  (hydra-org-template/body)
-	(self-insert-command 1)))
+  (defun mmm-org-insert-template ()
+    (interactive)
+    (if (looking-back "^")
+	(hydra-org-template/body)
+      (self-insert-command 1)))
 
-    (defun air-org-skip-subtree-if-priority (priority)
-      "Skip an agenda subtree if it has a priority of PRIORITY.
+  (defun air-org-skip-subtree-if-priority (priority)
+    "Skip an agenda subtree if it has a priority of PRIORITY.
 
 PRIORITY may be one of the characters ?A, ?B, or ?C."
-      (let ((subtree-end (save-excursion (org-end-of-subtree t)))
-	    (pri-value (* 1000 (- org-lowest-priority priority)))
-	    (pri-current (org-get-priority (thing-at-point 'line t))))
-	(if (= pri-value pri-current)
-	    subtree-end
-	  nil)))
+    (let ((subtree-end (save-excursion (org-end-of-subtree t)))
+	  (pri-value (* 1000 (- org-lowest-priority priority)))
+	  (pri-current (org-get-priority (thing-at-point 'line t))))
+      (if (= pri-value pri-current)
+	  subtree-end
+	nil)))
 
-    (defun air-org-skip-subtree-if-habit ()
-      "Skip an agenda entry if it has a STYLE property equal to \"habit\"."
-      (let ((subtree-end (save-excursion (org-end-of-subtree t))))
-	(if (string= (org-entry-get nil "STYLE") "habit")
-	    subtree-end
-	  nil)))
+  (defun air-org-skip-subtree-if-habit ()
+    "Skip an agenda entry if it has a STYLE property equal to \"habit\"."
+    (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+      (if (string= (org-entry-get nil "STYLE") "habit")
+	  subtree-end
+	nil)))
 
-    (defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
-	   (unless (file-directory-p dir)
-	     (error "Not a directory `%s'" dir))
-	   (unless (equal (directory-files dir nil org-agenda-file-regexp t) nil)
-	     (add-to-list 'org-agenda-files dir))
-	   (dolist (file (directory-files dir nil nil t))
-	     (unless (member file '("." ".."))
-	       (let ((file (concat dir file "/")))
-		 (when (file-directory-p file)
-		   (load-org-agenda-files-recursively file))))))
+  (defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
+	 (unless (file-directory-p dir)
+	   (error "Not a directory `%s'" dir))
+	 (unless (equal (directory-files dir nil org-agenda-file-regexp t) nil)
+	   (add-to-list 'org-agenda-files dir))
+	 (dolist (file (directory-files dir nil nil t))
+	   (unless (member file '("." ".."))
+	     (let ((file (concat dir file "/")))
+	       (when (file-directory-p file)
+		 (load-org-agenda-files-recursively file))))))
 
-    (defun mmm-pop-to-org-agenda (split)
-      "Visit the org agenda, in the current window or a SPLIT."
-      (interactive "P")
-      (org-agenda-list)
-      (when (not split)
-	(delete-other-windows)))
+  (defun mmm-pop-to-org-agenda (split)
+    "Visit the org agenda, in the current window or a SPLIT."
+    (interactive "P")
+    (org-agenda-list)
+    (when (not split)
+      (delete-other-windows)))
 
-    (defun hot-expand (str)
-      "Expand org template."
-      (insert str)
-      (org-try-structure-completion))
+  (defun hot-expand (str)
+    "Expand org template."
+    (insert str)
+    (org-try-structure-completion))
 
-    (defun air--org-display-tag (tag &optional focus)
-      "Display entries tagged with TAG in a fit window.
+  (defun air--org-display-tag (tag &optional focus)
+    "Display entries tagged with TAG in a fit window.
 Do not make the new window current unless FOCUS is set."
-      (org-tags-view nil tag)
-      (fit-window-to-buffer)
-      (unless focus
-	(other-window 1)))
+    (org-tags-view nil tag)
+    (fit-window-to-buffer)
+    (unless focus
+      (other-window 1)))
 
-    (defun air-org-display-any-tag ()
-      "Display entries tagged with a tag selected interactively."
-      (interactive)
-      (air--org-display-tag (air--org-select-tag)))
+  (defun air-org-display-any-tag ()
+    "Display entries tagged with a tag selected interactively."
+    (interactive)
+    (air--org-display-tag (air--org-select-tag)))
 
-    (defun air--org-select-tag ()
-      "Interactively select or enter a single tag."
-      (let ((org-last-tags-completion-table
-	     (if (derived-mode-p 'org-mode)
-		 (org-uniquify
-		  (delq nil (append (org-get-buffer-tags)
-				    (org-global-tags-completion-table))))
-	       (org-global-tags-completion-table))))
-	(completing-read
-	 "Tag: " 'org-tags-completion-function nil nil nil
-	 'org-tags-history)))
+  (defun air--org-select-tag ()
+    "Interactively select or enter a single tag."
+    (let ((org-last-tags-completion-table
+	   (if (derived-mode-p 'org-mode)
+	       (org-uniquify
+		(delq nil (append (org-get-buffer-tags)
+				  (org-global-tags-completion-table))))
+	     (org-global-tags-completion-table))))
+      (completing-read
+       "Tag: " 'org-tags-completion-function nil nil nil
+       'org-tags-history)))
 
-    (defun air--org-global-custom-ids ()
-      "Find custom ID fields in all org agenda files."
-      (let ((files (org-agenda-files))
-	    file
-	    air-all-org-custom-ids)
-	(while (setf file (pop files))
-	  (with-current-buffer (org-get-agenda-file-buffer file)
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(goto-char (point-min))
-		(while (re-search-forward "^[ \t]*:CUSTOM_ID:[ \t]+\\(\\S-+\\)[ \t]*$"
-					  nil t)
-		  (add-to-list 'air-all-org-custom-ids
-			       `(,(match-string-no-properties 1)
-				 ,(concat file ":" (number-to-string (line-number-at-pos))))))))))
-	air-all-org-custom-ids))
+  (defun air--org-global-custom-ids ()
+    "Find custom ID fields in all org agenda files."
+    (let ((files (org-agenda-files))
+	  file
+	  air-all-org-custom-ids)
+      (while (setf file (pop files))
+	(with-current-buffer (org-get-agenda-file-buffer file)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char (point-min))
+	      (while (re-search-forward "^[ \t]*:CUSTOM_ID:[ \t]+\\(\\S-+\\)[ \t]*$"
+					nil t)
+		(add-to-list 'air-all-org-custom-ids
+			     `(,(match-string-no-properties 1)
+			       ,(concat file ":" (number-to-string (line-number-at-pos))))))))))
+      air-all-org-custom-ids))
 
-    (defun air--org-find-custom-id (custom-id)
-      "Return the location of CUSTOM-ID."
-      (let* ((all-custom-ids (air--org-global-custom-ids)))
+  (defun air--org-find-custom-id (custom-id)
+    "Return the location of CUSTOM-ID."
+    (let* ((all-custom-ids (air--org-global-custom-ids)))
+      (let* ((val (cadr (assoc custom-id all-custom-ids)))
+	     (id-parts (split-string val ":"))
+	     (file (car id-parts))
+	     (line (string-to-int (cadr id-parts))))
+	(with-current-buffer (org-get-agenda-file-buffer file)
+	  (goto-char (point-min))
+	  (forward-line line)
+	  (org-reveal)
+	  (org-up-element)
+	  (list (current-buffer) (point))))))
+
+  (defun air-org-goto-custom-id (&optional split)
+    "Go to the location of a custom ID read interactively, maybe in a SPLIT."
+    (interactive "P")
+    (let* ((all-custom-ids (air--org-global-custom-ids))
+	   (custom-id (completing-read
+		       "Custom ID: "
+		       all-custom-ids))
+	   (id-location (air--org-find-custom-id custom-id)))
+      (when id-location
+	(let* ((buf (car id-location))
+	       (loc (cadr id-location)))
+	  (pop-to-buffer buf (if split t nil))
+	  (goto-char loc)
+	  (org-reveal)))))
+
+  (defun air-org-insert-custom-id-link ()
+    "Insert an Org link to a custom ID selected interactively."
+    (interactive)
+    (let* ((all-custom-ids (air--org-global-custom-ids))
+	   (custom-id (completing-read
+		       "Custom ID: "
+		       all-custom-ids)))
+      (when custom-id
 	(let* ((val (cadr (assoc custom-id all-custom-ids)))
 	       (id-parts (split-string val ":"))
 	       (file (car id-parts))
 	       (line (string-to-int (cadr id-parts))))
-	  (with-current-buffer (org-get-agenda-file-buffer file)
-	    (goto-char (point-min))
-	    (forward-line line)
-	    (org-reveal)
-	    (org-up-element)
-	    (list (current-buffer) (point))))))
+	  (org-insert-link nil (concat file "::#" custom-id) custom-id)))))
 
-    (defun air-org-goto-custom-id (&optional split)
-      "Go to the location of a custom ID read interactively, maybe in a SPLIT."
-      (interactive "P")
-      (let* ((all-custom-ids (air--org-global-custom-ids))
-	     (custom-id (completing-read
-			 "Custom ID: "
-			 all-custom-ids))
-	     (id-location (air--org-find-custom-id custom-id)))
-	(when id-location
-	  (let* ((buf (car id-location))
-		 (loc (cadr id-location)))
-	    (pop-to-buffer buf (if split t nil))
-	    (goto-char loc)
-	    (org-reveal)))))
-
-    (defun air-org-insert-custom-id-link ()
-      "Insert an Org link to a custom ID selected interactively."
-      (interactive)
-      (let* ((all-custom-ids (air--org-global-custom-ids))
-	     (custom-id (completing-read
-			 "Custom ID: "
-			 all-custom-ids)))
-	(when custom-id
-	  (let* ((val (cadr (assoc custom-id all-custom-ids)))
-		 (id-parts (split-string val ":"))
-		 (file (car id-parts))
-		 (line (string-to-int (cadr id-parts))))
-	    (org-insert-link nil (concat file "::#" custom-id) custom-id)))))
-
-    (defun air--org-swap-tags (tags)
-      "Replace any tags on the current headline with TAGS.
+  (defun air--org-swap-tags (tags)
+    "Replace any tags on the current headline with TAGS.
 The assumption is that TAGS will be a string conforming to Org Mode's
 tag format specifications, or nil to remove all tags."
-      (let ((old-tags (org-get-tags-string))
-	    (tags (if tags
-		      (concat " " tags)
-		    "")))
-	(save-excursion
-	  (beginning-of-line)
-	  (re-search-forward
-	   (concat "[ \t]*" (regexp-quote old-tags) "[ \t]*$")
-	   (line-end-position) t)
-	  (replace-match tags)
-	  (org-set-tags t))))
+    (let ((old-tags (org-get-tags-string))
+	  (tags (if tags
+		    (concat " " tags)
+		  "")))
+      (save-excursion
+	(beginning-of-line)
+	(re-search-forward
+	 (concat "[ \t]*" (regexp-quote old-tags) "[ \t]*$")
+	 (line-end-position) t)
+	(replace-match tags)
+	(org-set-tags t))))
 
-    (defun air-org-set-tags (tag)
-      "Add TAG if it is not in the list of tags, remove it otherwise.
+  (defun air-org-set-tags (tag)
+    "Add TAG if it is not in the list of tags, remove it otherwise.
 TAG is chosen interactively from the global tags completion table."
-      (interactive (list (air--org-select-tag)))
-      (let* ((cur-list (org-get-tags))
-	     (new-tags (mapconcat 'identity
-				  (if (member tag cur-list)
-				      (delete tag cur-list)
-				    (append cur-list (list tag)))
-				  ":"))
-	     (new (if (> (length new-tags) 1) (concat " :" new-tags ":")
-		    nil)))
-	(air--org-swap-tags new)))
+    (interactive (list (air--org-select-tag)))
+    (let* ((cur-list (org-get-tags))
+	   (new-tags (mapconcat 'identity
+				(if (member tag cur-list)
+				    (delete tag cur-list)
+				  (append cur-list (list tag)))
+				":"))
+	   (new (if (> (length new-tags) 1) (concat " :" new-tags ":")
+		  nil)))
+      (air--org-swap-tags new)))
 
-    :config
-    (setq org-confirm-elisp-link-function nil)
-    (setf org-agenda-custom-commands
-	  '(("d" "Daily agenda and all TODOs"
-	     ((tags "PRIORITY=\"A\""
-		    ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
-		     (org-agenda-overriding-header "High-priority unfinished tasks:")))
-	      (agenda "" ((org-agenda-span 'day)))
-	      (alltodo ""
-		       ((org-agenda-skip-function '(or (air-org-skip-subtree-if-habit)
-						       (air-org-skip-subtree-if-priority ?A)
-						       (org-agenda-skip-if nil '(scheduled deadline))))
-			(org-agenda-overriding-header "ALL normal priority tasks:"))))
-	     ((org-agenda-compact-blocks t)))))
+  :config
+  (setq org-confirm-elisp-link-function nil)
+  (setf org-agenda-custom-commands
+	'(("d" "Daily agenda and all TODOs"
+	   ((tags "PRIORITY=\"A\""
+		  ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+		   (org-agenda-overriding-header "High-priority unfinished tasks:")))
+	    (agenda "" ((org-agenda-span 'day)))
+	    (alltodo ""
+		     ((org-agenda-skip-function '(or (air-org-skip-subtree-if-habit)
+						     (air-org-skip-subtree-if-priority ?A)
+						     (org-agenda-skip-if nil '(scheduled deadline))))
+		      (org-agenda-overriding-header "ALL normal priority tasks:"))))
+	   ((org-agenda-compact-blocks t)))))
 
-    (setf org-refile-targets '((nil :maxlevel . 2)
-			       (org-agenda-files :maxlevel . 2)))
+  (setf org-refile-targets '((nil :maxlevel . 2)
+			     (org-agenda-files :maxlevel . 2)))
 
-    (setf org-refile-use-outline-path t)
-    (setf org-refile-allow-creating-parent-nodes 'confirm)
-    (setf org-modules '(org-habit))
-    (setf org-agenda-include-diary nil)
+  (setf org-refile-use-outline-path t)
+  (setf org-refile-allow-creating-parent-nodes 'confirm)
+  (setf org-modules '(org-habit))
+  (setf org-agenda-include-diary nil)
 
-    (setf org-log-done (quote time))
-    (setf org-log-redeadline (quote time))
-    (setf org-log-reschedule (quote time))
+  (setf org-log-done (quote time))
+  (setf org-log-redeadline (quote time))
+  (setf org-log-reschedule (quote time))
 
-    (setf org-pretty-entities t)
+  (setf org-pretty-entities t)
 
-    (setf org-log-into-drawer t)
-    (setf org-use-speed-commands t
-	  org-hide-emphasis-markers t
-	  org-src-fontify-natively t ;; Pretty code blocks
-	  org-src-tab-acts-natively t
-	  org-confirm-babel-evaluate nil)
-    (setf org-src-fontify-natively t)
-    (setf org-src-tab-acts-natively t)
-    (setf org-return-follows-link t)
+  (setf org-log-into-drawer t)
+  (setf org-use-speed-commands t
+	org-hide-emphasis-markers t
+	org-src-fontify-natively t ;; Pretty code blocks
+	org-src-tab-acts-natively t
+	org-confirm-babel-evaluate nil)
+  (setf org-src-fontify-natively t)
+  (setf org-src-tab-acts-natively t)
+  (setf org-return-follows-link t)
 
-    (setf org-ellipsis "⤵")
-    (setf org-todo-keywords
-	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
-		      "DONE(d!)" "CANCELED(c@)")))
+  (setf org-ellipsis "⤵")
+  (setf org-todo-keywords
+	'((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
+		    "DONE(d!)" "CANCELED(c@)")))
 
-    (setf org-todo-keyword-faces
-	  '(("TODO" . "LightSkyBlue")
-	    ("IN-PROGRESS" . "yellow2")
-	    ("WAIT" . "IndianRed")
-	    ("DONE" . "gold")
-	    ("CANCELED" . "red")))
+  (setf org-todo-keyword-faces
+	'(("TODO" . "LightSkyBlue")
+	  ("IN-PROGRESS" . "yellow2")
+	  ("WAIT" . "IndianRed")
+	  ("DONE" . "gold")
+	  ("CANCELED" . "red")))
 
-    (setf org-tag-alist '((:startgroup . nil)
-			  ("@work" . ?w)
-			  ("@home" . ?h)
-			  ("@computer" . ?l)
-			  ("@mobile" . ?p)
-			  (:endgroup . nil)
-			  ("ttdp" . ?t)
-			  ("config" . ?c)
-			  ("emacs" . ?E)
-			  ("org" . ?o)
-			  ("meeting" . ?M)
-			  ("household" . ?H)
-			  ("economy" . ?e)))
+  (setf org-tag-alist '((:startgroup . nil)
+			("@work" . ?w)
+			("@home" . ?h)
+			("@computer" . ?l)
+			("@mobile" . ?p)
+			(:endgroup . nil)
+			("ttdp" . ?t)
+			("config" . ?c)
+			("emacs" . ?E)
+			("org" . ?o)
+			("meeting" . ?M)
+			("household" . ?H)
+			("economy" . ?e)))
 
-    (setf org-tag-faces
-	  '(("@home"
-	     :foreground "Green3"
-	     :background nil
-	     :weight bold)
-	    ("@work"
-	     :foreground "DeepSkyBlue"
-	     :background nil
-	     :weight bold)
-	    ("@computer"
-	     :foreground "LightSeaGreen"
-	     :background nil
-	     :weight bold)
-	    ("@mobile"
-	     :foreground "Orange"
-	     :background nil
-	     :weight bold)))
+  (setf org-tag-faces
+	'(("@home"
+	   :foreground "Green3"
+	   :background nil
+	   :weight bold)
+	  ("@work"
+	   :foreground "DeepSkyBlue"
+	   :background nil
+	   :weight bold)
+	  ("@computer"
+	   :foreground "LightSeaGreen"
+	   :background nil
+	   :weight bold)
+	  ("@mobile"
+	   :foreground "Orange"
+	   :background nil
+	   :weight bold)))
 
-    (setf org-journal-dir "~/sync/org/journal/")
-    (setf org-directory "~/sync/org/")
-    (setf org-default-notes-file "~/sync/org/notes.org")
-    (setf org-default-tasks-file "~/sync/org/tasks.org")
+  (setf org-journal-dir "~/sync/org/journal/")
+  (setf org-directory "~/sync/org/")
+  (setf org-default-notes-file "~/sync/org/notes.org")
+  (setf org-default-tasks-file "~/sync/org/tasks.org")
 
-    ;; Collect all .org from my Org directory and subdirs
-    (setf org-agenda-file-regexp "\\`[^.].*\\.org\\'") ; default value
+  ;; Collect all .org from my Org directory and subdirs
+  (setf org-agenda-file-regexp "\\`[^.].*\\.org\\'") ; default value
 
-    (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
+  (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
 
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((awk . t)
-       (emacs-lisp . t)
-       (python . t)
-       (ruby . t)
-       ))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((awk . t)
+     (emacs-lisp . t)
+     (python . t)
+     (ruby . t)
+     ))
 
-    (font-lock-add-keywords
-     'org-mode
-     '(("^ +\\([-*]\\) "
-	(0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  (font-lock-add-keywords
+   'org-mode
+   '(("^ +\\([-*]\\) "
+      (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-    (add-hook 'org-mode-hook 'auto-fill-mode)
-    (add-hook 'org-mode-hook 'flyspell-mode)
+  (add-hook 'org-mode-hook 'auto-fill-mode)
+  (add-hook 'org-mode-hook 'flyspell-mode)
 
-    (defun mmm/org-capture-mode-hook ()
-      (bind-keys :map org-capture-mode-map
-		 ("C-d" . insert-current-time)
-		 ("M->" . org-priority-up)
-		 ("M-<" . org-priority-down)
-		 ("C-t" . air-org-set-tags)))
-    (add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
+  (defun mmm/org-capture-mode-hook ()
+    (bind-keys :map org-capture-mode-map
+	       ("C-d" . insert-current-time)
+	       ("M->" . org-priority-up)
+	       ("M-<" . org-priority-down)
+	       ("C-t" . air-org-set-tags)))
+  (add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
 
-    (define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
-    (define-key org-mode-map (kbd "M-C-p") 'org-beginning-of-item-list)
-    (define-key org-mode-map (kbd "M-C-u") 'outline-up-heading)
-    (define-key org-mode-map (kbd "M-C-w") 'org-table-copy-region)
-    (define-key org-mode-map (kbd "M-C-y") 'org-table-paste-rectangle)
+  (define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
+  (define-key org-mode-map (kbd "M-C-p") 'org-beginning-of-item-list)
+  (define-key org-mode-map (kbd "M-C-u") 'outline-up-heading)
+  (define-key org-mode-map (kbd "M-C-w") 'org-table-copy-region)
+  (define-key org-mode-map (kbd "M-C-y") 'org-table-paste-rectangle)
 
-    (define-key org-mode-map [remap org-return] (lambda () (interactive)
-						  (if (org-in-src-block-p)
-						      (org-return)
-						    (org-return-indent))))
+  (define-key org-mode-map [remap org-return] (lambda () (interactive)
+						(if (org-in-src-block-p)
+						    (org-return)
+						  (org-return-indent)))))
 
-    (use-package org-bullets
-      :ensure t
-      :init
-      (add-hook 'org-mode-hook 'org-bullets-mode)
-      (setf org-bullets-bullet-list '("\u2022")))
+(use-package org-super-agenda
+  :init
+  (setq org-super-agenda-groups
+	'((:log t)  ; Automatically named "Log"
+	  (:name "Schedule"
+  		 :time-grid t)
+	  (:name "Today"
+  		 :scheduled today)
+	  (:habit t)
+	  (:name "Due today"
+  		 :deadline today)
+	  (:name "Overdue"
+  		 :deadline past)
+	  (:name "Due soon"
+  		 :deadline future)
+	  (:name "Unimportant"
+  		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
+  		 :order 100)
+	  (:name "Waiting..."
+  		 :todo "WAIT"
+  		 :order 98)
+	  (:name "Scheduled earlier"
+  		 :scheduled past)))
+  :config
+  (org-super-agenda-mode 1))
 
-    (use-package ox-html5slide
-      :ensure t
-      :init
-      (setf org-html-postamble nil)
-      (setf org-export-with-section-numbers nil)
-      (setf org-export-with-toc nil)
-      (setf org-html-head-extra "
+(use-package org-bullets
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook 'org-bullets-mode)
+  (setf org-bullets-bullet-list '("\u2022")))
+
+(use-package ox-html5slide
+  :ensure t
+  :init
+  (setf org-html-postamble nil)
+  (setf org-export-with-section-numbers nil)
+  (setf org-export-with-toc nil)
+  (setf org-html-head-extra "
        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
        <style type='text/css'>
@@ -3367,238 +3406,247 @@ TAG is chosen interactively from the global tags completion table."
           }
        </style>"))
 
-    (use-package org-gcal)
+(use-package org-gcal)
 
-    (use-package ox-reveal
-      :init
-      (setf org-reveal-postamble "Magnus Malm")
-      (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
+(use-package ox-reveal
+  :init
+  (setf org-reveal-postamble "Magnus Malm")
+  (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
 
-    (use-package org-pdfview)
+(use-package org-pdfview)
 
-    (use-package ical2org
-      :ensure nil
-      :load-path "lisp/"
-      :config
-      (setf ical2org/completing-read #'ivy-completing-read))
+(use-package ical2org
+  :ensure nil
+  :load-path "lisp/"
+  :config
+  (setf ical2org/completing-read #'ivy-completing-read))
 
-    (use-package calfw-ical)
-    (use-package calfw-org)
+(use-package calfw-ical)
+(use-package calfw-org)
 
-    (use-package calfw
-      :config
-      (setf calendar-week-start-day 1)
-      (setf cfw:fchar-junction ?╬
-    	    cfw:fchar-vertical-line ?║
-    	    cfw:fchar-horizontal-line ?═
-    	    cfw:fchar-left-junction ?╠
-    	    cfw:fchar-right-junction ?╣
-    	    cfw:fchar-top-junction ?╦
-    	    cfw:fchar-top-left-corner ?╔
-    	    cfw:fchar-top-right-corner ?╗)
+(use-package calfw
+  :config
+  (setf calendar-week-start-day 1)
+  (setf cfw:fchar-junction ?╬
+    	cfw:fchar-vertical-line ?║
+    	cfw:fchar-horizontal-line ?═
+    	cfw:fchar-left-junction ?╠
+    	cfw:fchar-right-junction ?╣
+    	cfw:fchar-top-junction ?╦
+    	cfw:fchar-top-left-corner ?╔
+    	cfw:fchar-top-right-corner ?╗)
 
-      (setf mmm/cfw-sources
-  	    (list
-  	     (cfw:org-create-source "Green")
-  	     (cfw:ical-create-source (first mmm/cfw-cal-magnus)
-  				     (second mmm/cfw-cal-magnus)
-  				     (third mmm/cfw-cal-magnus))
-  	     (cfw:ical-create-source (first mmm/cfw-cal-misc)
-  				     (second mmm/cfw-cal-misc)
-  				     (third mmm/cfw-cal-misc))))
-      (defun my-open-calendar ()
-	(interactive)
-	(cfw:open-calendar-buffer
-	 :contents-sources mmm/cfw-sources))
+  (setf mmm/cfw-sources
+  	(list
+  	 (cfw:org-create-source "Green")
+  	 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
+  				 (second mmm/cfw-cal-magnus)
+  				 (third mmm/cfw-cal-magnus))
+  	 (cfw:ical-create-source (first mmm/cfw-cal-misc)
+  				 (second mmm/cfw-cal-misc)
+  				 (third mmm/cfw-cal-misc))))
+  (defun my-open-calendar ()
+    (interactive)
+    (cfw:open-calendar-buffer
+     :contents-sources mmm/cfw-sources))
 
-      (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
+  (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
    %(cfw:org-capture-day)")))
 
-    (use-package poporg))
+(use-package poporg)
 
-  (setf org-capture-templates
-	'(
-	  ("T" "todo" entry (file+headline "~/sync/org/tasks.org" "Todos")
-           "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
-	   :prepend t)
-	  ("j" "Journal entry" plain
-	   (file+olp+datetree "~/sync/org/journal/journal.org")
-	   "%i\n\n**** %?\n" :empty-lines 1)
-	  ("t" "Task Entry" entry
-	   (file+headline "~/sync/org/tasks.org" "Todos")
-	   "* TODO %?\n%u" :prepend t)
-	  ("n" "Note" entry
-	   (file+headline "~/sync/org/notes.org" "Notes")
-	   "* %?\n%u" :prepend t)
-	  )
+(setf org-capture-templates
+      '(
+	("T" "todo" entry (file+headline "~/sync/org/tasks.org" "Todos")
+         "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
+	 :prepend t)
+	("j" "Journal entry" plain
+	 (file+olp+datetree "~/sync/org/journal/journal.org")
+	 "%i\n\n**** %?\n" :empty-lines 1)
+	("t" "Task Entry" entry
+	 (file+headline "~/sync/org/tasks.org" "Todos")
+	 "* TODO %?\n%u" :prepend t)
+	("n" "Note" entry
+	 (file+headline "~/sync/org/notes.org" "Notes")
+	 "* %?\n%u" :prepend t)
 	)
+      )
 
-  (defun place-agenda-tags ()
-    "Put the agenda tags by the right border of the agenda window."
-    (setf org-agenda-tags-column (- 4 (window-width)))
-    (org-agenda-align-tags))
-  ;; Place tags close to the right-hand side of the window
-  (add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
+(defun place-agenda-tags ()
+  "Put the agenda tags by the right border of the agenda window."
+  (setf org-agenda-tags-column (- 4 (window-width)))
+  (org-agenda-align-tags))
+;; Place tags close to the right-hand side of the window
+(add-hook 'org-finalize-agenda-hook #'place-agenda-tags)
 
-  (setf org-tags-column 0)
 
-  (use-package org-web-tools)
+(setf org-tags-column 0)
 
-  (message "Loading MAIL stuff...")
+(use-package org-web-tools)
 
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+(message "Loading MAIL stuff...")
 
-  (require 'mu4e)
-  (require 'smtpmail)
-  (require 'gnus-dired)
-  (require'org-mu4e)
-  (setq org-mu4e-link-query-in-headers-mode nil)
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
 
-  (setf mu4e-maildir "~/.mail")
+(require 'mu4e)
+(require 'smtpmail)
+(require 'gnus-dired)
+(require'org-mu4e)
+(setq org-mu4e-link-query-in-headers-mode nil)
 
-  (load-file "~/.secrets/emacs-mail.el")
+(setf mu4e-maildir "~/.mail")
 
-  ;; Directory to save attachments
-  (setf mu4e-attachment-dir "~/attachments/")
-  ;; List of mail accounts.
-  (defvar my-mu4e-account-alist nil)
-  ;; List of email signatures that can be added to a mail.
-  (defvar mu4e-mail-sigs nil)
-  ;; Shortcuts to often visited mailboxes
+(load-file "~/.secrets/emacs-mail.el")
 
-  (setq mu4e-maildir-shortcuts
-	'( ("/gmail/archive" . ?A)
-  	   ("/gmail/drafts" . ?D)
-	   ("/gmail/inbox" . ?I)
-  	   ("/gmail/sent" . ?S)
-	   ("/gmail/trash" . ?T)
+;; Directory to save attachments
+(setq mu4e-attachment-dir
+      (lambda (fname mtype)
+        (cond
+         ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
+	 ((and fname (string-match "\\.pdf$" fname))  "~/sync/Documents")
+         ;; ... other cases  ...
+         (t "~/sync/Downloads"))))
 
-	   ("/work/drafts" . ?d)
-	   ("/work/inbox"  . ?i)
-  	   ("/work/sent" . ?s)
-	   ("/work/trash" . ?t)))
+;; List of mail accounts.
+(defvar my-mu4e-account-alist nil)
+;; List of email signatures that can be added to a mail.
+(defvar mu4e-mail-sigs nil)
+;; Shortcuts to often visited mailboxes
 
-  (setf mu4e-compose-complete-only-personal t)
-  ;; If non-nil _and_ mu4e is running, get mail in the background periodically
-  ;; Value in minutes
-  (setf mu4e-update-interval nil)
+(setq mu4e-maildir-shortcuts
+      '( ("/gmail/archive" . ?A)
+  	 ("/gmail/drafts" . ?D)
+	 ("/gmail/inbox" . ?I)
+  	 ("/gmail/sent" . ?S)
+	 ("/gmail/trash" . ?T)
 
-  (setf mu4e-use-fancy-chars t)
-  (setf mu4e-headers-date-format "%Y-%m-%d %H:%M")
-  (setf mu4e-headers-skip-duplicates t)
-  (setf mu4e-headers-include-related t)
-  (setf mu4e-view-date-format "%a %Y-%m-%d %H:%M")
-  (setf gnus-dired-mail-mode 'mu4e-user-agent)
-  (setf mu4e-change-filenames-when-moving t)
-  ;; show full addresses in view message (instead of just names)
-  ;; toggle per name with M-RET
-  (setf mu4e-view-show-addresses t)
+	 ("/work/archive" . ?a)
+	 ("/work/drafts" . ?d)
+	 ("/work/inbox"  . ?i)
+  	 ("/work/sent" . ?s)
+	 ("/work/trash" . ?t)))
 
-  (setf message-send-mail-function 'smtpmail-send-it)
-  (setf starttls-use-gnutls t)
-  (setf smtpmail-debug-info t)
+(setf mu4e-compose-complete-only-personal t)
+;; If non-nil _and_ mu4e is running, get mail in the background periodically
+;; Value in minutes
+(setf mu4e-update-interval nil)
 
-  ;; when you want to use some external command for html->text
-  ;; conversion, e.g. the  html2text  program
-  ;; (cpbotha: html2text sees to work better than the built-in one)
-  (setf mu4e-html2text-command "html2text")
+(setf mu4e-use-fancy-chars t)
+(setf mu4e-headers-date-format "%Y-%m-%d %H:%M")
+(setf mu4e-headers-skip-duplicates t)
+(setf mu4e-headers-include-related t)
+(setf mu4e-view-date-format "%a %Y-%m-%d %H:%M")
+(setf gnus-dired-mail-mode 'mu4e-user-agent)
+(setf mu4e-change-filenames-when-moving t)
+;; show full addresses in view message (instead of just names)
+;; toggle per name with M-RET
+(setf mu4e-view-show-addresses t)
 
-  ;; mu4e-action-view-in-browser is built into mu4e
-  ;; by adding it to these lists of custom actions
-  ;; it can be invoked by first pressing a, then selecting
-  (add-to-list 'mu4e-headers-actions
-	       '("in browser" . mu4e-action-view-in-browser) t)
-  (add-to-list 'mu4e-view-actions
-	       '("in browser" . mu4e-action-view-in-browser) t)
+(setf message-send-mail-function 'smtpmail-send-it)
+(setf starttls-use-gnutls t)
+(setf smtpmail-debug-info t)
 
-  ;; the headers to show in the headers list   a pair of a field
-  ;; and its width, with `nil  meaning  unlimited
-  ;; (better only use that for the last field.
-  ;; These are the defaults:
-  (setf mu4e-headers-fields
-	'( (:date . 20)
-	   (:maildir . 20)
-	   (:flags . 6)
-	   (:from-or-to . 35)
-	   (:subject . nil)))
+;; when you want to use some external command for html->text
+;; conversion, e.g. the  html2text  program
+;; (cpbotha: html2text sees to work better than the built-in one)
+(setf mu4e-html2text-command "html2text")
 
-  ;; enable inline images
-  (setf mu4e-view-show-images t)
+;; mu4e-action-view-in-browser is built into mu4e
+;; by adding it to these lists of custom actions
+;; it can be invoked by first pressing a, then selecting
+(add-to-list 'mu4e-headers-actions
+	     '("in browser" . mu4e-action-view-in-browser) t)
+(add-to-list 'mu4e-view-actions
+	     '("in browser" . mu4e-action-view-in-browser) t)
 
-  (setq mu4e-context-policy 'pick-first)
+;; the headers to show in the headers list   a pair of a field
+;; and its width, with `nil  meaning  unlimited
+;; (better only use that for the last field.
+;; These are the defaults:
+(setf mu4e-headers-fields
+      '( (:date . 20)
+	 (:maildir . 20)
+	 (:flags . 6)
+	 (:from-or-to . 35)
+	 (:subject . nil)))
 
-  (setq mu4e-compose-context-policy nil)
+;; enable inline images
+(setf mu4e-view-show-images t)
 
-  (setq message-kill-buffer-on-exit t)
+(setq mu4e-context-policy 'pick-first)
 
-  ;; use imagemagick, if available
-  (when (fboundp 'imagemagick-register-types)
-    (imagemagick-register-types))
+(setq mu4e-compose-context-policy nil)
 
-  (add-hook 'mu4e-compose-mode-hook
-	    (defun my-do-compose-stuff ()
-	      "My settings for message composition."
-	      (set-fill-column 72)
-	      (super-save-mode -1)
-	      (flyspell-mode)))
+(setq message-kill-buffer-on-exit t)
 
-  (setf mu4e-compose-signature-auto-include t)
+;; use imagemagick, if available
+(when (fboundp 'imagemagick-register-types)
+  (imagemagick-register-types))
 
-  (defun my-render-html-message ()
-    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
-      (erase-buffer)
-      (shr-insert-document dom)
-      (goto-char (point-min))))
+(add-hook 'mu4e-compose-mode-hook
+	  (defun my-do-compose-stuff ()
+	    "My settings for message composition."
+	    (set-fill-column 72)
+	    (super-save-mode -1)
+	    (flyspell-mode)))
 
-  (setf mu4e-html2text-command 'my-render-html-message)
-  ;; make the `gnus-dired-mail-buffers' function also work on
-  ;; message-mode derived modes, such as mu4e-compose-mode
-  (defun gnus-dired-mail-buffers ()
-    "Return a list of active message buffers."
-    (let (buffers)
-      (save-current-buffer
-	(dolist (buffer (buffer-list t))
-	  (set-buffer buffer)
-	  (when (and (derived-mode-p 'message-mode)
-		     (null message-sent-message-via))
-	    (push (buffer-name buffer) buffers))))
-      (nreverse buffers)))
-  (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+(setf mu4e-compose-signature-auto-include t)
 
-  ;; works only for emacs with xwidget support
-  (defun my-mu4e-action-view-with-xwidget (msg)
-    "View the body of the message inside xwidget-webkit."
-    (unless (fboundp 'xwidget-webkit-browse-url)
-      (mu4e-error "No xwidget support available"))
-    (let* ((html (mu4e-message-field msg :body-html))
-	   (txt (mu4e-message-field msg :body-txt))
-	   (tmpfile (format "%s%x.html" temporary-file-directory (random t))))
-      (unless (or html txt)
-	(mu4e-error "No body part for this message"))
-      (with-temp-buffer
-	;; simplistic -- but note that it's only an example...
-	(insert (or html (concat "<pre>" txt "</pre>")))
-	(write-file tmpfile)
-	(xwidget-webkit-browse-url (concat "file://" tmpfile) t))))
+(defun my-render-html-message ()
+  (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+    (erase-buffer)
+    (shr-insert-document dom)
+    (goto-char (point-min))))
 
-  (add-to-list 'mu4e-view-actions
-	       '("xViewXWidget" . my-mu4e-action-view-with-xwidget) t)
+(setf mu4e-html2text-command 'my-render-html-message)
+;; make the `gnus-dired-mail-buffers' function also work on
+;; message-mode derived modes, such as mu4e-compose-mode
+(defun gnus-dired-mail-buffers ()
+  "Return a list of active message buffers."
+  (let (buffers)
+    (save-current-buffer
+      (dolist (buffer (buffer-list t))
+	(set-buffer buffer)
+	(when (and (derived-mode-p 'message-mode)
+		   (null message-sent-message-via))
+	  (push (buffer-name buffer) buffers))))
+    (nreverse buffers)))
+(add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
 
-  (use-package org-caldav
-    :config
-    (defun my-org-caldav-advice (orig-fun &rest args)
-      (let ((xml-default-ns-bak xml-default-ns)
-	    (org-version-bak org-version))
-	(setq xml-default-ns '(("" . "DAV:")))
-	(setq org-version "8.2.7")
-	(apply orig-fun args)
-	(setq xml-default-ns xml-default-ns-bak)
-	(setq org-version org-version-bak)))
-    (advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
-    (setf org-caldav-uuid-extension ".EML")
-    (setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))
+;; works only for emacs with xwidget support
+(defun my-mu4e-action-view-with-xwidget (msg)
+  "View the body of the message inside xwidget-webkit."
+  (unless (fboundp 'xwidget-webkit-browse-url)
+    (mu4e-error "No xwidget support available"))
+  (let* ((html (mu4e-message-field msg :body-html))
+	 (txt (mu4e-message-field msg :body-txt))
+	 (tmpfile (format "%s%x.html" temporary-file-directory (random t))))
+    (unless (or html txt)
+      (mu4e-error "No body part for this message"))
+    (with-temp-buffer
+      ;; simplistic -- but note that it's only an example...
+      (insert (or html (concat "<pre>" txt "</pre>")))
+      (write-file tmpfile)
+      (xwidget-webkit-browse-url (concat "file://" tmpfile) t))))
 
-  (message "Loading MAIL stuff done!"))
+(add-to-list 'mu4e-view-actions
+	     '("xViewXWidget" . my-mu4e-action-view-with-xwidget) t)
+
+(use-package org-caldav
+  :config
+  (defun my-org-caldav-advice (orig-fun &rest args)
+    (let ((xml-default-ns-bak xml-default-ns)
+	  (org-version-bak org-version))
+      (setq xml-default-ns '(("" . "DAV:")))
+      (setq org-version "8.2.7")
+      (apply orig-fun args)
+      (setq xml-default-ns xml-default-ns-bak)
+      (setq org-version org-version-bak)))
+  (advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
+  (setf org-caldav-uuid-extension ".EML")
+  (setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))
+
+(message "Loading MAIL stuff done!")
 
 (setf fill-column 80)
 
@@ -3621,12 +3669,27 @@ TAG is chosen interactively from the global tags completion table."
 
 (use-package simple-mpc)
 
+(use-package mingus)
 
 (use-package smart-mode-line
   :config
   (sml/setup))
 
 (use-package smart-mode-line-powerline-theme)
+
+(use-package blimp
+  :straight (:host github
+		   :repo "walseb/blimp")
+  :hook (image-mode . blimp-mode))
+
+(use-package keychain-environment
+  :straight (:host github
+		   :repo "tarsius/keychain-environment")
+  :config
+  (keychain-refresh-environment))
+
+(load (expand-file-name "~/quicklisp/slime-helper.el"))
+(setq inferior-lisp-program "/usr/local/bin/sbcl")
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
@@ -3691,8 +3754,9 @@ TAG is chosen interactively from the global tags completion table."
 (bind-key "\C-i" 'endless/ispell-word-then-abbrev ctl-x-map)
 
 ;; C-x C-0 restores the default font size
-(bind-key* "C-+" 'modi/global-font-size-incr)
-(bind-key* "C--" 'modi/global-font-size-decr)
+(bind-key* "C-+" 'default-text-scale-increase)
+(bind-key* "C--" 'default-text-scale-decrease)
+(bind-key* "C-=" 'default-text-scale-reset)
 (bind-key* "C-x C-0" 'modi/global-font-size-reset)
 (bind-key "C-S-w" 'delete-frame)
 (bind-key "M-Z" 'zap-to-char)
@@ -3727,6 +3791,7 @@ TAG is chosen interactively from the global tags completion table."
 
 (bind-key "<f9>" 'menu-bar-open)
 (bind-key "<f10>" 'mu4e)
-(bind-key "<f12>" 'org-agenda)
+(bind-key "<f12>" 'org-agenda-list)
+(bind-key "S-<f12>" 'org-agenda)
 
 (defun package--save-selected-packages (&rest opt) nil)
