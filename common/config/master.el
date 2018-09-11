@@ -2085,6 +2085,14 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   (interactive)
   (dired "/ssh:magma@ftp.labs.westermo.se:/srv/ftp/share/malm/"))
 
+(defun copy-current-file-to-wemo-ftp ()
+  (interactive)
+  (copy-file (buffer-file-name) "/ssh:magma@ftp.labs.westermo.se:/srv/ftp/share/malm/" t t)
+  (let ((str (concat "http://ftp.labs.westermo.se/share/malm/"
+		     (file-name-nondirectory (buffer-file-name)))))
+    (kill-new str)
+    (message str)))
+
 
 (defun package-menu-find-marks ()
   "Find packages marked for action in *Packages*."
