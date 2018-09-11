@@ -31,6 +31,7 @@
  '(eyebrowse-new-workspace nil)
  '(eyebrowse-switch-back-and-forth t)
  '(eyebrowse-wrap-around t)
+ '(git-messenger:show-detail t)
  '(imenu-list-focus-after-activation t)
  '(irony-eldoc-use-unicode t)
  '(ivy-posframe-border-width 0)

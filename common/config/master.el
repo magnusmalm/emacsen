@@ -2933,6 +2933,7 @@ and set the focus back to Emacs frame"
     (define-key sub-keymap "b" 'projectile-switch-to-buffer)
     (define-key sub-keymap "d" 'projectile-dired)
     (define-key sub-keymap "m" 'magit-status)
+    (define-key sub-keymap "w" 'git-messenger:popup-message)
     (define-key sub-keymap "l" 'multi-line)
     (define-key sub-keymap "t" 'org-projectile-project-todo-completing-read)
     (define-key sub-keymap "c" 'org-capture)
@@ -3682,6 +3683,8 @@ TAG is chosen interactively from the global tags completion table."
 
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
+
+(use-package git-messenger)
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
