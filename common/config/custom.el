@@ -46,6 +46,7 @@
  '(lsp-ui-sideline-ignore-duplicate t)
  '(lsp-ui-sideline-update-mode 'line)
  '(magit-blame-echo-style 'lines)
+ '(magit-log-arguments '("--graph" "--decorate" "--no-merges" "-n256"))
  '(magit-todos-exclude-globs '("kernel-dev"))
  '(magit-todos-group-by
    '(magit-todos-item-keyword magit-todos-item-first-path-component))
