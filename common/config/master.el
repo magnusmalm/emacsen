@@ -2642,8 +2642,6 @@ Use `winstack-push' and
   :straight (:host github
       		   :repo "jsmestad/doom-todo-ivy"))
 
-;; https://github.com/jsmestad/doom-todo-ivy
-
 (use-package magit-lfs
   :ensure t)
 
