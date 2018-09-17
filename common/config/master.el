@@ -2694,9 +2694,15 @@ Use `winstack-push' and
     (shell-command-on-region b e
                              "clang-format"
                              (current-buffer) t)
-    (indent-region b e)
-    ))
+    (indent-region b e))
 
+  (defun insert-semicolon ()
+    "Add semicolon at the end of the line and return to current position"
+    (interactive)
+    (end-of-line)
+    (insert ";")
+    (c-newline-and-indent))
+  :bind (:map c-mode-base-map ("M-RET" . insert-semicolon)))
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode))
@@ -2745,13 +2751,6 @@ Use `winstack-push' and
   (setq-local company-backends (add-to-list 'company-backends 'company-lsp))
   (ws-butler-mode 1))
 (add-hook 'c-mode-hook 'my-c-mode-hook-func)
-
-(defun insert-semicolorn ()
-  "Add semicolon at the end of the line and return to current position"
-  (interactive)
-  (save-excursion
-    (end-of-line)
-    (insert ";")))
 
 (use-package company-quickhelp
   :bind (:map company-active-map
