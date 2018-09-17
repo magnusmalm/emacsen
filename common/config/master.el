@@ -2140,6 +2140,8 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
     (add-hook 'prog-mode-hook #'whitespace-mode)
 
     (global-whitespace-mode t)
+    (add-hook 'erc-mode-hook
+	      'no-trailing-whitespace)
     (add-hook 'minibuffer-setup-hook
 	      'no-trailing-whitespace)
     (add-hook 'eww-mode-hook
