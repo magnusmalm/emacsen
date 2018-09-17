@@ -1643,7 +1643,7 @@ one by line."
         #'projectile-commander)
   (setq projectile-project-root-files-top-down-recurring
         (append '("compile_commands.json"
-                  ".cquery")
+                  ".ccls")
                 projectile-project-root-files-top-down-recurring))
   (def-projectile-commander-method ?s
     "Open a *shell* buffer for the project."
@@ -2695,22 +2695,21 @@ Use `winstack-push' and
     (indent-region b e)
     ))
 
-;; (use-package ccls
-;; 	:config
-;; 	(setf ccls-executable "/home/magnus/src/ccls/Release/ccls"))
-;; (use-package lsp-mode)
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode))
 
 (use-package lsp-python
-  :config (add-hook 'python-mode-hook #'lsp-python-enable))
+  :hook (python-mode . lsp-python-enable))
 
-(use-package cquery
+(use-package ccls
   :config
-  (setf cquery-extra-init-params '(:completion (:detailedLabel t)))
-  (setf cquery-sem-highlight-method 'font-lock)
-  (cquery-use-default-rainbow-sem-highlight))
+  (defun ccls//enable ()
+    (condition-case nil
+	(lsp-ccls-enable)
+      (user-error nil)))
+  (setf ccls-sem-highlight-method 'overlay)
+  (ccls-use-default-rainbow-sem-highlight))
 
 (use-package company-lsp
   :config
@@ -2724,24 +2723,11 @@ Use `winstack-push' and
 (use-package lsp-ui
   :config
   (setf lsp-ui-sideline-show-symbol t)
-  (defun my-cquery-find-vars ()
-    (interactive)
-    (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
-
-  (defun my-cquery-find-callers ()
-    (interactive)
-    (lsp-ui-peek-find-custom 'callers "$cquery/callers"))
+  (setf lsp-ui-doc-include-signature t)
 
   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (bind-key "C-c C-x v" #'my-cquery-find-vars lsp-ui-mode-map)
-  (bind-key "C-c C-x c" #'my-cquery-find-callers lsp-ui-mode-map)
   (add-hook 'lsp-mode 'lsp-ui-mode))
-
-;; (use-package irony
-;; 	:config
-;; 	(add-hook 'c-mode-hook 'irony-mode)
-;; 	(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
 (defun my-c-mode-hook-func ()
   ;; (semantic-mode 1)
@@ -2750,13 +2736,10 @@ Use `winstack-push' and
   (yas-minor-mode)
   (electric-pair-mode 1)
   (company-mode 1)
-  ;; (irony-mode 1)
   (key-chord-mode 1)
-  (lsp-cquery-enable)
-  ;; (lsp-ccls-enable)
+  (ccls//enable)
   (lsp-ui-mode)
   (add-to-list 'company-backends 'company-lsp)
-  ;; (add-to-list 'company-backends 'company-irony)
   (setq-local company-backends (add-to-list 'company-backends 'company-lsp))
   (ws-butler-mode 1))
 (add-hook 'c-mode-hook 'my-c-mode-hook-func)
@@ -2844,11 +2827,6 @@ and set the focus back to Emacs frame"
 (use-package lua-mode
   :config
   (setf lua-default-application "luajit"))
-
-(use-package elpy
-  :config
-  (setf elpy-rpc-backend "jedi")
-  (elpy-enable))
 
 (message "Loading DEVEL stuff done")
 ;; Source: https://www.reddit.com/r/emacs/comments/89yofa/keychord_mode/
