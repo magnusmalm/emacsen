@@ -1186,7 +1186,9 @@ abort completely with `C-g'."
 
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
 
-(use-package vlf)
+(use-package vlf
+  :config
+  (require 'vlf-setup))
 
 ;;; https://github.com/hlissner/doom-emacs/blob/master/core/autoload/minibuffer.el
 (defun doom/minibuffer-kill-word ()

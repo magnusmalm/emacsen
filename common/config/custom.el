@@ -86,6 +86,8 @@
  '(super-save-auto-save-when-idle nil)
  '(super-save-idle-duration 0)
  '(swiper-action-recenter t))
+ '(vlf-application 'dont-ask)
+ '(vlf-tune-enabled t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
