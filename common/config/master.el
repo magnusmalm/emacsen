@@ -3639,8 +3639,17 @@ TAG is chosen interactively from the global tags completion table."
   :config
   (keychain-refresh-environment))
 
-(load (expand-file-name "~/quicklisp/slime-helper.el"))
-(setq inferior-lisp-program "/usr/local/bin/sbcl")
+(use-package sly
+  :straight (:files ("*.el" ("lib" "lib/*")
+		     ("slynk/backend" "slynk/backend/*")
+		     ("slynk" "slynk/*") ("contrib" "contrib/*")
+		     "doc/*.texi" "doc/*.info" "doc/dir")
+		    :host github :repo "joaotavora/sly")
+  :config
+  (setf inferior-lisp-program "sbcl"))
+
+(use-package sly-quicklisp)
+(use-package sly-macrostep)
 
 (use-package git-messenger)
 
