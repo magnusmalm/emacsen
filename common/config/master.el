@@ -570,11 +570,7 @@ in that cyclic order."
 (use-package comment-dwim-2
   :bind ("M-'" . comment-dwim-2))
 
-(use-package ws-butler
-  :delight
-  :config
-  (progn
-    (ws-butler-global-mode 1)))
+(use-package ws-butler)
 
 (use-package edit-at-point
   :bind*
@@ -2153,8 +2149,6 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
     (add-hook 'help-mode-hook
 	      'no-trailing-whitespace)))
 
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-
 (use-package linum-relative)
 
 (use-package beacon
@@ -2761,12 +2755,10 @@ Use `winstack-push' and
   (lsp-cquery-enable)
   ;; (lsp-ccls-enable)
   (lsp-ui-mode)
-  (add-to-list 'write-file-functions 'delete-trailing-whitespace)
   (add-to-list 'company-backends 'company-lsp)
   ;; (add-to-list 'company-backends 'company-irony)
   (setq-local company-backends (add-to-list 'company-backends 'company-lsp))
-  ;; (setq-local company-backends (add-to-list 'company-backends 'company-irony))
-  )
+  (ws-butler-mode 1))
 (add-hook 'c-mode-hook 'my-c-mode-hook-func)
 
 (defun insert-semicolorn ()
