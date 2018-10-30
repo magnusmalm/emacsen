@@ -478,8 +478,7 @@ in that cyclic order."
 (setf locale-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
-(unless (eq system-type 'windows-nt)
-  (set-selection-coding-system 'utf-8))
+
 (prefer-coding-system 'utf-8)
 
 (when (display-graphic-p)
@@ -564,8 +563,8 @@ in that cyclic order."
     (whole-line-or-region-mode 1)))
 
 (use-package expand-region
-  :bind (("C-=" . er/expand-region)
-	 ("C-SPC" . er/mark-defun)))
+  :bind (("C-M-c" . er/expand-region)
+	 ("C-M-h" . er/mark-defun)))
 
 (use-package comment-dwim-2
   :bind ("M-'" . comment-dwim-2))
@@ -651,6 +650,9 @@ This font is required for emoji and other Unicode 6+ display.")
 (when (find-font (font-spec :name "DejaVu Sans Mono"))
   (setf font-dejavu-sans-mono-p t))
 
+(use-package unicode-fonts
+  :config
+  (unicode-fonts-setup))
 
 (defmacro hook-into-modes (function mode-hooks)
   "Add FUNCTION to hooks in MODE-HOOKS."
@@ -1226,6 +1228,8 @@ monopolizing the minibuffer."
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
 (add-to-list 'auto-mode-alist '("\\.conf\\'" . javascript-mode))
+(add-to-list 'auto-mode-alist '("\\.ctml\\'" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.lass\\'" . css-mode))
 
 (setf browse-url-browser-function 'browse-url-chromium)
 
@@ -1280,7 +1284,7 @@ monopolizing the minibuffer."
          ;; File names ending with # or ~
          "\\|\\(?:\\`.+?[#~]\\'\\)"
 	 ;; File names ending with .d or .o
-	 "\\|\\(?:\\`.+?[od]\\'\\)"
+	 ;; "\\|\\(?:\\`.+?[od]\\'\\)"
 	 ))
 
   (defun counsel-yank-bash-history ()
@@ -1403,12 +1407,13 @@ one by line."
 (use-package selected
   :init (selected-minor-mode)
   :bind (:map selected-keymap
-              ("w" . er/expand-region)
-              ("q" . selected-off)
-              ("u" . upcase-region)
-              ("d" . downcase-region)
-              ("g" . google-this)
-              ("m" . apply-macro-to-region-lines)))
+              ("M-W" . er/expand-region)
+              ("M-Q" . selected-off)
+              ("M-U" . upcase-region)
+              ("M-D" . downcase-region)
+              ("M-G" . google-this)
+	      ("M-E" . iedit-dwim)
+              ("M-M" . apply-macro-to-region-lines)))
 
 (use-package subword
   :ensure nil
@@ -1437,17 +1442,13 @@ one by line."
 (use-package guess-language
   :config
   (setf guess-language-languages '(en sv))
+  (setq guess-language-langcodes '((en . ("british" . nil))
+				   (sv . ("svenska" . nil))))
   (setf guess-language-min-paragraph-length 35)
   (defun my-guess-lang-mode-hook-function ()
     (guess-language-mode 1))
-  (add-hook 'text-mode-hook #'my-guess-lang-mode-hook-function))
-
-;;; setup-gitlab.el --- GitLab                       -*- lexical-binding: t; -*-
-
-;; Copyright (C) 2018  Magnus Malm
-
-;; Author: Magnus Malm <magnus@okinawa>
-;; Keywords: vc
+  (add-hook 'text-mode-hook #'my-guess-lang-mode-hook-function)
+  (add-hook 'prog-mode-hook #'my-guess-lang-mode-hook-function))
 
 (use-package gitlab)
 (use-package ivy-gitlab)
@@ -1459,7 +1460,7 @@ one by line."
   (which-key-setup-side-window-bottom)
   (setf which-key-use-C-h-for-paging t)
   (setf which-key-prevent-C-h-from-cycling t)
-  (setf which-key-max-display-columns 3)
+  (setf which-key-max-display-columns nil)
   (setf which-key-max-description-length 50))
 
 (use-package discover-my-major)
@@ -1727,17 +1728,17 @@ one by line."
   ;; (setf ivy-use-virtual-buffers nil)
   (setf swiper-include-line-number-in-search t))
 
-(use-package prescient
-  :config
-  (prescient-persist-mode))
+;; (use-package prescient
+;;   :config
+;;   (prescient-persist-mode))
 
-(use-package ivy-prescient
-  :config
-  (ivy-prescient-mode))
+;; (use-package ivy-prescient
+;;   :config
+;;   (ivy-prescient-mode))
 
-(use-package company-prescient
-  :config
-  (company-prescient-mode))
+;; (use-package company-prescient
+;;   :config
+;;   (company-prescient-mode))
 
 (use-package winner
   :ensure nil
@@ -1771,6 +1772,7 @@ one by line."
   	  ("C-c C-r" . ivy-resume))
   :bind (:map ivy-minibuffer-map
 	      ("C-'" . ivy-avy)
+	      ("M-q" . ivy-avy)
 	      ("M-k" . ivy-next-line)
 	      ("M-i" . ivy-previous-line)
 	      ("M-I" . ivy-scroll-down-command)
@@ -1963,7 +1965,42 @@ one by line."
   :config
   (add-hook 'flyspell-mode-hook (lambda () (auto-dictionary-mode 1))))
 
-(use-package flyspell-correct-popup)
+(use-package flyspell-correct-popup
+  :bind (:map popup-menu-keymap
+              ("TAB" . popup-next)
+              ("S-TAB" . popup-previous)))
+
+(defun ap/iedit-or-flyspell ()
+  "Call `iedit-mode' or correct misspelling with flyspell, depending..."
+  (interactive)
+  (if (or iedit-mode
+          (and (derived-mode-p 'prog-mode)
+               (not (or (nth 4 (syntax-ppss))
+                        (nth 3 (syntax-ppss))))))
+      ;; prog-mode is active and point is in a comment, string, or
+      ;; already in iedit-mode
+      (iedit-mode)
+    ;; Not prog-mode or not in comment or string
+    (if (not (equal flyspell-previous-command this-command))
+        ;; FIXME: This mostly works, but if there are two words on the
+        ;; same line that are misspelled, it doesn't work quite right
+        ;; when correcting the earlier word after correcting the later
+        ;; one
+
+        ;; First correction; autocorrect
+        (call-interactively 'flyspell-auto-correct-previous-word)
+      ;; First correction was not wanted; use popup to choose
+      (progn
+        (save-excursion
+          (undo))  ; This doesn't move point, which I think may be the problem.
+        (flyspell-region (line-beginning-position) (line-end-position))
+        (call-interactively 'flyspell-correct-previous-word-generic)))))
+
+(use-package flyspell-correct
+  :straight (:host github
+		   :repo "d12frosted/flyspell-correct")
+  :config
+  (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 
 ;; ====================
 ;; insert date and time
@@ -2044,44 +2081,6 @@ Uses `current-date-time-format' for the formatting the date/time."
 (show-paren-mode t)
 (setf show-paren-style 'expression)
 
-(defun modi/is-font (fontname)
-  "Return non-nil if the default font match FONTNAME."
-  ;; http://superuser.com/a/1100378/209371
-  (string-match-p fontname (format "%s" (face-attribute 'default :font))))
-
-(with-eval-after-load 'setup-font-check
-  (defvar default-font-size-pt
-    (cond
-     ((modi/is-font "Monoid") 11)
-     ((modi/is-font "Pragmata") 13)
-     (t 12))
-    "Default font size in points."))
-
-(defun modi/global-font-size-adj (scale &optional absolute)
-  "Adjust the font sizes globally: in all buffers, mode line, echo area, etc.
-
-M-<SCALE> COMMAND increases font size by SCALE points if SCALE is +ve,
-                  decreases font size by SCALE points if SCALE is -ve
-                  resets    font size if SCALE is 0.
-
-If ABSOLUTE is non-nil, text scale is applied relative to the default font size
-`default-font-size-pt'.
- Else, the text scale is applied relative to the current font size."
-  (interactive "p")
-  (if (= scale 0)
-      (setf font-size-pt default-font-size-pt)
-    (if (bound-and-true-p absolute)
-        (setf font-size-pt (+ default-font-size-pt scale))
-      (setf font-size-pt (+ font-size-pt scale))))
-  ;; The internal font size value is 10x the font size in points unit.
-  ;; So a 10pt font size is equal to 100 in internal font size value.
-  (set-face-attribute 'default nil :height (* font-size-pt 10)))
-
-(defun modi/global-font-size-incr ()  (interactive) (modi/global-font-size-adj +1))
-(defun modi/global-font-size-decr ()  (interactive) (modi/global-font-size-adj -1))
-(defun modi/global-font-size-reset () (interactive) (modi/global-font-size-adj 0))
-
-
 ;; turn on highlighting current line
 (global-hl-line-mode 1)
 (make-variable-buffer-local 'global-hl-line-mode)
@@ -2098,7 +2097,8 @@ If ABSOLUTE is non-nil, text scale is applied relative to the default font size
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :init (setf markdown-command "multimarkdown"))
+  :config
+  (setf markdown-command "/usr/bin/pandoc"))
 
 (use-package fontawesome
   :config
@@ -2567,26 +2567,27 @@ Use `winstack-push' and
 	  magit-insert-tags-header))
 
   (setf magit-status-sections-hook
-	'(magit-insert-status-headers
-	  magit-insert-merge-log
-	  magit-insert-rebase-sequence
-	  magit-insert-am-sequence
-	  magit-insert-sequencer-sequence
-	  magit-insert-bisect-output
-	  magit-insert-bisect-rest
-	  magit-insert-bisect-log
-	  magit-insert-untracked-files
-	  magit-insert-unstaged-changes
-	  magit-insert-staged-changes
-	  magit-insert-stashes
-	  magit-insert-unpulled-from-upstream
-	  magit-insert-unpulled-from-pushremote
-	  magit-insert-unpushed-to-upstream
-	  magit-insert-unpushed-to-pushremote
-	  magit-insert-modules-unpulled-from-upstream
-	  magit-insert-modules-unpulled-from-pushremote
-	  magit-insert-modules-unpushed-to-upstream
-	  magit-insert-modules-unpushed-to-pushremote))
+  	'(magit-insert-status-headers
+  	  magit-insert-merge-log
+  	  magit-insert-rebase-sequence
+  	  magit-insert-am-sequence
+  	  magit-insert-sequencer-sequence
+  	  magit-insert-bisect-output
+  	  magit-insert-bisect-rest
+  	  magit-insert-bisect-log
+  	  magit-insert-untracked-files
+  	  magit-insert-unstaged-changes
+  	  magit-insert-staged-changes
+  	  magit-insert-stashes
+  	  magit-insert-unpulled-from-upstream
+  	  magit-insert-unpulled-from-pushremote
+  	  magit-insert-unpushed-to-upstream
+  	  magit-insert-unpushed-to-pushremote
+  	  magit-insert-modules-unpulled-from-upstream
+  	  magit-insert-modules-unpulled-from-pushremote
+  	  magit-insert-modules-unpushed-to-upstream
+  	  magit-insert-modules-unpushed-to-pushremote
+  	  magit-insert-recent-commits))
 
   (magit-define-popup-switch 'magit-log-popup
     ?m "Omit merge commits" "--no-merges")
@@ -2781,12 +2782,19 @@ and set the focus back to Emacs frame"
 (add-to-list 'compilation-finish-functions
 	     'notify-compilation-result)
 
+(use-package popup)
+
 (use-package ediff
   :ensure nil
   :config
   (setf ediff-window-setup-function 'ediff-setup-windows-plain)
   (setf ediff-split-window-function 'split-window-horizontally)
   (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+
+(use-package synosaurus
+  :bind (:map synosaurus-mode-map
+	      (("H-l" . synosaurus-lookup)
+	       ("H-c" . synosaurus-choose-and-replace))))
 
 (use-package flycheck
   :demand t
@@ -2798,12 +2806,6 @@ and set the focus back to Emacs frame"
     :config
     (setf flycheck-pos-tip-timeout (* 60 10))
     (flycheck-pos-tip-mode)))
-
-;; (use-package flycheck-irony
-;; 	:demand t
-;; 	:config
-;; 	(eval-after-load 'flycheck
-;; 	  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
 
 ;;;; YAML MODE
 
@@ -2832,9 +2834,8 @@ and set the focus back to Emacs frame"
   (setf lua-default-application "luajit"))
 
 (message "Loading DEVEL stuff done")
+
 ;; Source: https://www.reddit.com/r/emacs/comments/89yofa/keychord_mode/
-
-
 (use-package key-chord
   :ensure t
   :config
@@ -3325,6 +3326,12 @@ TAG is chosen interactively from the global tags completion table."
 						    (org-return)
 						  (org-return-indent)))))
 
+(use-package org-timeline
+  :config
+  (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
+
+(use-package org-kanban)
+
 (use-package org-super-agenda
   :init
   (setq org-super-agenda-groups
@@ -3462,6 +3469,8 @@ TAG is chosen interactively from the global tags completion table."
 (require 'gnus-dired)
 (require'org-mu4e)
 (setq org-mu4e-link-query-in-headers-mode nil)
+
+(define-key mu4e-main-mode-map "u" 'mu4e-update-index)
 
 (setf mu4e-maildir "~/.mail")
 
@@ -3653,6 +3662,18 @@ TAG is chosen interactively from the global tags completion table."
 
 (use-package git-messenger)
 
+(use-package suggest)
+
+(use-package string-edit)
+
+(use-package elisp-docstring-mode)
+
+(use-package wicd-mode
+  :straight (:host github
+		   :repo "rafoo/wicd-mode.el"))
+
+(use-package go-guru)
+
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
 (bind-key "C-S-M-O" 'find-file-in-sync-dir)
@@ -3705,7 +3726,6 @@ TAG is chosen interactively from the global tags completion table."
 (bind-key "M-U" 'beginning-of-buffer)
 (bind-key "M-O" 'end-of-buffer)
 (bind-key* "M-g" 'goto-line)
-(bind-key* "M-G" 'goto-char)
 (bind-key* "M-S-SPC" 'mark-paragraph)
 (bind-key* "M-SPC" 'set-mark-command)
 
