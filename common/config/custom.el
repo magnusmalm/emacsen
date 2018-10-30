@@ -12,14 +12,16 @@
  '(beacon-blink-when-point-moves-vertically 2)
  '(beacon-color "spring green")
  '(beacon-size 60)
+ '(ccls-tree-initial-levels 1)
  '(company-quickhelp-delay 2.0)
  '(company-quickhelp-max-lines nil)
  '(company-quickhelp-use-propertized-text t)
  '(company-selection-wrap-around t)
  '(custom-safe-themes
-   '("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a3fa4abaf08cc169b61dea8f6df1bbe4123ec1d2afeb01c17e11fdc31fc66379" default))
+   '("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a3fa4abaf08cc169b61dea8f6df1bbe4123ec1d2afeb01c17e11fdc31fc66379" default))
  '(desktop-file-name-format 'absolute)
  '(desktop-path '("~/emacsen/devel/var/" "~"))
+ '(dtrt-indent-min-quality 70.0)
  '(erc-auto-query 'window-noselect)
  '(erc-hide-list '("PART" "QUIT"))
  '(erc-modules
@@ -54,7 +56,7 @@
  '(lsp-ui-sideline-show-symbol nil)
  '(lsp-ui-sideline-update-mode 'point)
  '(magit-blame-echo-style 'lines)
- '(magit-log-arguments '("--graph" "--decorate" "--no-merges" "-n256"))
+ '(magit-log-arguments '("--graph" "--decorate" "-n256"))
  '(magit-todos-exclude-globs '("kernel-dev"))
  '(magit-todos-group-by
    '(magit-todos-item-keyword magit-todos-item-first-path-component))
@@ -78,6 +80,8 @@
  '(sidebar-filename-colored t)
  '(sidebar-header-line-height 1.5)
  '(sidebar-message-current t)
+ '(slime-company-completion 'fuzzy)
+ '(slime-complete-symbol*-fancy t)
  '(sml/mode-width 'right)
  '(sml/modified-char "*")
  '(sml/position-percentage-format "")
@@ -90,6 +94,7 @@
  '(super-save-auto-save-when-idle nil)
  '(super-save-idle-duration 0)
  '(swiper-action-recenter t)
+ '(synosaurus-choose-method 'popup)
  '(vlf-application 'dont-ask)
  '(vlf-tune-enabled t))
 (custom-set-faces
@@ -97,6 +102,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ccls-call-hierarchy-node-normal-face ((t (:foreground "deep sky blue"))) t)
+ '(ccls-tree-header-line-face ((t (:foreground "dark orange" :height 0.8))))
+ '(ccls-tree-icon-face ((t (:foreground "lawn green"))))
+ '(ccls-tree-mode-line-face ((t (:foreground "orange" :height 1.2))))
  '(company-preview ((t (:background "light green"))))
  '(company-template-field ((t (:background "gray25" :foreground "gold"))))
  '(diredfl-dir-name ((t (:background "gray25" :foreground "#7474FFFFFFFF"))))
@@ -114,7 +123,9 @@
  '(fg:erc-color-face5 ((t (:foreground "indian red"))))
  '(fg:erc-color-face6 ((t (:foreground "orchid"))))
  '(font-lock-function-name-face ((t (:foreground "dark orange"))))
+ '(lsp-face-highlight-read ((t (:box (:line-width 1 :color "red")))))
  '(lsp-face-highlight-textual ((t (:box (:line-width 1 :color "spring green")))))
+ '(lsp-face-highlight-write ((t (:box (:line-width 1 :color "lawn green")))))
  '(lsp-ui-peek-filename ((t (:foreground "lawn green"))))
  '(lsp-ui-peek-header ((t (:background "dim gray" :foreground "gold"))))
  '(lsp-ui-peek-highlight ((t (:distant-foreground "white smoke" :foreground "white smoke" :box (:line-width -1 :color "yellow")))))
