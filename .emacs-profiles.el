@@ -16,6 +16,9 @@
  ("mail" . ((user-emacs-directory . "~/emacsen/mail")
 	    (server-name . "mail")))
 
+ ("lisp" . ((user-emacs-directory . "~/emacsen/lisp")
+	    (server-name . "lisp")))
+
  ("test" . ((user-emacs-directory . "~/emacsen/test")
 	    (server-name . "test")))
 

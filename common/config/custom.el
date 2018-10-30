@@ -89,7 +89,7 @@
  '(sml/vc-mode-show-backend t)
  '(super-save-auto-save-when-idle nil)
  '(super-save-idle-duration 0)
- '(swiper-action-recenter t))
+ '(swiper-action-recenter t)
  '(vlf-application 'dont-ask)
  '(vlf-tune-enabled t))
 (custom-set-faces
