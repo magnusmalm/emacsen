@@ -290,7 +290,6 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (use-package yasnippet
   :defer 1
-  :diminish yas-minor-mode
   :config (yas-global-mode))
 
 (use-package yasnippet-snippets
@@ -309,6 +308,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 	 ("C-j" . company-complete-common)
 	 ("C-M-j" . company-complete-selection))
   :commands (company-mode global-company-mode)
+  :delight
   :init
   (defvar-local company-fci-mode-on-p nil)
   :config
@@ -343,7 +343,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
   :config
   (add-hook 'shell-mode-hook
 	    (lambda () (setq-local company-backends
-			      '((company-shell company-files))))))
+				   '((company-shell company-files))))))
 
 ;;;; NOTIFICATIONS
 
@@ -358,6 +358,10 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
   :commands alert
   :config
   (setf alert-default-style 'libnotify))
+
+(use-package eldoc
+  :straight nil
+  :delight)
 
 ;; press "S" in a dired buffer to see dired sort in action
 ;; Provided by dired-sort
@@ -556,11 +560,11 @@ in that cyclic order."
   (easy-escape-minor-mode 1)
   (setq-local company-backends (add-to-list 'company-backends 'company-elisp)))
 
-(use-package whole-line-or-region
-  :delight whole-line-or-region-local-mode
-  :config
-  (progn
-    (whole-line-or-region-mode 1)))
+;; (use-package whole-line-or-region
+;;   :delight whole-line-or-region-local-mode
+;;   :config
+;;   (progn
+;;     (whole-line-or-region-mode 1)))
 
 (use-package expand-region
   :bind (("C-M-c" . er/expand-region)
@@ -1092,6 +1096,29 @@ See `sort-regexp-fields'."
   (indent-according-to-mode)
   (delete-trailing-whitespace))
 
+(defun divide-and-follow (&optional number-of-windows)
+  "Split the current frame vertically into multiple
+windows (default 2) viewing the current buffer in follow
+mode. Prefix argument splits into the indicated number of
+windows. E.g. C-3 M-x divide-and-follow will give you three
+columns."
+  (interactive "p")
+  (follow-delete-other-windows-and-split)
+  (let ((splits-needed (max 0 (- number-of-windows 2))))
+    (dotimes (s splits-needed) (split-window-horizontally)))
+  (balance-windows))
+
+(defun aj-toggle-fold ()
+  "Toggle fold all lines larger than indentation on current line"
+  (interactive)
+  (let ((col 1))
+    (save-excursion
+      (back-to-indentation)
+      (setq col (+ 1 (current-column)))
+      (set-selective-display
+       (if selective-display nil (or col 1))))))
+(define-key global-map (kbd "H-<tab>") 'aj-toggle-fold)
+
 (defun endless/simple-get-word ()
   (car-safe (save-excursion (ispell-get-word nil))))
 
@@ -1185,7 +1212,6 @@ abort completely with `C-g'."
   (setf completion-ignore-case t)
   (setf resize-mini-windows t)
   (file-name-shadow-mode 1)
-
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
 
 (use-package vlf
@@ -1260,8 +1286,8 @@ monopolizing the minibuffer."
 
 (use-package counsel
   :bind* (("M-s" . counsel-grep-or-swiper)
-          ("C-M-S" . counsel-rg)
-          ("M-S" . mmm/counsel-rg)
+          ("C-M-S" . counsel-projectile-rg)
+          ("M-S" . mmm/ripgrep-in-current-directory)
           ("M-a" . counsel-M-x)
           ("C-h v" . counsel-describe-variable)
           ("C-h f" . counsel-describe-function)
@@ -1269,7 +1295,7 @@ monopolizing the minibuffer."
           ("C-c C-e" . counsel-colors-emacs)
           ("C-o" . counsel-find-file)
           ("C-M-y" . counsel-yank-pop))
-  :bind (("C-'" . counsel-imenu))
+  :bind (("C-'" . counsel-semantic-or-imenu))
   :bind (:map counsel-mode-map
               ("M-k" . ivy-next-line)
               ("M-i" . ivy-previous-line)
@@ -1311,20 +1337,31 @@ monopolizing the minibuffer."
     (if arg
         (cond ((and (numberp arg) (= arg 0))
                (setf current-prefix-arg nil)
-               (counsel-projectile-rg))
+	       (message "%s" arg)
+	       (let ((dir (file-name-directory buffer-file-name)))
+		 (counsel-rg nil dir nil
+			     (format "%s " dir))))
               ((= (car arg) 4)
                (setf current-prefix-arg nil)
-               (counsel-projectile-rg nil (projectile-project-root) nil
-                                      (format "%s " (projectile-project-name))))
+               (counsel-projectile-rg))
+	      ;; (counsel-rg nil (projectile-project-root) nil
+	      ;; (format "%s " (projectile-project-name)))
               (nil))
       (counsel-rg (symbol-name (symbol-at-point))
                   (projectile-project-root) nil
                   (format "%s " (projectile-project-name)))))
+
+  (defun mmm/ripgrep-in-current-directory (arg)
+    (interactive "P")
+    (let ((dir (file-name-directory buffer-file-name)))
+      (counsel-rg nil dir nil
+		  (format "%s " dir))))
+
   (ivy-set-prompt 'counsel-projectile-rg #'counsel-prompt-function-dir)
   (setf counsel-grep-base-command
-        "rg -i -M 120 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
+        "rg -i -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
   (setf counsel-rg-base-command
-        "rg -S -M 120 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' %s ."))
+        "rg -S -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' %s ."))
 
 (use-package uniquify
   :straight nil
@@ -1440,6 +1477,7 @@ one by line."
   (direnv-mode))
 
 (use-package guess-language
+  :delight
   :config
   (setf guess-language-languages '(en sv))
   (setq guess-language-langcodes '((en . ("british" . nil))
@@ -1548,9 +1586,9 @@ one by line."
        avy-style))))
 
 (use-package back-button
-  :bind (("C-<right>" . back-button-local-forward)
-	 ("C-<left>"  . back-button-local-backward))
-  :diminish back-button-mode
+  :bind (("H-<right>" . back-button-local-forward)
+	 ("H-<left>"  . back-button-local-backward))
+  :delight
   :config
   (back-button-mode 1))
 
@@ -1636,7 +1674,7 @@ one by line."
 (setf znc-identifier (system-name))
 
 (use-package projectile
-  ;; Space-p => π (see ~/.xmodmap)
+  :delight
   :bind (("H-p" . projectile-command-map))
   :config
   (setf projectile-enable-caching t)
@@ -1650,7 +1688,6 @@ one by line."
                 projectile-project-root-files-top-down-recurring))
   (def-projectile-commander-method ?s
     "Open a *shell* buffer for the project."
-    ;; This requires a snapshot version of Projectile.
     (projectile-run-shell))
 
   (def-projectile-commander-method ?c
@@ -1728,69 +1765,30 @@ one by line."
   ;; (setf ivy-use-virtual-buffers nil)
   (setf swiper-include-line-number-in-search t))
 
-;; (use-package prescient
-;;   :config
-;;   (prescient-persist-mode))
-
-;; (use-package ivy-prescient
-;;   :config
-;;   (ivy-prescient-mode))
-
-;; (use-package company-prescient
-;;   :config
-;;   (company-prescient-mode))
-
-(use-package winner
-  :ensure nil
-  :config
-  (winner-mode))
-
-(use-package ag
-  :config
-  (setf ag-highlight-search t))
-
-(use-package google-this
-  :bind (:map google-this-mode-submap
-	      ("C-x g" . google-this-mode-submap))
-  :diminish google-this-mode
-  :config
-  (google-this-mode 1))
-
-(use-package anzu
-  :delight
-  :bind (("M-%" . anzu-query-replace)
-	 ("C-M-%" . anzu-query-replace-regexp))
-  :init (global-anzu-mode +1)
-  :diminish anzu-mode)
-
-(use-package phi-search
-  :bind ("π" . phi-search))
-
 (use-package ivy
   :delight
   :bind* (("M-m" . ivy-switch-buffer)
   	  ("C-c C-r" . ivy-resume))
   :bind (:map ivy-minibuffer-map
 	      ("C-'" . ivy-avy)
-	      ("M-q" . ivy-avy)
-	      ("M-k" . ivy-next-line)
 	      ("M-i" . ivy-previous-line)
+	      ("M-j" . backward-char)
+	      ("M-k" . ivy-next-line)
+	      ("M-l" . forward-char)
 	      ("M-I" . ivy-scroll-down-command)
 	      ("M-K" . ivy-scroll-up-command)
 	      ("M-p" . ivy-previous-history-element)
 	      ("M-n" . ivy-next-history-element)
 	      ("M-v" . yank)
-	      ("M-j" . backward-char)
-	      ("M-l" . forward-char)
 	      ("M-u" . backward-word)
 	      ("M-o" . forward-word)
 	      ("M-e" . backward-kill-word)
 	      ("M-r" . kill-word)
 	      ("M-x" . ivy-kill-line)
-	      ("M-O" . ivy-dispatching-done)
-	      ("C-M-O" . ivy-dispatching-call)
+	      ("C-S-o" . ivy-dispatching-done)
+	      ("C-M-S-o" . ivy-dispatching-call)
 	      ("C-M-j" . ivy-immediate-done))
-  :diminish ivy-mode
+  :delight
   :init
   (ivy-mode 1)
   :config
@@ -1825,6 +1823,45 @@ one by line."
    '(("i" ivy-copy-to-buffer-action "insert")
      ("y" ivy-yank-action "yank")))
   (setf resize-mini-windows t))
+
+;; (use-package prescient
+;;   :config
+;;   (prescient-persist-mode))
+
+;; (use-package ivy-prescient
+;;   :config
+;;   (ivy-prescient-mode))
+
+;; (use-package company-prescient
+;;   :config
+;;   (company-prescient-mode))
+
+(use-package winner
+  :ensure nil
+  :config
+  (winner-mode))
+
+(use-package ag
+  :config
+  (setf ag-highlight-search t))
+
+(use-package google-this
+  :bind (:map google-this-mode-submap
+	      ("C-x g" . google-this-mode-submap))
+  :delight
+  :config
+  (google-this-mode 1))
+
+(use-package anzu
+  :delight
+  :bind (("M-%" . anzu-query-replace)
+	 ("C-M-%" . anzu-query-replace-regexp))
+  :init (global-anzu-mode +1)
+  :delight)
+
+(use-package phi-search
+  :bind ("π" . phi-search))
+
 
 (use-package ivy-buffer-extend
   :straight nil
@@ -2201,29 +2238,42 @@ Uses `current-date-time-format' for the formatting the date/time."
 
 (use-package git-gutter
   :delight
-  :bind(
-	("H-g C-g" . 'git-gutter)
-	("H-g v" . 'git-gutter:popup-hunk)
-
-	;; Jump to next/previous hunk
-	("H-g p" . 'git-gutter:previous-hunk)
-	("H-g n" . 'git-gutter:next-hunk)
-
-	;; Stage current hunk
-	("H-g s" . 'git-gutter:stage-hunk)
-
-	;; Revert current hunk
-	("H-g r" . 'git-gutter:revert-hunk)
-
-	;; Mark current hunk
-	("H-g SPC" . #'git-gutter:mark-hunk))
-  :diminish git-gutter-mode
+  :bind (("H-g" . hydra-git-gutter/body))
+  :delight
   :config
+  (defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
+					:hint nil)
+    "
+Git gutter:
+  _j_: next hunk        _s_tage hunk     _q_uit
+  _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
+  ^ ^                   _p_opup hunk
+  _h_: first hunk
+  _l_: last hunk        set start _R_evision
+"
+    ("j" git-gutter:next-hunk)
+    ("k" git-gutter:previous-hunk)
+    ("h" (progn (goto-char (point-min))
+		(git-gutter:next-hunk 1)))
+    ("l" (progn (goto-char (point-min))
+		(git-gutter:previous-hunk 1)))
+    ("s" git-gutter:stage-hunk)
+    ("r" git-gutter:revert-hunk)
+    ("p" git-gutter:popup-hunk)
+    ("R" git-gutter:set-start-revision)
+    ("q" nil :color blue)
+    ("Q" (progn (git-gutter-mode -1)
+		;; git-gutter-fringe doesn't seem to
+		;; clear the markup right away
+		(sit-for 0.1)
+		(git-gutter:clear))
+     :color blue))
   (global-git-gutter-mode +1))
 
 (use-package leerzeichen)
 
 (use-package zoom
+  :delight
   :config
   (zoom-mode t)
   (defun size-callback ()
@@ -2284,7 +2334,8 @@ Uses `current-date-time-format' for the formatting the date/time."
   :bind* (("s-i" . windmove-up)
 	  ("s-k" . windmove-down)
 	  ("s-j" . windmove-left)
-	  ("s-l" . windmove-right)))
+	  ("s-l" . windmove-right))
+  :custom (windmove-wrap-around t))
 
 (use-package switch-window
   :config
@@ -2426,12 +2477,24 @@ Use `winstack-push' and
 
 (setf next-error-highlight 3)
 
-(use-package emojify)
+(use-package emojify
+  :config
+  (add-hook 'after-init-hook #'global-emojify-mode))
+
+(use-package emoji-cheat-sheet-plus
+  :defer t
+  :init
+  (progn
+    ;; enabled emoji in buffer
+    (add-hook 'org-mode-hook 'emoji-cheat-sheet-plus-display-mode)
+    (add-hook 'erc-mode-hook 'emoji-cheat-sheet-plus-display-mode)
+    ;; insert emoji with helm
+    (global-set-key (kbd "C-c C-S-e") 'emoji-cheat-sheet-plus-insert)))
 
 (use-package undo-tree
   :bind (("M-Z" . undo-tree-redo)
 	 ("M-z" . undo-tree-undo))
-  :diminish undo-tree-mode
+  :delight
   :config
   (global-undo-tree-mode))
 
@@ -2450,10 +2513,14 @@ Use `winstack-push' and
 
 (erc-spelling-mode 1)
 
-(setf erc-prompt  (lambda () (concat (buffer-name) "> ")))
+(setf erc-prompt  (lambda () (concat (buffer-name) ">")))
 
-(add-hook 'erc-mode-hook 'flyspell-mode) ;start flyspell-mode
-(setf ispell-dictionary "svenska") ;set the default dictionary
+(defun my-erc-mode-hook-func ()
+  (flyspell-mode 1)
+  (bind-key* "C-c C-n" 'counsel-irc-query-nick)
+  (bind-key* "M-RET" 'counsel-irc-query-nick))
+
+(add-hook 'erc-mode-hook 'my-erc-mode-hook-func)
 
 (setf erc-save-buffer-on-part t)
 (setf erc-log-channels-directory "~/.erc/logs/")
@@ -2471,18 +2538,47 @@ Use `winstack-push' and
 	  (t 'erc-header-line-disconnected))))
 
 (setf erc-header-line-face-method 'erc-update-header-line-show-disconnected)
-;; (setf erc-hide-list '("JOIN" "PART" "QUIT"))
+(setf erc-hide-list nil)
 
 (require 'erc-input-fill)
 
-(setf erc-timestamp-only-if-changed-flag nil
+;; (setf erc-timestamp-only-if-changed-flag nil
+;;       erc-timestamp-format "%H:%M "
+;;       erc-fill-prefix "    | "
+;;       erc-insert-timestamp-function 'erc-insert-timestamp-left)
+
+;; timestamps
+(make-variable-buffer-local
+ (defvar erc-last-datestamp nil))
+
+(defun ks-timestamp (string)
+  (erc-insert-timestamp-left string)
+  (let ((datestamp (erc-format-timestamp (current-time) erc-datestamp-format)))
+    (unless (string= datestamp erc-last-datestamp)
+      (erc-insert-timestamp-left datestamp)
+      (setq erc-last-datestamp datestamp))))
+
+(setq erc-timestamp-only-if-changed-flag t
       erc-timestamp-format "%H:%M "
-      erc-fill-prefix "    | "
-      erc-insert-timestamp-function 'erc-insert-timestamp-left)
+      erc-datestamp-format " === [%Y-%m-%d %a] ===\n" ; mandatory ascii art
+      erc-fill-prefix "      "
+      erc-insert-timestamp-function 'ks-timestamp)
 
 (setf erc-auto-query 'buffer)
 
 (use-package erc-hl-nicks)
+
+(defun irc-nick-list ()
+  (sort (erc-get-channel-nickname-list) #'string-collate-lessp))
+
+(defun counsel-irc-query-nick (&optional query)
+  (interactive)
+  (let ((nick-list (irc-nick-list)))
+    (ivy-read "nick: " nick-list
+	      :action '(1
+			("i" (lambda (nick) (insert (string-join (list nick ": ") ""))) "Mention final")
+			("I" (lambda (nick) (insert (string-join (list nick ", ") ""))) "Mention")
+			("q" (lambda (nick) (erc-cmd-QUERY nick)) "Open query window")))))
 
 (use-package erc-colorize
   :ensure t
@@ -2529,6 +2625,21 @@ Use `winstack-push' and
      (add-hook 'erc-send-completed-hook (lambda (str)
 					  (erc-bar-update-overlay)))))
 
+(defun switch-to-irc ()
+  "Switch to an IRC buffer, or run `erc-select'.
+    When called repeatedly, cycle through the buffers."
+  (interactive)
+  (let ((buffers (and (fboundp 'erc-buffer-list)
+                      (erc-buffer-list))))
+    (when (eq (current-buffer) (car buffers))
+      (bury-buffer)
+      (setq buffers (cdr buffers)))
+    (if buffers
+        (switch-to-buffer (car buffers))
+      (call-interactively 'erc-select))))
+
+(global-set-key (kbd "C-c e") 'switch-to-irc)
+
 (defun fit-window-to-buffer-width (&optional window max-width min-width)
   "Fit WINDOW according to its buffer's width.
 	     WINDOW, MAX-WIDTH and MIN-WIDTH have the same meaning as in
@@ -2546,6 +2657,7 @@ Use `winstack-push' and
 	 ("C-c M-g" . magit-dispatch-popup))
   :config
   (setenv "GIT_PAGER" "")
+  (setf magit-repository-directories '(("~/src" . 1) ("~/devel" . 3)))
   (setf magit-commit-arguments (quote ("--signoff")))
   (setf magit-set-upstream-on-push t)
   (setf magit-revert-buffers 1)
@@ -2567,27 +2679,27 @@ Use `winstack-push' and
 	  magit-insert-tags-header))
 
   (setf magit-status-sections-hook
-  	'(magit-insert-status-headers
-  	  magit-insert-merge-log
-  	  magit-insert-rebase-sequence
-  	  magit-insert-am-sequence
-  	  magit-insert-sequencer-sequence
-  	  magit-insert-bisect-output
-  	  magit-insert-bisect-rest
-  	  magit-insert-bisect-log
-  	  magit-insert-untracked-files
-  	  magit-insert-unstaged-changes
-  	  magit-insert-staged-changes
-  	  magit-insert-stashes
-  	  magit-insert-unpulled-from-upstream
-  	  magit-insert-unpulled-from-pushremote
-  	  magit-insert-unpushed-to-upstream
-  	  magit-insert-unpushed-to-pushremote
-  	  magit-insert-modules-unpulled-from-upstream
-  	  magit-insert-modules-unpulled-from-pushremote
-  	  magit-insert-modules-unpushed-to-upstream
-  	  magit-insert-modules-unpushed-to-pushremote
-  	  magit-insert-recent-commits))
+	'(magit-insert-status-headers
+	  magit-insert-merge-log
+	  magit-insert-rebase-sequence
+	  magit-insert-am-sequence
+	  magit-insert-sequencer-sequence
+	  magit-insert-bisect-output
+	  magit-insert-bisect-rest
+	  magit-insert-bisect-log
+	  magit-insert-untracked-files
+	  magit-insert-unstaged-changes
+	  magit-insert-staged-changes
+	  magit-insert-stashes
+	  magit-insert-unpulled-from-upstream
+	  magit-insert-unpulled-from-pushremote
+	  magit-insert-unpushed-to-upstream
+	  magit-insert-unpushed-to-pushremote
+	  magit-insert-modules-unpulled-from-upstream
+	  magit-insert-modules-unpulled-from-pushremote
+	  magit-insert-modules-unpushed-to-upstream
+	  magit-insert-modules-unpushed-to-pushremote
+	  magit-insert-recent-commits))
 
   (magit-define-popup-switch 'magit-log-popup
     ?m "Omit merge commits" "--no-merges")
@@ -2602,26 +2714,49 @@ Use `winstack-push' and
     (org-read-date 'with-time nil nil prompt))
 
   (magit-define-popup-option 'magit-log-popup
-    ?s "Since date" "--since=" #'magit-org-read-date)
+    ?s "Since/After date" "--since=" #'magit-org-read-date)
 
   (magit-define-popup-option 'magit-log-popup
-    ?u "Until date" "--until=" #'magit-org-read-date)
+    ?u "Until/Before date" "--until=" #'magit-org-read-date)
 
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
 
-(use-package smerge
+(use-package smerge-mode
   :straight nil
   :ensure nil
-  :bind (:map smerge-mode-map
-	      ("k" . smerge-next)
-	      ("n" . smerge-next)
-	      ("i" . smerge-prev)
-	      ("p" . smerge-prev)
-	      ("u" . smerge-keep-upper)
-	      ("l" . smerge-keep-lower)
-	      ("u" . smerge-keep-all)
-	      ("e" . smerge-ediff)))
+  :config
+  (defhydra unpackaged/smerge-hydra
+    (:color pink :hint nil :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^-----------^^-------------------^^---------------------^^-------
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine
+^^           _RET_: current       _E_diff
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("q" nil "cancel" :color blue))
+  :hook (magit-diff-visit-file . (lambda ()
+                                   (when smerge-mode
+                                     (unpackaged/smerge-hydra/body)))))
 
 (use-package magit-rockstar
   :config
@@ -2638,7 +2773,7 @@ Use `winstack-push' and
 
 (use-package doom-todo-ivy
   :straight (:host github
-      		   :repo "jsmestad/doom-todo-ivy"))
+		   :repo "jsmestad/doom-todo-ivy"))
 
 (use-package magit-lfs
   :ensure t)
@@ -2695,8 +2830,8 @@ Use `winstack-push' and
     (when (not (executable-find "clang-format"))
       (error "clang-format not found."))
     (shell-command-on-region b e
-                             "clang-format"
-                             (current-buffer) t)
+			     "clang-format"
+			     (current-buffer) t)
     (indent-region b e))
 
   (defun insert-semicolon ()
@@ -2712,6 +2847,11 @@ Use `winstack-push' and
 
 (use-package lsp-python
   :hook (python-mode . lsp-python-enable))
+
+(defun my-python-mode-hook-func ()
+  (setf fill-column 79))
+
+(add-hook 'python-mode-hook 'my-python-mode-hook-func)
 
 (use-package ccls
   :config
@@ -2743,7 +2883,7 @@ Use `winstack-push' and
 (defun my-c-mode-hook-func ()
   ;; (semantic-mode 1)
   (rainbow-identifiers-mode -1)
-  (setf fill-column 80)
+  (setf fill-column 132)
   (yas-minor-mode)
   (electric-pair-mode 1)
   (company-mode 1)
@@ -2841,7 +2981,7 @@ and set the focus back to Emacs frame"
   :config
   (key-chord-mode 1)
   (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer)
-  (key-chord-define-global "uu" 'undo-tree-visualize)
+  (key-chord-define-global "UU" 'undo-tree-visualize)
   (key-chord-define-global "ZZ" 'undo)
   (key-chord-define-global "XX" 'counsel-M-x)
   (key-chord-define-global "yy" 'popup-kill-ring)
@@ -3005,10 +3145,14 @@ Inserted by installing org-mode or when a release is made."
    ("C-c f t" . org-tags-view)
    ("C-c f i" . air-org-goto-custom-id)
    :map org-mode-map
+   ("C-c C-o" . my/org-open-at-point)
    ("<" . mmm-org-insert-template))
 
   ;; :ensure org-plus-contrib
   :init
+  (defun my/org-open-at-point ()
+    (interactive)
+    (org-open-at-point t))
   (defun air-pop-to-org-todo (&optional split)
     "Visit my main TODO list, in the current window or a SPLIT."
     (interactive "P")
@@ -3291,12 +3435,16 @@ TAG is chosen interactively from the global tags completion table."
 
   (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
 
+  (setf org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
+
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((awk . t)
      (emacs-lisp . t)
      (python . t)
      (ruby . t)
+     (shell . t)
+     (ditaa . t)
      ))
 
   (font-lock-add-keywords
@@ -3337,24 +3485,24 @@ TAG is chosen interactively from the global tags completion table."
   (setq org-super-agenda-groups
 	'((:log t)  ; Automatically named "Log"
 	  (:name "Schedule"
-  		 :time-grid t)
+		 :time-grid t)
 	  (:name "Today"
-  		 :scheduled today)
+		 :scheduled today)
 	  (:habit t)
 	  (:name "Due today"
-  		 :deadline today)
+		 :deadline today)
 	  (:name "Overdue"
-  		 :deadline past)
+		 :deadline past)
 	  (:name "Due soon"
-  		 :deadline future)
+		 :deadline future)
 	  (:name "Unimportant"
-  		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
-  		 :order 100)
+		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
+		 :order 100)
 	  (:name "Waiting..."
-  		 :todo "WAIT"
-  		 :order 98)
+		 :todo "WAIT"
+		 :order 98)
 	  (:name "Scheduled earlier"
-  		 :scheduled past)))
+		 :scheduled past)))
   :config
   (org-super-agenda-mode 1))
 
@@ -3404,23 +3552,23 @@ TAG is chosen interactively from the global tags completion table."
   :config
   (setf calendar-week-start-day 1)
   (setf cfw:fchar-junction ?╬
-    	cfw:fchar-vertical-line ?║
-    	cfw:fchar-horizontal-line ?═
-    	cfw:fchar-left-junction ?╠
-    	cfw:fchar-right-junction ?╣
-    	cfw:fchar-top-junction ?╦
-    	cfw:fchar-top-left-corner ?╔
-    	cfw:fchar-top-right-corner ?╗)
+	cfw:fchar-vertical-line ?║
+	cfw:fchar-horizontal-line ?═
+	cfw:fchar-left-junction ?╠
+	cfw:fchar-right-junction ?╣
+	cfw:fchar-top-junction ?╦
+	cfw:fchar-top-left-corner ?╔
+	cfw:fchar-top-right-corner ?╗)
 
   (setf mmm/cfw-sources
-  	(list
-  	 (cfw:org-create-source "Green")
-  	 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
-  				 (second mmm/cfw-cal-magnus)
-  				 (third mmm/cfw-cal-magnus))
-  	 (cfw:ical-create-source (first mmm/cfw-cal-misc)
-  				 (second mmm/cfw-cal-misc)
-  				 (third mmm/cfw-cal-misc))))
+	(list
+	 (cfw:org-create-source "Green")
+	 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
+				 (second mmm/cfw-cal-magnus)
+				 (third mmm/cfw-cal-magnus))
+	 (cfw:ical-create-source (first mmm/cfw-cal-misc)
+				 (second mmm/cfw-cal-misc)
+				 (third mmm/cfw-cal-misc))))
   (defun my-open-calendar ()
     (interactive)
     (cfw:open-calendar-buffer
@@ -3434,7 +3582,7 @@ TAG is chosen interactively from the global tags completion table."
 (setf org-capture-templates
       '(
 	("T" "todo" entry (file+headline "~/sync/org/tasks.org" "Todos")
-         "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
+	 "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
 	 :prepend t)
 	("j" "Journal entry" plain
 	 (file+olp+datetree "~/sync/org/journal/journal.org")
@@ -3479,11 +3627,11 @@ TAG is chosen interactively from the global tags completion table."
 ;; Directory to save attachments
 (setq mu4e-attachment-dir
       (lambda (fname mtype)
-        (cond
-         ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
+	(cond
+	 ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
 	 ((and fname (string-match "\\.pdf$" fname))  "~/sync/Documents")
-         ;; ... other cases  ...
-         (t "~/sync/Downloads"))))
+	 ;; ... other cases  ...
+	 (t "~/sync/Downloads"))))
 
 ;; List of mail accounts.
 (defvar my-mu4e-account-alist nil)
@@ -3493,15 +3641,15 @@ TAG is chosen interactively from the global tags completion table."
 
 (setq mu4e-maildir-shortcuts
       '( ("/gmail/archive" . ?A)
-  	 ("/gmail/drafts" . ?D)
+	 ("/gmail/drafts" . ?D)
 	 ("/gmail/inbox" . ?I)
-  	 ("/gmail/sent" . ?S)
+	 ("/gmail/sent" . ?S)
 	 ("/gmail/trash" . ?T)
 
 	 ("/work/archive" . ?a)
 	 ("/work/drafts" . ?d)
 	 ("/work/inbox"  . ?i)
-  	 ("/work/sent" . ?s)
+	 ("/work/sent" . ?s)
 	 ("/work/trash" . ?t)))
 
 (setf mu4e-compose-complete-only-personal t)
@@ -3673,6 +3821,85 @@ TAG is chosen interactively from the global tags completion table."
 		   :repo "rafoo/wicd-mode.el"))
 
 (use-package go-guru)
+
+(use-package smart-shift
+  :config
+  (global-smart-shift-mode 1))
+
+(use-package highlight-indent-guides)
+
+(use-package man
+  :straight nil
+  :config
+  (set-face-attribute 'Man-overstrike nil :inherit 'bold :foreground "#f0dfaf")
+  (set-face-attribute 'Man-underline nil :inherit 'underline :foreground "#cc9393"))
+
+(use-package twittering-mode
+  :config
+  (setq twittering-use-master-password t)
+  (setq twittering-icon-mode t)
+  (setq twittering-display-remaining t))
+
+(use-package objed)
+
+(use-package easy-kill
+  :config
+  (global-set-key [remap kill-ring-save] #'easy-kill)
+  (global-set-key [remap mark-sexp] #'easy-mark))
+
+(defun occur-dwim ()
+  "Call `occur' with a sane default, chosen as the thing under point or selected region"
+  (interactive)
+  (push (if (region-active-p)
+            (buffer-substring-no-properties
+             (region-beginning)
+             (region-end))
+          (let ((sym (thing-at-point 'symbol)))
+            (when (stringp sym)
+	      (regexp-quote sym))))
+        regexp-history)
+  (call-interactively 'occur))
+
+;; Keeps focus on *Occur* window, even when when target is visited via RETURN key.
+;; See hydra-occur-dwim for more options.
+(defadvice occur-mode-goto-occurrence (after occur-mode-goto-occurrence-advice activate)
+  (other-window 1)
+  (hydra-occur-dwim/body))
+
+;; Focus on *Occur* window right away.
+(add-hook 'occur-hook (lambda () (other-window 1)))
+
+(defun reattach-occur ()
+  (if (get-buffer "*Occur*")
+      (switch-to-buffer-other-window "*Occur*")
+    (hydra-occur-dwim/body) ))
+
+;; Used in conjunction with occur-mode-goto-occurrence-advice this helps keep
+;; focus on the *Occur* window and hides upon request in case needed later.
+(defhydra hydra-occur-dwim ()
+  "Occur mode"
+  ("o" occur-dwim "Start occur-dwim" :color red)
+  ("n" occur-next "Next" :color red)
+  ("p" occur-prev "Prev":color red)
+  ("h" delete-window "Hide" :color blue)
+  ("r" (reattach-occur) "Re-attach" :color red))
+
+(global-set-key (kbd "C-x o") 'hydra-occur-dwim/body)
+
+(use-package company-tabnine
+  :straight (:host github :repo "TommyX12/company-tabnine")
+  :config
+  (add-to-list 'company-backends #'company-tabnine))
+
+(use-package dockerfile-mode)
+(use-package docker-compose-mode)
+(use-package docker-tramp)
+(use-package docker)
+
+(setf bookmark-default-file (expand-file-name "var/bookmarks" user-emacs-directory))
+(use-package eshell-bookmark
+  :config
+  (add-hook 'eshell-mode-hook 'eshell-bookmark-setup))
 
 ;;;; KEYBINDINGS
 (bind-key "C-S-O" 'find-file-in-config-dir)
