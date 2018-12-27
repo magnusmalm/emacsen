@@ -1,4 +1,5 @@
-(("spacemacs" . ((user-emacs-directory . "~/spacemacs")
+(
+ ("spacemacs" . ((user-emacs-directory . "~/spacemacs")
                  (env . (("SPACEMACSDIR" . "~/.spacemacs.d")))
 		 (server-name . "spacemacs")))
 
@@ -12,9 +13,6 @@
 
  ("org" . ((user-emacs-directory . "~/emacsen/org")
 	   (server-name . "org")))
-
- ("mail" . ((user-emacs-directory . "~/emacsen/mail")
-	    (server-name . "mail")))
 
  ("lisp" . ((user-emacs-directory . "~/emacsen/lisp")
 	    (server-name . "lisp")))

@@ -1,0 +1,814 @@
+(if (fboundp 'tool-bar-mode)   (tool-bar-mode   -1))
+(if (fboundp 'menu-bar-mode)   (menu-bar-mode   -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+(use-package no-littering
+  :init
+  (setq no-littering-etc-directory
+        (expand-file-name "config/" user-emacs-directory))
+  (setq no-littering-var-directory
+        (expand-file-name "var/" user-emacs-directory)))
+
+(use-package recentf
+  :config
+  (setf recentf-auto-cleanup 'mode)
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
+  (recentf-mode 1))
+
+(use-package cl-lib)
+
+(column-number-mode t)
+
+(defalias 'eb 'eval-buffer)
+(defalias 'er 'eval-region)
+(defalias 'ed 'eval-defun)
+
+(setf message-log-max 16384)
+
+(setf enable-recursive-minibuffers t)
+(minibuffer-depth-indicate-mode)
+(setf max-mini-window-height 0.5)
+
+;; (setf nsm-settings-file
+;;       (expand-file-name "var/network-security.data" user-emacs-directory))
+
+;;;; Annoyances
+(setf ring-bell-function 'ignore)
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; show keystrokes
+(setf echo-keystrokes 0.01)
+
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'erase-buffer 'disabled nil)
+
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
+(put 'set-goal-column 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+
+(setf x-stretch-cursor t)
+
+(setf vc-follow-symlinks t)
+
+;;;; ENCRYPTION
+(setq auth-sources
+      '("~/.authinfo.gpg"))
+
+(setq epa-pinentry-mode 'loopback)
+
+(setq plstore-cache-passphrase-for-symmetric-encryption t)
+
+(add-to-list 'completion-ignored-extensions ".d")
+
+;;;; BACKUPS
+
+(setf backup-by-copying t)
+
+(setf delete-old-versions t
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)
+
+(defconst emacs-tmp-dir
+  (format "%s%s%s@%s/" temporary-file-directory "emacs-" (user-real-login-name) system-name))
+
+(setf server-socket-dir emacs-tmp-dir)
+
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
+(use-package which-key
+  :delight
+  :config
+  (which-key-mode)
+  (which-key-setup-side-window-bottom)
+  (setf which-key-use-C-h-for-paging t)
+  (setf which-key-prevent-C-h-from-cycling t)
+  (setf which-key-max-display-columns nil)
+  (setf which-key-max-description-length 50))
+
+(setf user-full-name "Magnus Malm")
+
+;;;; Imenu
+(defun my-shell-mode-setup-imenu ()
+  (setf imenu-generic-expression (append '((nil "^\\([A-Z_]+\\)=.*" 1))
+                                         (nthcdr 1 (car sh-imenu-generic-expression)))))
+(add-hook 'sh-mode-hook 'my-shell-mode-setup-imenu)
+
+(defun imenu-elisp-sections ()
+  (add-to-list 'imenu-generic-expression '("Sections" "^;\\{1,4\\} \\(.+\\)$" 1) t))
+(add-hook 'emacs-lisp-mode-hook 'imenu-elisp-sections)
+
+(defun imenu-elisp-use-packages ()
+  (add-to-list 'imenu-generic-expression '("Package" "^.*use-package \\(.+\\)$" 1) t))
+(add-hook 'emacs-lisp-mode-hook 'imenu-elisp-use-packages)
+
+(defun imenu-yml-node-name ()
+  (add-to-list 'imenu-generic-expression '("Node" "^  - name: \\(.+\\)$" 1) t))
+(add-hook 'yaml-mode-hook 'imenu-yml-node-name)
+
+(defun recenter-no-redraw (&optional arg)
+  "Like `recenter', but no redrawing."
+  (interactive "P")
+  (let ((recenter-redisplay nil))
+    (recenter arg)))
+
+(add-hook 'imenu-after-jump-hook 'recenter-no-redraw)
+
+(use-package flimenu
+  :config
+  (progn
+    (flimenu-global-mode)))
+
+;; Turn on iMenu for code outlines for all prog and text modes, if possible
+(dolist (hook '(prog-mode-hook text-mode-hook))
+  (add-hook hook (lambda () (ignore-errors (imenu-add-menubar-index)))))
+
+;; Visual bookmarks (configured to survive Emacs restarts)
+(use-package bm
+  :demand t
+
+  :init
+  ;; where to store persistant files
+  ;; (setf bm-repository-file (concat user-emacs-directory "bm-dir"))
+
+  ;; restore on load (even before you require bm)
+  (setf bm-restore-repository-on-load t)
+
+  :config
+  ;; Allow cross-buffer 'next'
+  (setf bm-cycle-all-buffers t)
+
+  ;; save bookmarks
+  (setq-default bm-buffer-persistence t)
+
+  ;; Loading the repository from file when on start up.
+  (add-hook' after-init-hook 'bm-repository-load)
+
+  ;; Restoring bookmarks when on file find.
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
+
+  ;; Saving bookmarks
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
+
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when Emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook #'(lambda nil
+				 (bm-buffer-save-all)
+				 (bm-repository-save)))
+
+  ;; The `after-save-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state.
+  (add-hook 'after-save-hook #'bm-buffer-save)
+
+  ;; Restoring bookmarks
+  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'after-revert-hook #'bm-buffer-restore)
+
+  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state. This hook might cause trouble when using packages
+  ;; that automatically reverts the buffer (like vc after a check-in).
+  ;; This can easily be avoided if the package provides a hook that is
+  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
+  ;; Then new bookmarks can be saved before the buffer is reverted.
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
+
+(use-package beginend
+  :delight beginend-global-mode
+  :delight beginend-prog-mode
+  :delight beginend-magit-status-mode
+  :delight beginend-dired-mode
+  :config
+  (beginend-global-mode))
+
+(use-package saveplace
+  :ensure nil
+  :init (save-place-mode)
+  :config
+  (progn
+    ;; (setf save-place-file (concat user-emacs-directory "var/places"))
+    ))
+
+(use-package perspective
+  :bind (("C-<right>" . persp-next)
+	 ("C-<left>" . persp-prev))
+  :config
+  (setf persp-modestring-dividers '("(" ")" " "))
+  (setf persp-sort-chronologically t)
+  (persp-mode))
+
+(use-package tramp
+  :ensure nil
+  :config
+  ;; (setf tramp-persistency-file-name
+  ;; 	(expand-file-name "var/tramp-history.el" user-emacs-directory))
+
+  (setf tramp-completion-reread-directory-timeout nil)
+  (setf vc-ignore-dir-regexp
+	(format "\\(%s\\)\\|\\(%s\\)"
+		vc-ignore-dir-regexp
+		tramp-file-name-regexp))
+  (setf tramp-verbose 1)
+  (setf tramp-default-method "ssh")
+  (setf password-cache-expiry (* 60 60 8)))
+
+(use-package google-this
+  :bind (:map google-this-mode-submap
+	      ("C-x g" . google-this-mode-submap))
+  :delight
+  :config
+  (google-this-mode 1))
+
+(use-package anzu
+  :delight
+  :bind (("M-%" . anzu-query-replace)
+	 ("C-M-%" . anzu-query-replace-regexp))
+  :init (global-anzu-mode +1)
+  :delight)
+
+(use-package phi-search
+  :bind ("π" . phi-search))
+
+;;;; Startup stuff
+(setf inhibit-startup-message t)
+(setf inhibit-splash-screen t)
+(setf initial-scratch-message nil)
+(setf initial-buffer-choice "~/")
+
+(setf scroll-margin 3)
+(setf scroll-step            1
+      scroll-conservatively  10000)
+
+;;;; COMPANY
+(use-package company
+  :bind (
+	 ("M-<tab>" . company-complete-common-or-cycle)
+	 :map company-active-map
+	 ("M-k" . company-select-next)
+	 ("M-i" . company-select-previous)
+	 ("M-K" . company-next-page)
+	 ("M-I" . company-previous-page)
+	 ("C-j" . company-complete-common)
+	 ("C-M-j" . company-complete-selection))
+  :commands (company-mode global-company-mode)
+  :delight
+  :init
+  (defvar-local company-fci-mode-on-p nil)
+  :config
+  (global-company-mode t)
+  (defun company-turn-off-fci (&rest ignore)
+    (when (boundp 'fci-mode)
+      (setf company-fci-mode-on-p fci-mode)
+      (when fci-mode (fci-mode -1))))
+
+  (defun company-maybe-turn-on-fci (&rest ignore)
+    (when company-fci-mode-on-p (fci-mode 1)))
+
+  (setf company-selection-wrap-around t)
+  (setf company-require-match nil)
+  (setf company-show-numbers t)
+  (setf company-minimum-prefix-length 2)
+  (setf company-idle-delay 0.1)
+  (setf company-global-modes '(not gud-mode))
+  (add-hook 'company-completion-started-hook 'company-turn-off-fci)
+  (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
+  (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci))
+
+(use-package company-quickhelp
+  :bind (:map company-active-map
+	      ("M-h" . company-quickhelp-manual-begin))
+  :config
+  (setf company-quickhelp-delay nil)
+  (setf company-quickhelp-delay 2.0)
+  (setf company-quickhelp-max-lines nil)
+  (setf company-quickhelp-use-propertized-text t)
+  (company-quickhelp-mode 1))
+
+;;;; NOTIFICATIONS
+(use-package notify
+  :ensure nil
+  :load-path "lisp/")
+
+(defun notify-send (title message)
+  (shell-command (format "notify-send -u critical %s %s" title message)))
+
+(use-package alert
+  :commands alert
+  :config
+  (setf alert-default-style 'libnotify))
+
+(use-package eldoc
+  :straight nil
+  :delight)
+
+(use-package ripgrep)
+
+(use-package expand-region
+  :bind (("C-M-c" . er/expand-region)
+	 ("C-M-h" . er/mark-defun)))
+
+(use-package syntax-subword
+  :delight
+  :ensure t
+  :config
+  (setf syntax-subword-skip-spaces t))
+
+(defun my-minibuffer-setup-hook ()
+  (setf gc-cons-threshold most-positive-fixnum))
+
+(defun my-minibuffer-exit-hook ()
+  (setf gc-cons-threshold 800000))
+
+(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
+(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
+
+(add-to-list 'auto-mode-alist '("\\.conf\\'" . javascript-mode))
+(add-to-list 'auto-mode-alist '("\\.ctml\\'" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.lass\\'" . css-mode))
+
+(setf browse-url-browser-function 'browse-url-chrome)
+
+(use-package executable
+  :config
+  (setf executable-prefix-env t) ;Use "#!/usr/bin/env python3" style magic number
+  (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
+
+(use-package counsel
+  :bind* (("M-s" . counsel-grep-or-swiper)
+          ("C-M-S" . counsel-projectile-rg)
+          ("M-S" . mmm/ripgrep-in-current-directory)
+          ("M-a" . counsel-M-x)
+          ("C-h v" . counsel-describe-variable)
+          ("C-h f" . counsel-describe-function)
+          ("C-*" . counsel-descbinds)
+          ("C-c C-e" . counsel-colors-emacs)
+          ("C-o" . counsel-find-file)
+          ("C-M-y" . counsel-yank-pop))
+  :bind (("C-'" . counsel-semantic-or-imenu))
+  :bind (:map counsel-mode-map
+              ("M-k" . ivy-next-line)
+              ("M-i" . ivy-previous-line)
+              ("M-I" . ivy-scroll-down-command)
+              ("M-K" . ivy-scroll-up-command))
+
+  :config
+  (setf counsel-find-file-ignore-regexp
+	(concat
+         ;; File names beginning with # or .
+         "\\(?:\\`[#.]\\)"
+         ;; File names ending with # or ~
+         "\\|\\(?:\\`.+?[#~]\\'\\)"
+	 ;; File names ending with .d or .o
+	 ;; "\\|\\(?:\\`.+?[od]\\'\\)"
+	 ))
+
+  (defun counsel-yank-bash-history ()
+    "Yank the bash history"
+    (interactive)
+    (let (hist-cmd collection val)
+      (shell-command "history -r")	; reload history
+      (setq collection
+            (nreverse
+             (split-string (with-temp-buffer (insert-file-contents (file-truename "~/.bash_history"))
+                                             (buffer-string))
+                           "\n"
+                           t)))
+      (when (and collection (> (length collection) 0)
+		 (setq val (if (= 1 (length collection)) (car collection)
+                             (ivy-read (format "Bash history:") collection))))
+        (kill-new val)
+        (message "%s => kill-ring" val))))
+
+  (defun mmm/counsel-rg (arg)
+    "C-u prefix => No initial input, proj scope
+   C-0 prefix => No initial input, CWD scope"
+    (interactive "P")
+    (if arg
+        (cond ((and (numberp arg) (= arg 0))
+               (setf current-prefix-arg nil)
+	       (message "%s" arg)
+	       (let ((dir (file-name-directory buffer-file-name)))
+		 (counsel-ag nil dir nil
+			     (format "%s " dir))))
+              ((= (car arg) 4)
+               (setf current-prefix-arg nil)
+               (counsel-projectile-rg))
+	      ;; (counsel-rg nil (projectile-project-root) nil
+	      ;; (format "%s " (projectile-project-name)))
+              (nil))
+      (counsel-ag (symbol-name (symbol-at-point))
+                  (projectile-project-root) nil
+                  (format "%s " (projectile-project-name)))))
+
+  (defun mmm/ripgrep-in-current-directory (arg)
+    (interactive "P")
+    (let ((dir (file-name-directory buffer-file-name)))
+      (counsel-rg nil dir nil
+	          (format "%s " dir))))
+
+  (ivy-set-prompt 'counsel-projectile-rg #'counsel-prompt-function-dir)
+  (setf counsel-grep-base-command
+        "rg -i -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
+  (setf counsel-rg-base-command
+        "rg -S -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' %s ."))
+
+(use-package crux
+  :bind (("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+         ("C-c C-d" . crux-duplicate-current-line-or-region)
+         ("C-x M-r" . crux-rename-file-and-buffer)
+         ("C-<return>" . crux-smart-open-line-above)
+         ("C-c I" . crux-find-user-init-file)
+         ("M-h" . crux-move-beginning-of-line))
+  :init (require 'crux)
+  :config
+  (crux-with-region-or-buffer indent-region)
+  (crux-with-region-or-buffer untabify))
+
+(use-package avy
+  :config
+  (setf avy-style 'pre)
+  (setf avy-background t)
+  (defun avy-goto-open-paren-followed-by-char-or-num (&optional arg)
+    "Jump to an open bracket followed by a letter or a number.
+ The window scope is determined by `avy-all-windows' (ARG negates it)."
+    (interactive "P")
+    (avy-with avy-goto-char
+      (avy--generic-jump
+       "([[:alnum:]]"
+       arg
+       avy-style))))
+
+(use-package link-hint
+  :defer 1
+  :config
+  (setf link-hint-avy-style 'pre)
+  (setf link-hint-avy-background t))
+
+(use-package persp-projectile
+  :after (perspective projectile))
+
+(use-package projectile
+  :preface
+  ;; Bridge projectile and project together so packages that depend on project
+  ;; like eglot work
+  (defun projectile-project-find-function (dir)
+    (let* ((root (projectile-project-root dir)))
+      (and root (cons 'transient root))))
+  :delight
+  :bind (("H-p" . projectile-command-map))
+  :config
+  (setf projectile-enable-caching t)
+  (setf projectile-mode-line '(:eval (format " Proj:%s" (projectile-project-name))))
+  (setf projectile-keymap-prefix (kbd "C-x p"))
+  (setf projectile-switch-project-action
+        #'projectile-commander)
+  (setf projectile-project-root-files-top-down-recurring
+        (append '("compile_commands.json"
+                  ".ccls")
+                projectile-project-root-files-top-down-recurring))
+  (setf projectile-completion-system 'ivy)
+  (setf projectile-globally-ignored-directories
+        '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work"))
+  (def-projectile-commander-method ?s
+    "Open a *shell* buffer for the project."
+    (projectile-run-shell))
+  (def-projectile-commander-method ?c
+    "Run `compile' in the project."
+    (projectile-compile-project nil))
+  (with-eval-after-load 'project
+    (add-to-list 'project-find-functions 'projectile-project-find-function))
+  (projectile-mode))
+
+(use-package counsel-projectile
+  :config
+  (setf counsel-projectile-switch-project-action
+	'(1 ("v" counsel-projectile-switch-project-action-vc "open project in vc-dir / magit / monky")
+	    ("f" counsel-projectile-switch-project-action-find-file "jump to a project file")
+	    ("d" counsel-projectile-switch-project-action-find-dir "jump to a project directory")
+	    ("b" counsel-projectile-switch-project-action-switch-to-buffer "jump to a project buffer")
+	    ("m" counsel-projectile-switch-project-action-find-file-manually "find file manually from project root")
+	    ("S" counsel-projectile-switch-project-action-save-all-buffers "save all project buffers")
+	    ("k" counsel-projectile-switch-project-action-kill-buffers "kill all project buffers")
+	    ("K" counsel-projectile-switch-project-action-remove-known-project "remove project from known projects")
+	    ("c" counsel-projectile-switch-project-action-compile "run project compilation command")
+	    ("C" counsel-projectile-switch-project-action-configure "run project configure command")
+	    ("E" counsel-projectile-switch-project-action-edit-dir-locals "edit project dir-locals")
+	    ("o" counsel-projectile-switch-project-action "jump to a project buffer or file")
+	    ("sg" counsel-projectile-switch-project-action-grep "search project with grep")
+	    ("ss" counsel-projectile-switch-project-action-ag "search project with ag")
+	    ("sr" counsel-projectile-switch-project-action-rg "search project with rg")
+	    ("xs" counsel-projectile-switch-project-action-run-shell "invoke shell from project root")
+	    ("xe" counsel-projectile-switch-project-action-run-eshell "invoke eshell from project root")
+	    ("xt" counsel-projectile-switch-project-action-run-term "invoke term from project root")))
+  (counsel-projectile-mode))
+
+(use-package swiper
+  :bind (:map  ivy-minibuffer-map
+	       ("C-7" . swiper-mc)
+	       :map swiper-map
+	       ("M-I" . ivy-scroll-down-command)
+	       ("M-K" . ivy-scroll-up-command)
+               ("M-." . insert-symbol-at-point)
+               ("M-," . insert-word-at-point))
+  :config
+  (defun insert-symbol-at-point ()
+    (interactive)
+    (insert (format "\\<%s\\>" (with-ivy-window (thing-at-point 'symbol)))))
+
+  (defun insert-word-at-point ()
+    (interactive)
+    (insert (format "\\<%s\\>" (with-ivy-window (thing-at-point 'word)))))
+  ;; (setf ivy-use-virtual-buffers nil)
+  (setf swiper-include-line-number-in-search t)
+  (setf swiper-action-recenter t))
+
+(use-package ivy
+  :delight
+  :bind* (("M-M" . ivy-switch-buffer)
+	  ("M-m" . projectile-switch-to-buffer)
+  	  ("C-c C-r" . ivy-resume))
+  :bind (:map ivy-minibuffer-map
+	      ("C-'" . ivy-avy)
+	      ("M-i" . ivy-previous-line)
+	      ("M-j" . backward-char)
+	      ("M-k" . ivy-next-line)
+	      ("M-l" . forward-char)
+	      ("M-I" . ivy-scroll-down-command)
+	      ("M-K" . ivy-scroll-up-command)
+	      ("M-p" . ivy-previous-history-element)
+	      ("M-n" . ivy-next-history-element)
+	      ("M-v" . yank)
+	      ("M-u" . backward-word)
+	      ("M-o" . forward-word)
+	      ("M-e" . backward-kill-word)
+	      ("M-r" . kill-word)
+	      ("M-x" . ivy-kill-line)
+	      ("C-S-o" . ivy-dispatching-done)
+	      ("C-M-S-o" . ivy-dispatching-call)
+	      ("C-M-j" . ivy-immediate-done)
+	      ("C-g" . ar/ivy-keyboard-quit-dwim))
+  :delight
+  :init
+  :config
+  (setf ivy-action-wrap t)
+  (setf ivy-count-format "(%d/%d) ")
+  (setf ivy-display-function nil)
+  (setf ivy-posframe-border-width 0)
+  (setf ivy-wrap t)
+  (setf ivy-use-virtual-buffers t)
+  (setf ivy-height 15)
+  (setf ivy-initial-inputs-alist nil)
+  (setf ivy-re-builders-alist
+	'((ivy-switch-buffer . ivy--regex-ignore-order)
+	  (t . ivy--regex-ignore-order)))
+  (setf ivy-extra-directories nil)
+  (ivy-set-actions
+   'counsel-find-file
+   `(("x"
+      (lambda (x) (delete-file (expand-file-name x ivy--directory)))
+      ,(propertize "delete" 'face 'font-lock-warning-face))))
+  (defun ivy-yank-action (x)
+    (kill-new x))
+
+  (defun ivy-copy-to-buffer-action (x)
+    (with-ivy-window
+      (insert x)))
+
+  (defun ar/ivy-keyboard-quit-dwim ()
+    "If region active, deactivate. If there's content, clear the minibuffer. Otherwise quit."
+    (interactive)
+    (cond ((and delete-selection-mode (region-active-p))
+           (setq deactivate-mark t))
+          ((> (length ivy-text) 0)
+           (delete-minibuffer-contents))
+          (t
+           (minibuffer-keyboard-quit))))
+
+  (ivy-set-actions
+   t
+   '(("i" ivy-copy-to-buffer-action "insert")
+     ("y" ivy-yank-action "yank")))
+  (setf resize-mini-windows t)
+
+  (ivy-mode 1))
+
+;; (use-package ivy-historian
+;;   :init (ivy-mode +1)
+;;   (historian-mode +1)
+;;   :config (ivy-historian-mode +1))
+
+(use-package ivy-xref
+  :init (setf xref-show-xrefs-function #'ivy-xref-show-xrefs))
+
+(use-package ivy-rich
+  :straight (:host github
+		   :repo "Yevgnen/ivy-rich"
+		   :branch "customize")
+  :init
+  (setf ivy-rich-path-style 'abbrev)
+  :config
+  (defun ivy-rich-switch-buffer-icon (candidate)
+    (with-current-buffer
+   	(get-buffer candidate)
+      (let ((icon (all-the-icons-icon-for-mode major-mode)))
+	(if (symbolp icon)
+	    (all-the-icons-icon-for-mode 'fundamental-mode)
+	  icon))))
+  (setq ivy-rich--display-transformers-list
+	'(ivy-switch-buffer
+          (:columns
+           ((ivy-rich-switch-buffer-icon :width 2)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
+            (ivy-rich-switch-buffer-project (:width 15 :face success))
+            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
+           :predicate
+           (lambda (cand) (get-buffer cand)))
+	  counsel-M-x
+	  (:columns
+	   ((counsel-M-x-transformer (:width 40))  ; thr original transfomer
+	    (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the command
+	  counsel-describe-function
+	  (:columns
+	   ((counsel-describe-function-transformer (:width 40))  ; the original transformer
+	    (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the function
+	  counsel-describe-variable
+	  (:columns
+	   ((counsel-describe-variable-transformer (:width 40))  ; the original transformer
+	    (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face))))  ; return the docstring of the variable
+	  counsel-recentf
+	  (:columns
+	   ((ivy-rich-candidate (:width 0.8)) ; return the candidate itself
+	    (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))))) ; return the last modified time of the file)
+  (ivy-rich-mode 1))
+
+;; (use-package ivy-posframe
+;;   :config
+;;   (setf ivy-display-function #'ivy-posframe-display-at-point)
+;;   (ivy-posframe-enable))
+
+(use-package prescient
+  :config
+  (prescient-persist-mode))
+
+(use-package ivy-prescient
+  :config
+  (ivy-prescient-mode))
+
+(use-package company-prescient
+  :config
+  (company-prescient-mode))
+
+(use-package winner
+  :ensure nil
+  :config
+  (winner-mode))
+
+(use-package wgrep-ag
+  :after ag)
+
+(use-package rg
+  :after wgrep-ag projectile)
+
+(use-package ag
+  :config
+  (setf ag-highlight-search t))
+
+
+(setf search-default-mode 'character-fold-to-regexp)
+
+(use-package markdown-mode
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :config
+  (setf markdown-command "/usr/bin/pandoc"))
+
+(use-package super-save
+  :delight
+  :config
+  (setf super-save-auto-save-when-idle nil)
+  (setf super-save-idle-duration 0)
+  (super-save-mode 1))
+
+(setf next-error-highlight t)
+(setf next-error-recenter '(4))
+
+(use-package easy-kill
+  :config
+  (global-set-key [remap kill-ring-save] #'easy-kill)
+  (global-set-key [remap mark-sexp] #'easy-mark))
+
+(use-package pdf-tools
+  :config
+
+  ;; Install what need to be installed !
+  (pdf-tools-install t t t)
+  ;; open pdfs scaled to fit page
+  (setq-default pdf-view-display-size 'fit-page)
+  ;; automatically annotate highlights
+  (setq pdf-annot-activate-created-annotations t)
+  ;; use normal isearch
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+  ;; more fine-grained zooming
+  (setq pdf-view-resize-factor 1.1)
+  ;;
+  (add-hook 'pdf-view-mode-hook
+            (lambda ()
+              (pdf-misc-size-indication-minor-mode)
+              (pdf-links-minor-mode)
+              (pdf-isearch-minor-mode)
+              )
+            )
+  (add-to-list 'auto-mode-alist (cons "\\.pdf$" 'pdf-view-mode))
+
+  ;; Keys
+  (bind-keys :map pdf-view-mode-map
+             ("/" . hydra-pdftools/body)
+	     ("M-i" . pdf-view-scroll-up-or-next-page)
+	     ("M-k" . pdf-view-scroll-down-or-previous-page)
+             ("M-U"  . pdf-view-first-page)
+             ("M-O"  . pdf-view-last-page)
+             ("M-j"  . image-forward-hscroll)
+             ("M-l"  . image-backward-hscroll)
+             ("M-K"  . pdf-view-next-page)
+             ("M-I"  . pdf-view-previous-page)
+             ("e"  . pdf-view-goto-page)
+             ("u"  . pdf-view-revert-buffer)
+             ("al" . pdf-annot-list-annotations)
+             ("ad" . pdf-annot-delete)
+             ("aa" . pdf-annot-attachment-dired)
+             ("am" . pdf-annot-add-markup-annotation)
+             ("at" . pdf-annot-add-text-annotation)
+             ("y"  . pdf-view-kill-ring-save)
+             ("i"  . pdf-misc-display-metadata)
+             ("s"  . pdf-occur)
+             ("b"  . pdf-view-set-slice-from-bounding-box)
+             ("r"  . pdf-view-reset-slice))
+
+  (defhydra hydra-pdftools (:color blue :hint nil)
+    "
+      PDF tools
+
+   Move  History   Scale/Fit                  Annotations     Search/Link     Do
+------------------------------------------------------------------------------------------------
+     ^^_g_^^      _B_    ^ ^    _+_    ^ ^     _al_: list    _s_: search    _u_: revert buffer
+     ^^^ ^^^      ^ ^    _H_    ^ ^    _W_     _am_: markup  _o_: outline   _i_: info
+     ^^_p_^^      ^ ^    ^ ^    _0_    ^ ^     _at_: text    _F_: link      _d_: dark mode
+     ^^^ ^^^      ^ ^    ^ ^    ^ ^    ^ ^     _ad_: delete  _f_: search link
+_h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
+     ^^^ ^^^      ^ ^    ^ ^    ^ ^    ^ ^     _y_:  yank
+     ^^_n_^^      ^ ^  _r_eset slice box
+     ^^^ ^^^
+     ^^_G_^^
+"
+
+    ("\\" hydra-master/body "back")
+    ("<ESC>" nil "quit")
+    ("al" pdf-annot-list-annotations)
+    ("ad" pdf-annot-delete)
+    ("aa" pdf-annot-attachment-dired)
+    ("am" pdf-annot-add-markup-annotation)
+    ("at" pdf-annot-add-text-annotation)
+    ("y"  pdf-view-kill-ring-save)
+    ("+" pdf-view-enlarge :color red)
+    ("-" pdf-view-shrink :color red)
+    ("0" pdf-view-scale-reset)
+    ("H" pdf-view-fit-height-to-window)
+    ("W" pdf-view-fit-width-to-window)
+    ("P" pdf-view-fit-page-to-window)
+    ("n" pdf-view-next-page-command :color red)
+    ("p" pdf-view-previous-page-command :color red)
+    ("d" pdf-view-dark-minor-mode)
+    ("b" pdf-view-set-slice-from-bounding-box)
+    ("r" pdf-view-reset-slice)
+    ("g" pdf-view-first-page)
+    ("G" pdf-view-last-page)
+    ("e" pdf-view-goto-page)
+    ("o" pdf-outline)
+    ("s" pdf-occur)
+    ("i" pdf-misc-display-metadata)
+    ("u" pdf-view-revert-buffer)
+    ("F" pdf-links-action-perfom)
+    ("f" pdf-links-isearch-link)
+    ("B" pdf-history-backward :color red)
+    ("N" pdf-history-forward :color red)
+    ("l" image-forward-hscroll :color red)
+    ("h" image-backward-hscroll :color red)))
+
+(use-package man
+  :straight nil
+  :config
+  (set-face-attribute 'Man-overstrike nil :inherit 'bold :foreground "#f0dfaf")
+  (set-face-attribute 'Man-underline nil :inherit 'underline :foreground "#cc9393"))
+

@@ -63,7 +63,7 @@ fi
 ln -vs "$(pwd)/".emacs-profiles.el ~/
 mkdir -v common/straight
 
-for d in devel org irc mail lisp; do
+for d in devel org irc lisp; do
     if [[ -d "$d" ]] ; then
 	tmp="$d"-$(date +%Y-%m-%d-%H%M%S)
 	printf "Backing up %s to %s\n" "$d" "$tmp"
