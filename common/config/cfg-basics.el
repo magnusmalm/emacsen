@@ -245,6 +245,7 @@
 (setf scroll-margin 3)
 (setf scroll-step            1
       scroll-conservatively  10000)
+(setf scroll-error-top-bottom t)
 
 ;;;; COMPANY
 (use-package company
