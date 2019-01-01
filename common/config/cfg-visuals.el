@@ -123,34 +123,6 @@ This font is required for emoji and other Unicode 6+ display.")
       (setf sanityinc/fci-mode-suppressed nil)
       (turn-on-fci-mode))))
 
-;; (use-package whitespace
-;;   :delight whitespace-mode
-;;   :delight global-whitespace-mode
-;;   :init
-;;   (progn
-;;     (defun no-trailing-whitespace ()
-;;       (setf show-trailing-whitespace nil)))
-;;   :config
-;;   (progn
-;;     (setq-default indicate-empty-lines t) ; in the left fringe
-;;     (setf require-final-newline t)
-;;     (setf whitespace-style '(face trailing))
-;;     (add-hook 'prog-mode-hook #'whitespace-mode)
-
-;;     (global-whitespace-mode t)
-;;     (add-hook 'erc-mode-hook
-;; 	      'no-trailing-whitespace)
-;;     (add-hook 'minibuffer-setup-hook
-;; 	      'no-trailing-whitespace)
-;;     (add-hook 'eww-mode-hook
-;; 	      'no-trailing-whitespace)
-;;     (add-hook 'ielm-mode-hook
-;; 	      'no-trailing-whitespace)
-;;     (add-hook 'gdb-mode-hook
-;; 	      'no-trailing-whitespace)
-;;     (add-hook 'help-mode-hook
-;; 	      'no-trailing-whitespace)))
-
 ;; Show whitespace
 (use-package leerzeichen)
 
