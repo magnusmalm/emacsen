@@ -1,3 +1,5 @@
+(setq-default fill-column 100)
+
 (use-package smerge-mode
   :straight nil
   :ensure nil

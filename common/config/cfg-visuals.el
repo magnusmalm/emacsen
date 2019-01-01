@@ -322,8 +322,6 @@ Git gutter:
     ;; insert emoji with helm
     (global-set-key (kbd "C-c C-S-e") 'emoji-cheat-sheet-plus-insert)))
 
-(setf fill-column 80)
-
 (use-package highlight-indent-guides
   :config
   (setf highlight-indent-guides-auto-character-face-perc 15)

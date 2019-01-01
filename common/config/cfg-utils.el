@@ -82,8 +82,8 @@ in that cyclic order."
 
 (defun my-lisp-mode-hook-fn ()
   (easy-escape-minor-mode 1)
+  (setf fill-column 132)
   (setq-local company-backends (add-to-list 'company-backends 'company-elisp)))
-
 
 (defmacro hook-into-modes (function mode-hooks)
   "Add FUNCTION to hooks in MODE-HOOKS."
