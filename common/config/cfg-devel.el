@@ -50,7 +50,7 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
   :config
   (add-hook 'prog-mode-hook 'eglot-ensure))
 
-(setq gdb-many-windows t)
+(setf gdb-many-windows t)
 
 (setf compilation-scroll-output t)
 (use-package bury-successful-compilation
@@ -88,9 +88,9 @@ and set the focus back to Emacs frame"
     (flycheck-pos-tip-mode))
 
   (defhydra hydra-flycheck
-    (:pre (progn (setq hydra-lv t) (flycheck-list-errors))
-	  :post (progn (setq hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
-	  :hint nil)
+    (:pre (progn (setf hydra-lv t) (flycheck-list-errors))
+     :post (progn (setf hydra-lv nil) (quit-windows-on "*Flycheck errors*"))
+     :hint nil)
     "Errors"
     ("f"  flycheck-error-list-set-filter                            "Filter")
     ("n"  flycheck-next-error                                       "Next")
@@ -126,11 +126,11 @@ and set the focus back to Emacs frame"
 
 (use-package flycheck-inline
   :straight (:host github
-		   :repo "flycheck/flycheck-inline")
+	     :repo "flycheck/flycheck-inline")
   :config
-  ;; (setq flycheck-inline-display-function 'flycheck-inline-display-phantom)
-  ;; (setq flycheck-inline-clear-function 'flycheck-inline-clear-phantoms)
-  (setq flycheck-inline-display-function
+  ;; (setf flycheck-inline-display-function 'flycheck-inline-display-phantom)
+  ;; (setf flycheck-inline-clear-function 'flycheck-inline-clear-phantoms)
+  (setf flycheck-inline-display-function
   	(lambda (msg pos)
           (let* ((ov (quick-peek-overlay-ensure-at pos))
   		 (contents (quick-peek-overlay-contents ov)))

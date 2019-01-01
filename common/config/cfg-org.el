@@ -263,7 +263,7 @@ TAG is chosen interactively from the global tags completion table."
       (air--org-swap-tags new)))
 
   :config
-  (setq org-confirm-elisp-link-function nil)
+  (setf org-confirm-elisp-link-function nil)
   (setf org-agenda-custom-commands
 	'(("d" "Daily agenda and all TODOs"
 	   ((tags "PRIORITY=\"A\""
@@ -429,7 +429,7 @@ With a `C-u` ARG, just jump to the headline."
      (t
       (my/refile file headline arg)))
     (when (or arg is-capturing)
-      (setq hydra-deactivate t))))
+      (setf hydra-deactivate t))))
 
 (defun josh/org-capture-refile-but-with-args (file headline &optional arg)
   "Copied from `org-capture-refile' since it doesn't allow passing arguments. This does."
@@ -503,7 +503,7 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
 
 (use-package org-super-agenda
   :init
-  (setq org-super-agenda-groups
+  (setf org-super-agenda-groups
 	'((:log t)  ; Automatically named "Log"
 	  (:name "Schedule"
 		 :time-grid t)
@@ -636,9 +636,9 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
          ("C-c c" . org-capture))
   :config
   (progn
-    (setq org-projectile-projects-file
+    (setf org-projectile-projects-file
           "~/sync/org/projects.org")
-    (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
+    (setf org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
     (push (org-projectile-project-todo-entry) org-capture-templates)))
 
 (use-package typo)
@@ -672,11 +672,11 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
   (defun my-org-caldav-advice (orig-fun &rest args)
     (let ((xml-default-ns-bak xml-default-ns)
 	  (org-version-bak org-version))
-      (setq xml-default-ns '(("" . "DAV:")))
-      (setq org-version "8.2.7")
+      (setf xml-default-ns '(("" . "DAV:")))
+      (setf org-version "8.2.7")
       (apply orig-fun args)
-      (setq xml-default-ns xml-default-ns-bak)
-      (setq org-version org-version-bak)))
+      (setf xml-default-ns xml-default-ns-bak)
+      (setf org-version org-version-bak)))
   (advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
   (setf org-caldav-uuid-extension ".EML")
   (setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))

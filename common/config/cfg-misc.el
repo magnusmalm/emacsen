@@ -70,9 +70,9 @@
 
 (use-package twittering-mode
   :config
-  (setq twittering-use-master-password t)
-  (setq twittering-icon-mode t)
-  (setq twittering-display-remaining t))
+  (setf twittering-use-master-password t)
+  (setf twittering-icon-mode t)
+  (setf twittering-display-remaining t))
 
 (use-package dockerfile-mode)
 (use-package docker-compose-mode)
@@ -81,11 +81,11 @@
 
 (use-package ssh-tunnels
   :config
-  (setq ssh-tunnels-configurations
+  (setf ssh-tunnels-configurations
 	'((:name "my tunnel"
-		 :local-port 1234
-		 :remote-port 3306
-		 :login "me@host"))))
+	   :local-port 1234
+	   :remote-port 3306
+	   :login "me@host"))))
 
 (use-package pass
   :config

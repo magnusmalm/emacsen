@@ -4,9 +4,9 @@
 
 (use-package no-littering
   :init
-  (setq no-littering-etc-directory
+  (setf no-littering-etc-directory
         (expand-file-name "config/" user-emacs-directory))
-  (setq no-littering-var-directory
+  (setf no-littering-var-directory
         (expand-file-name "var/" user-emacs-directory)))
 
 (use-package recentf
@@ -54,12 +54,12 @@
 (setf vc-follow-symlinks t)
 
 ;;;; ENCRYPTION
-(setq auth-sources
+(setf auth-sources
       '("~/.authinfo.gpg"))
 
-(setq epa-pinentry-mode 'loopback)
+(setf epa-pinentry-mode 'loopback)
 
-(setq plstore-cache-passphrase-for-symmetric-encryption t)
+(setf plstore-cache-passphrase-for-symmetric-encryption t)
 
 (add-to-list 'completion-ignored-extensions ".d")
 
@@ -77,7 +77,7 @@
 
 (setf server-socket-dir emacs-tmp-dir)
 
-(setq auto-save-file-name-transforms
+(setf auto-save-file-name-transforms
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (use-package which-key
@@ -242,9 +242,9 @@
 (setf initial-scratch-message nil)
 (setf initial-buffer-choice "~/")
 
-(setf scroll-margin 3)
-(setf scroll-step            1
-      scroll-conservatively  10000)
+(setf scroll-margin 2)
+(setf scroll-step 1)
+(setf scroll-conservatively 10000)
 (setf scroll-error-top-bottom t)
 
 ;;;; COMPANY
@@ -375,14 +375,14 @@
     (interactive)
     (let (hist-cmd collection val)
       (shell-command "history -r")	; reload history
-      (setq collection
+      (setf collection
             (nreverse
              (split-string (with-temp-buffer (insert-file-contents (file-truename "~/.bash_history"))
                                              (buffer-string))
                            "\n"
                            t)))
       (when (and collection (> (length collection) 0)
-		 (setq val (if (= 1 (length collection)) (car collection)
+		 (setf val (if (= 1 (length collection)) (car collection)
                              (ivy-read (format "Bash history:") collection))))
         (kill-new val)
         (message "%s => kill-ring" val))))
@@ -586,7 +586,7 @@
     "If region active, deactivate. If there's content, clear the minibuffer. Otherwise quit."
     (interactive)
     (cond ((and delete-selection-mode (region-active-p))
-           (setq deactivate-mark t))
+           (setf deactivate-mark t))
           ((> (length ivy-text) 0)
            (delete-minibuffer-contents))
           (t
@@ -622,7 +622,7 @@
 	(if (symbolp icon)
 	    (all-the-icons-icon-for-mode 'fundamental-mode)
 	  icon))))
-  (setq ivy-rich--display-transformers-list
+  (setf ivy-rich--display-transformers-list
 	'(ivy-switch-buffer
           (:columns
            ((ivy-rich-switch-buffer-icon :width 2)
@@ -720,11 +720,11 @@
   ;; open pdfs scaled to fit page
   (setq-default pdf-view-display-size 'fit-page)
   ;; automatically annotate highlights
-  (setq pdf-annot-activate-created-annotations t)
+  (setf pdf-annot-activate-created-annotations t)
   ;; use normal isearch
   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
   ;; more fine-grained zooming
-  (setq pdf-view-resize-factor 1.1)
+  (setf pdf-view-resize-factor 1.1)
   ;;
   (add-hook 'pdf-view-mode-hook
             (lambda ()

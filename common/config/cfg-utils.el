@@ -450,7 +450,7 @@ columns."
   (let ((col 1))
     (save-excursion
       (back-to-indentation)
-      (setq col (+ 1 (current-column)))
+      (setf col (+ 1 (current-column)))
       (set-selective-display
        (if selective-display nil (or col 1))))))
 (define-key global-map (kbd "H-<tab>") 'aj-toggle-fold)
@@ -698,7 +698,7 @@ Lisp function does not specify a special indentation."
       (let ((function (buffer-substring (point)
                                         (progn (forward-sexp 1) (point))))
             method)
-        (setq method (or (function-get (intern-soft function)
+        (setf method (or (function-get (intern-soft function)
                                        'lisp-indent-function)
                          (get (intern-soft function) 'lisp-indent-hook)))
         (cond ((or (eq method 'defun)

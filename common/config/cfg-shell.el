@@ -10,7 +10,7 @@
 (defun setup-eshell ()
   (define-key eshell-mode-map (kbd "<tab>") 'completion-at-point)
   (define-key eshell-mode-map "C-a" 'eshell-maybe-bol)
-  (setq eshell-buffer-shorthand t))
+  (setf eshell-buffer-shorthand t))
 
 (add-hook 'eshell-mode-hook 'setup-eshell)
 

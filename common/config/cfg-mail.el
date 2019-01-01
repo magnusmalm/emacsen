@@ -11,12 +11,12 @@
 ;; List of email signatures that can be added to a mail.
 (defvar mu4e-mail-sigs nil)
 
-(setq org-mu4e-link-query-in-headers-mode nil)
+(setf org-mu4e-link-query-in-headers-mode nil)
 (setf mu4e-maildir "~/.mail")
 (setf mu4e-completing-read-function 'ivy-completing-read)
 
 ;; Directory to save attachments
-(setq mu4e-attachment-dir
+(setf mu4e-attachment-dir
       (lambda (fname mtype)
 	(cond
 	 ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
@@ -29,7 +29,7 @@
 (load-file "~/.secrets/emacs-mail.el")
 
 ;; Shortcuts to often visited mailboxes
-(setq mu4e-maildir-shortcuts
+(setf mu4e-maildir-shortcuts
       '( ("/gmail/archive" . ?A)
 	 ("/gmail/drafts" . ?D)
 	 ("/gmail/inbox" . ?I)
@@ -89,11 +89,11 @@
 ;; enable inline images
 (setf mu4e-view-show-images t)
 
-(setq mu4e-context-policy 'pick-first)
+(setf mu4e-context-policy 'pick-first)
 
-(setq mu4e-compose-context-policy nil)
+(setf mu4e-compose-context-policy nil)
 
-(setq message-kill-buffer-on-exit t)
+(setf message-kill-buffer-on-exit t)
 
 ;; use imagemagick, if available
 (when (fboundp 'imagemagick-register-types)

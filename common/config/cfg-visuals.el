@@ -5,7 +5,7 @@
 
 (use-package smart-mode-line
   :init
-  (setq sml/no-confirm-load-theme t)
+  (setf sml/no-confirm-load-theme t)
   :config
   (setf sml/mode-width 'right)
   (setf sml/modified-char "*")
@@ -22,7 +22,7 @@
   :after powerline
   :after smart-mode-line
   :config
-  (setq sml/theme 'powerline)
+  (setf sml/theme 'powerline)
   (sml/setup))
 
 (use-package delight)
@@ -248,16 +248,16 @@ Git gutter:
   (with-eval-after-load 'hideshow
     ;; Unloading is unsafe, so this the best I can do to pretend `hideshow'
     ;; never existed.
-    (setq minor-mode-map-alist
+    (setf minor-mode-map-alist
           (assq-delete-all 'hs-minor-mode minor-mode-map-alist)
           minor-mode-alist
           (assq-delete-all 'hs-minor-mode minor-mode-alist)
           minor-mode-list
           (delq 'hs-minor-mode minor-mode-list)))
   :bind (:map origami-mode-map
-              ("M-0"   . origami-open-all-nodes)
-              ("M-9"   . origami-close-all-nodes)
-              ("C-M-/" . origami-recursively-toggle-node)))
+         ("M-0"   . origami-open-all-nodes)
+         ("M-9"   . origami-close-all-nodes)
+         ("C-M-/" . origami-recursively-toggle-node)))
 
 (use-package ov)
 
@@ -318,9 +318,9 @@ Git gutter:
 
 (use-package yequake
   :straight (:host github
-		   :repo "alphapapa/yequake")
+	     :repo "alphapapa/yequake")
   :config
-  (setq yequake-frames
+  (setf yequake-frames
 	'(("dired & scratch" .
            ((name . "dired & scratch")
             (width . 0.75)

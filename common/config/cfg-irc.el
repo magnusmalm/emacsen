@@ -58,9 +58,9 @@
   (let ((datestamp (erc-format-timestamp (current-time) erc-datestamp-format)))
     (unless (string= datestamp erc-last-datestamp)
       (erc-insert-timestamp-left datestamp)
-      (setq erc-last-datestamp datestamp))))
+      (setf erc-last-datestamp datestamp))))
 
-(setq erc-timestamp-only-if-changed-flag t
+(setf erc-timestamp-only-if-changed-flag t
       erc-timestamp-format "%H:%M "
       erc-datestamp-format " === [%Y-%m-%d %a] ===\n" ; mandatory ascii art
       erc-fill-prefix "      "
@@ -135,7 +135,7 @@
                       (erc-buffer-list))))
     (when (eq (current-buffer) (car buffers))
       (bury-buffer)
-      (setq buffers (cdr buffers)))
+      (setf buffers (cdr buffers)))
     (if buffers
         (switch-to-buffer (car buffers))
       (call-interactively 'erc-select))))

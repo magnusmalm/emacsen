@@ -169,7 +169,7 @@
   :delight
   :config
   (setf guess-language-languages '(en sv))
-  (setq guess-language-langcodes '((en . ("british" . nil))
+  (setf guess-language-langcodes '((en . ("british" . nil))
 				   (sv . ("svenska" . nil))))
   (setf guess-language-min-paragraph-length 35)
   (defun my-guess-lang-mode-hook-function ()
@@ -369,7 +369,7 @@
           ((derived-mode-p major-mode 'prog-mode)
            (string-inflection-all-cycle))))
   :config
-  (setq string-inflection-skip-backward-when-done t)
+  (setf string-inflection-skip-backward-when-done t)
   :bind (("C-x C-y" . inflect-string)))
 
 ;; Cycle between quotes
