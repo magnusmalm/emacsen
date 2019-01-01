@@ -221,7 +221,7 @@
 
 (use-package google-this
   :bind (:map google-this-mode-submap
-	      ("C-x g" . google-this-mode-submap))
+	 ("C-x g" . google-this-mode-submap))
   :delight
   :config
   (google-this-mode 1))
@@ -283,7 +283,7 @@
 
 (use-package company-quickhelp
   :bind (:map company-active-map
-	      ("M-h" . company-quickhelp-manual-begin))
+	 ("M-h" . company-quickhelp-manual-begin))
   :config
   (setf company-quickhelp-delay nil)
   (setf company-quickhelp-delay 2.0)
@@ -353,10 +353,10 @@
           ("C-M-y" . counsel-yank-pop))
   :bind (("C-'" . counsel-semantic-or-imenu))
   :bind (:map counsel-mode-map
-              ("M-k" . ivy-next-line)
-              ("M-i" . ivy-previous-line)
-              ("M-I" . ivy-scroll-down-command)
-              ("M-K" . ivy-scroll-up-command))
+         ("M-k" . ivy-next-line)
+         ("M-i" . ivy-previous-line)
+         ("M-I" . ivy-scroll-down-command)
+         ("M-K" . ivy-scroll-up-command))
 
   :config
   (setf counsel-find-file-ignore-regexp
@@ -511,12 +511,12 @@
 
 (use-package swiper
   :bind (:map  ivy-minibuffer-map
-	       ("C-7" . swiper-mc)
-	       :map swiper-map
-	       ("M-I" . ivy-scroll-down-command)
-	       ("M-K" . ivy-scroll-up-command)
-               ("M-." . insert-symbol-at-point)
-               ("M-," . insert-word-at-point))
+	 ("C-7" . swiper-mc)
+	 :map swiper-map
+	 ("M-I" . ivy-scroll-down-command)
+	 ("M-K" . ivy-scroll-up-command)
+         ("M-." . insert-symbol-at-point)
+         ("M-," . insert-word-at-point))
   :config
   (defun insert-symbol-at-point ()
     (interactive)
@@ -535,25 +535,25 @@
 	  ("M-m" . projectile-switch-to-buffer)
   	  ("C-c C-r" . ivy-resume))
   :bind (:map ivy-minibuffer-map
-	      ("C-'" . ivy-avy)
-	      ("M-i" . ivy-previous-line)
-	      ("M-j" . backward-char)
-	      ("M-k" . ivy-next-line)
-	      ("M-l" . forward-char)
-	      ("M-I" . ivy-scroll-down-command)
-	      ("M-K" . ivy-scroll-up-command)
-	      ("M-p" . ivy-previous-history-element)
-	      ("M-n" . ivy-next-history-element)
-	      ("M-v" . yank)
-	      ("M-u" . backward-word)
-	      ("M-o" . forward-word)
-	      ("M-e" . backward-kill-word)
-	      ("M-r" . kill-word)
-	      ("M-x" . ivy-kill-line)
-	      ("C-S-o" . ivy-dispatching-done)
-	      ("C-M-S-o" . ivy-dispatching-call)
-	      ("C-M-j" . ivy-immediate-done)
-	      ("C-g" . ar/ivy-keyboard-quit-dwim))
+	 ("C-'" . ivy-avy)
+	 ("M-i" . ivy-previous-line)
+	 ("M-j" . backward-char)
+	 ("M-k" . ivy-next-line)
+	 ("M-l" . forward-char)
+	 ("M-I" . ivy-scroll-down-command)
+	 ("M-K" . ivy-scroll-up-command)
+	 ("M-p" . ivy-previous-history-element)
+	 ("M-n" . ivy-next-history-element)
+	 ("M-v" . yank)
+	 ("M-u" . backward-word)
+	 ("M-o" . forward-word)
+	 ("M-e" . backward-kill-word)
+	 ("M-r" . kill-word)
+	 ("M-x" . ivy-kill-line)
+	 ("C-S-o" . ivy-dispatching-done)
+	 ("C-M-S-o" . ivy-dispatching-call)
+	 ("C-M-j" . ivy-immediate-done)
+	 ("C-g" . ar/ivy-keyboard-quit-dwim))
   :delight
   :init
   :config
@@ -609,8 +609,8 @@
 
 (use-package ivy-rich
   :straight (:host github
-		   :repo "Yevgnen/ivy-rich"
-		   :branch "customize")
+	     :repo "Yevgnen/ivy-rich"
+	     :branch "customize")
   :init
   (setf ivy-rich-path-style 'abbrev)
   :config
@@ -734,27 +734,27 @@
 
   ;; Keys
   (bind-keys :map pdf-view-mode-map
-             ("/" . hydra-pdftools/body)
-	     ("M-i" . pdf-view-scroll-up-or-next-page)
-	     ("M-k" . pdf-view-scroll-down-or-previous-page)
-             ("M-U"  . pdf-view-first-page)
-             ("M-O"  . pdf-view-last-page)
-             ("M-j"  . image-forward-hscroll)
-             ("M-l"  . image-backward-hscroll)
-             ("M-K"  . pdf-view-next-page)
-             ("M-I"  . pdf-view-previous-page)
-             ("e"  . pdf-view-goto-page)
-             ("u"  . pdf-view-revert-buffer)
-             ("al" . pdf-annot-list-annotations)
-             ("ad" . pdf-annot-delete)
-             ("aa" . pdf-annot-attachment-dired)
-             ("am" . pdf-annot-add-markup-annotation)
-             ("at" . pdf-annot-add-text-annotation)
-             ("y"  . pdf-view-kill-ring-save)
-             ("i"  . pdf-misc-display-metadata)
-             ("s"  . pdf-occur)
-             ("b"  . pdf-view-set-slice-from-bounding-box)
-             ("r"  . pdf-view-reset-slice))
+    ("/" . hydra-pdftools/body)
+    ("M-i" . pdf-view-scroll-up-or-next-page)
+    ("M-k" . pdf-view-scroll-down-or-previous-page)
+    ("M-U"  . pdf-view-first-page)
+    ("M-O"  . pdf-view-last-page)
+    ("M-j"  . image-forward-hscroll)
+    ("M-l"  . image-backward-hscroll)
+    ("M-K"  . pdf-view-next-page)
+    ("M-I"  . pdf-view-previous-page)
+    ("e"  . pdf-view-goto-page)
+    ("u"  . pdf-view-revert-buffer)
+    ("al" . pdf-annot-list-annotations)
+    ("ad" . pdf-annot-delete)
+    ("aa" . pdf-annot-attachment-dired)
+    ("am" . pdf-annot-add-markup-annotation)
+    ("at" . pdf-annot-add-text-annotation)
+    ("y"  . pdf-view-kill-ring-save)
+    ("i"  . pdf-misc-display-metadata)
+    ("s"  . pdf-occur)
+    ("b"  . pdf-view-set-slice-from-bounding-box)
+    ("r"  . pdf-view-reset-slice))
 
   (defhydra hydra-pdftools (:color blue :hint nil)
     "
@@ -812,3 +812,5 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
   (set-face-attribute 'Man-overstrike nil :inherit 'bold :foreground "#f0dfaf")
   (set-face-attribute 'Man-underline nil :inherit 'underline :foreground "#cc9393"))
 
+(add-hook 'emacs-lisp-mode-hook
+          (lambda () (setq-local lisp-indent-function #'fuco1/lisp-indent-function)))
