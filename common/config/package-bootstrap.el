@@ -44,5 +44,11 @@
 
 (straight-use-package 'use-package)
 
+(use-package general)
+
+(use-package use-package-hydra
+  :straight (:host gitlab
+	     :repo "to1ne/use-package-hydra"))
+
 (provide 'package-bootstrap)
 ;;; package-bootstrap.el ends here

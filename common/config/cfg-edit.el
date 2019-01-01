@@ -188,8 +188,29 @@
   :bind ("<H-tab>" . ialign))
 
 (use-package yasnippet
-  :defer 1
-  :config (yas-global-mode))
+  :after hydra
+  :bind (:map yas-minor-mode-map ("<f2>" . hydra-yas/body))
+  :hydra (hydra-yas (:color blue :hint nil)
+		    "
+              ^YASnippets^
+--------------------------------------------
+  Modes:    Load/Visit:    Actions:
+
+ _g_lobal  _d_irectory    _i_nsert
+ _m_inor   _f_ile         _t_ryout
+ _e_xtra   _l_ist         _n_ew
+ ^ ^       _a_ll
+"
+		    ("d" yas-load-directory)
+		    ("e" yas-activate-extra-mode)
+		    ("i" yas-insert-snippet)
+		    ("f" yas-visit-snippet-file :color blue)
+		    ("n" yas-new-snippet)
+		    ("t" yas-tryout-snippet)
+		    ("l" yas-describe-tables)
+		    ("g" yas/global-mode)
+		    ("m" yas/minor-mode)
+		    ("a" yas-reload-all)))
 
 (use-package yasnippet-snippets
   :delight yas-minor-mode
