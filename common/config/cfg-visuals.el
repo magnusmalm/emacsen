@@ -1,4 +1,5 @@
 (use-package zenburn-theme)
+(use-package solarized-theme)
 
 (load-theme 'zenburn t)
 
@@ -70,7 +71,7 @@ This font is required for emoji and other Unicode 6+ display.")
 (setf default-frame-alist '((font . "DejaVu Sans Mono-10")
 			    (cursor-type . box)))
 (add-to-list 'default-frame-alist '(mouse-color . "DarkOrange"))
-(add-to-list 'default-frame-alist '(cursor-color . "green"))
+(add-to-list 'default-frame-alist '(cursor-color . "gray"))
 
 (setf frame-title-format
       '("emacs%@" (:eval (system-name)) ": " (:eval (if (buffer-file-name)
@@ -85,7 +86,7 @@ This font is required for emoji and other Unicode 6+ display.")
 ;;;; Misc
 (setf show-paren-delay 0)
 (show-paren-mode t)
-(setf show-paren-style 'mixed)
+(setf show-paren-style 'parenthesis)
 
 ;; turn on highlighting current line
 (global-hl-line-mode 1)
