@@ -48,6 +48,37 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package eglot
   :config
+  (defun my/dynamic-xref-apropos ()
+    (interactive)
+    (let ((buf (current-buffer)))
+      (ivy-read "Search for pattern: "
+		(lambda (str)
+                  (cond
+                   ((< (length str) 1) (counsel-more-chars 1))
+                   (t
+                    (with-current-buffer buf
+                      (when-let ((backend (xref-find-backend)))
+			(unless (eq backend 'etags)
+                          (mapcar
+                           (lambda (xref)
+                             (let ((loc (xref-item-location xref)))
+                               (propertize
+				(concat
+				 (when (xref-file-location-p loc)
+                                   (with-slots (file line column) loc
+                                     (format "%s:%s:%s:"
+                                             (propertize (file-relative-name file)
+							 'face 'compilation-info)
+                                             (propertize (format "%s" line)
+							 'face 'compilation-line
+							 )
+                                             column)))
+				 (xref-item-summary xref))
+				'xref xref)))
+                           (xref-backend-apropos backend str))))))))
+		:dynamic-collection t
+		:action (lambda (item)
+                          (xref--pop-to-location (get-text-property 0 'xref item))))))
   (add-hook 'prog-mode-hook 'eglot-ensure))
 
 (setf gdb-many-windows t)
@@ -148,3 +179,11 @@ and set the focus back to Emacs frame"
   (setf lua-default-application "luajit"))
 
 (use-package go-guru)
+
+
+(use-package ivy-xref
+  :init (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+  :config
+  (setf ivy-xref-remove-text-properties nil)
+  (setf ivy-xref-use-file-path t)
+  )

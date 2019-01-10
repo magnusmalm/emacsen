@@ -1,3 +1,5 @@
+(use-package git-link)
+
 (use-package magit
   :bind (("C-c m" . magit-status)
 	 ("s-m" . magit-status)

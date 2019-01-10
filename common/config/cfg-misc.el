@@ -137,3 +137,22 @@ one by line."
 	 ("M-<down>" . smart-down)
 	 ("M-<left>" . smart-backward)
 	 ("M-<right>" . smart-forward)))
+
+(use-package restclient
+  :config
+  (defun my-restclient-mode-hook-func ()
+    (setq-local company-backends (add-to-list 'company-backends 'company-restclient)))
+  :hook (restclient-mode . my-restclient-mode-hook-func)
+  )
+
+(use-package ob-restclient
+  :after (restclient org))
+
+(use-package company-restclient
+  :after (company restclient))
+
+(use-package free-keys
+  :config
+  (setf free-keys-modifiers '("" "C" "M" "C-M" "s" "H"))
+  (setf free-keys-keys
+	"abcdefghijklmnopqrstuvwxyzåäöABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ1234567890!@#$%^&*()-=[]{};'\\:\"|,./<>?`~"))

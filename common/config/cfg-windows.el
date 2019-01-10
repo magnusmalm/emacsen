@@ -58,7 +58,7 @@
   (balance-windows)
   (other-window 1))
 
-(bind-key "s-0" #'delete-window-balance)
+(bind-key "s-=" #'delete-window-balance)
 (bind-key "s-1" #'delete-other-windows)
 (bind-key "s-2" #'split-window-below-focus)
 (bind-key "s-3" #'split-window-right-focus)

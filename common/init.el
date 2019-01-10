@@ -42,14 +42,16 @@ Your installed Emacs reports:
 (my-load "package-bootstrap")
 
 ;; The stuff we want for all servers
-(my-load "cfg-visuals")
 (my-load "cfg-basics")
+(my-load "cfg-themes")
+(my-load "cfg-visuals")
 (my-load "cfg-utils")
 (my-load "cfg-shell")
 (my-load "cfg-windows")
 (my-load "cfg-buffers")
 (my-load "cfg-edit")
 (my-load "cfg-magit")
+(my-load "cfg-org")
 
 ;; The stuff we want for general devel servers
 (when (or (server-is "devel")
@@ -65,9 +67,8 @@ Your installed Emacs reports:
 (when (server-is "lisp")
   (my-load "cfg-lisp"))
 
-;; The stuff we want for Org mode and mail
-(when (server-is "org")
-  (my-load "cfg-org")
+;; The stuff we want for mail
+(when (server-is "mail")
   (my-load "cfg-mail"))
 
 ;; The stuff we want for IRC

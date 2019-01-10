@@ -342,7 +342,7 @@
   (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p))
 
 (use-package counsel
-  :bind* (("M-s" . counsel-grep-or-swiper)
+  :bind* (
           ("C-M-S" . counsel-projectile-rg)
           ("M-S" . mmm/ripgrep-in-current-directory)
           ("M-a" . counsel-M-x)
@@ -352,7 +352,8 @@
           ("C-c C-e" . counsel-colors-emacs)
           ("C-o" . counsel-find-file)
           ("C-M-y" . counsel-yank-pop))
-  :bind (("C-'" . counsel-semantic-or-imenu))
+  :bind (("C-'" . counsel-semantic-or-imenu)
+	 ("M-s" . counsel-grep-or-swiper))
   :bind (:map counsel-mode-map
          ("M-k" . ivy-next-line)
          ("M-i" . ivy-previous-line)
@@ -367,7 +368,9 @@
          ;; File names ending with # or ~
          "\\|\\(?:\\`.+?[#~]\\'\\)"
 	 ;; File names ending with .d or .o
-	 ;; "\\|\\(?:\\`.+?[od]\\'\\)"
+	 "\\|\\(?:\\`.+?[od]\\'\\)"
+	 ;; Filemake temp files
+	 "\\|\\(?:\\`.*_flymake.*\\'\\)"
 	 ))
 
   (defun counsel-yank-bash-history ()
@@ -516,16 +519,16 @@
 	 :map swiper-map
 	 ("M-I" . ivy-scroll-down-command)
 	 ("M-K" . ivy-scroll-up-command)
-         ("M-." . insert-symbol-at-point)
-         ("M-," . insert-word-at-point))
+         ("M-s" . insert-symbol-at-point)
+         ("M-S" . insert-word-at-point))
   :config
   (defun insert-symbol-at-point ()
     (interactive)
-    (insert (format "\\<%s\\>" (with-ivy-window (thing-at-point 'symbol)))))
+    (insert (format "%s" (with-ivy-window (thing-at-point 'symbol)))))
 
   (defun insert-word-at-point ()
     (interactive)
-    (insert (format "\\<%s\\>" (with-ivy-window (thing-at-point 'word)))))
+    (insert (format "%s" (with-ivy-window (thing-at-point 'word)))))
   ;; (setf ivy-use-virtual-buffers nil)
   (setf swiper-include-line-number-in-search t)
   (setf swiper-action-recenter t))
@@ -570,6 +573,7 @@
 	'((ivy-switch-buffer . ivy--regex-ignore-order)
 	  (t . ivy--regex-ignore-order)))
   (setf ivy-extra-directories nil)
+  (setf ivy-ignore-buffers '("\\ " "\\\*"))
   (ivy-set-actions
    'counsel-find-file
    `(("x"
@@ -817,3 +821,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 
 (add-hook 'emacs-lisp-mode-hook
           (lambda () (setq-local lisp-indent-function #'fuco1/lisp-indent-function)))
+
+(setf calendar-latitude 59.393768)
+(setf calendar-longitude 15.838480)
+(setf calendar-location-name "Arboga, Sweden")

@@ -1,43 +1,44 @@
 ;; Hack to make loading latest org mode work.
 ;; org-git-version, org-release
-(require 'subr-x)
-(straight-use-package 'git)
+;; (require 'subr-x)
+;; (straight-use-package 'git)
 
-(defun org-git-version ()
-  "The Git version of org-mode.
-Inserted by installing org-mode or when a release is made."
-  (require 'git)
-  (let ((git-repo (expand-file-name
-		   "straight/repos/org/" user-emacs-directory)))
-    (string-trim
-     (git-run "describe"
-	      "--match=release\*"
-	      "--abbrev=6"
-	      "HEAD"))))
+;; (defun org-git-version ()
+;;   "The Git version of org-mode.
+;; Inserted by installing org-mode or when a release is made."
+;;   (require 'git)
+;;   (let ((git-repo (expand-file-name
+;; 		   "straight/repos/org/" user-emacs-directory)))
+;;     (string-trim
+;;      (git-run "describe"
+;; 	      "--match=release\*"
+;; 	      "--abbrev=6"
+;; 	      "HEAD"))))
 
-(defun org-release ()
-  "The release version of org-mode.
-Inserted by installing org-mode or when a release is made."
-  (require 'git)
-  (let ((git-repo (expand-file-name
-		   "straight/repos/org/" user-emacs-directory)))
-    (string-trim
-     (string-remove-prefix
-      "release_"
-      (git-run "describe"
-	       "--match=release\*"
-	       "--abbrev=0"
-	       "HEAD")))))
+;; (defun org-release ()
+;;   "The release version of org-mode.
+;; Inserted by installing org-mode or when a release is made."
+;;   (require 'git)
+;;   (let ((git-repo (expand-file-name
+;; 		   "straight/repos/org/" user-emacs-directory)))
+;;     (string-trim
+;;      (string-remove-prefix
+;;       "release_"
+;;       (git-run "describe"
+;; 	       "--match=release\*"
+;; 	       "--abbrev=0"
+;; 	       "HEAD")))))
 
-(provide 'org-version)
+;; (provide 'org-version)
 
 (add-hook 'text-mode-hook
           (lambda ()
             (variable-pitch-mode 1)))
 
 (use-package org
-  :demand t
-  :ensure t
+  :straight nil
+  :demand nil
+  :ensure nil
   :bind
   (("C-c M-l" . org-store-link)
    ("C-c C-l" . org-insert-link)
@@ -263,6 +264,7 @@ TAG is chosen interactively from the global tags completion table."
       (air--org-swap-tags new)))
 
   :config
+  (load "/home/magnus/emacsen/common/straight/repos/org/lisp/org-macs.el")
   (setf org-confirm-elisp-link-function nil)
   (setf org-agenda-custom-commands
 	'(("d" "Daily agenda and all TODOs"
@@ -362,6 +364,7 @@ TAG is chosen interactively from the global tags completion table."
    'org-babel-load-languages
    '((awk . t)
      (emacs-lisp . t)
+     (lisp . t)
      (python . t)
      (ruby . t)
      (shell . t)
@@ -378,10 +381,10 @@ TAG is chosen interactively from the global tags completion table."
 
   (defun mmm/org-capture-mode-hook ()
     (bind-keys :map org-capture-mode-map
-	       ("C-d" . insert-current-time)
-	       ("M->" . org-priority-up)
-	       ("M-<" . org-priority-down)
-	       ("C-t" . air-org-set-tags)))
+      ("C-d" . insert-current-time)
+      ("M->" . org-priority-up)
+      ("M-<" . org-priority-down)
+      ("C-t" . air-org-set-tags)))
   (add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
 
   (define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
@@ -680,3 +683,57 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
   (advice-add 'org-caldav-sync :around #'my-org-caldav-advice)
   (setf org-caldav-uuid-extension ".EML")
   (setf org-caldav-save-directory (expand-file-name "~/sync/org/calendars/" user-emacs-directory)))
+
+
+(use-package org-static-blog
+  :config
+  (setf org-static-blog-publish-title "Tiny Happy Bits")
+  (setf org-static-blog-publish-url "https://blog.tinyhappybits.com/")
+  (setf org-static-blog-publish-directory "~/tinyhappybits/blog/")
+  (setf org-static-blog-posts-directory "~/tinyhappybits/blog/posts/")
+  (setf org-static-blog-drafts-directory "~/tinyhappybits/blog/drafts/")
+  (setf org-static-blog-enable-tags t)
+  (setf org-export-with-toc nil)
+  (setf org-export-with-section-numbers nil)
+
+  (setf org-static-blog-page-header
+	"<meta name=\"author\" content=\"Magnus Malm\">
+<meta name=\"referrer\" content=\"no-referrer\">
+<link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+<link rel=\"icon\" href=\"static/favicon.ico\">
+<link rel=\"apple-touch-icon-precomposed\" href=\"static/favicon-152.png\">
+<link rel=\"msapplication-TitleImage\" href=\"static/favicon-144.png\">
+<link rel=\"msapplication-TitleColor\" href=\"#0141ff\">
+<script src=\"static/katex.min.js\"></script>
+<script src=\"static/auto-render.min.js\"></script>
+<link rel=\"stylesheet\" href=\"static/katex.min.css\">
+<script>document.addEventListener(\"DOMContentLoaded\", function() { renderMathInElement(document.body); });</script>
+<meta http-equiv=\"content-type\" content=\"application/xhtml+xml; charset=UTF-8\">
+<meta name=\"viewport\" content=\"initial-scale=1,width=device-width,minimum-scale=1\">")
+
+  (setf org-static-blog-page-preamble
+	"<div class=\"header\">
+  <a href=\"https://bastibe.de\">Tiny Happy Bits</a>
+  <div class=\"sitelinks\">
+    <a href=\"https://twitter.com/paperflyer\">Twitter</a> | <a href=\"https://github.com/bastibe\">Github</a> | <a href=\"https://bastibe.de/projects.html\">Projects</a>
+  </div>
+</div>")
+
+  (setf org-static-blog-page-postamble
+	"<div id=\"archive\">
+  <a href=\"https://bastibe.de/archive.html\">Other posts</a>
+</div>
+<center><button id=\"disqus_button\" onclick=\"load_disqus()\">Load Disqus Comments</button></center>
+<div id=\"disqus_thread\"></div>
+<script type=\"text/javascript\">
+    function load_disqus() {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = 'https://bastibe.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        document.getElementById('disqus_button').style.visibility = 'hidden';
+    };
+</script>
+<center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">bastibe.de</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://bastibe.de\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">Bastian Bechtold</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>")
+  )

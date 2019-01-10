@@ -1,8 +1,3 @@
-(use-package zenburn-theme)
-(use-package solarized-theme)
-
-(load-theme 'zenburn t)
-
 (use-package smart-mode-line
   :init
   (setf sml/no-confirm-load-theme t)
@@ -319,17 +314,16 @@ Git gutter:
 (use-package yequake
   :straight (:host github
 	     :repo "alphapapa/yequake")
-  :config
-  (setf yequake-frames
-	'(("dired & scratch" .
-           ((name . "dired & scratch")
-            (width . 0.75)
-            (height . 0.5)
-            (alpha . 0.95)
-            (buffer-fns . ("~/"
-                           split-window-horizontally
-                           "*scratch*"))
-            (frame-parameters . ((undecorated . t))))))))
+  :custom
+  (yequake-frames
+   '(("org-capture"
+      (buffer-fns . (yequake-org-capture))
+      (width . 0.75)
+      (height . 0.5)
+      (alpha . 0.95)
+      (frame-parameters . ((undecorated . t)
+                           (skip-taskbar . t)
+                           (sticky . t)))))))
 
 (use-package quick-peek)
 

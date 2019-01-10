@@ -24,10 +24,17 @@
 
 (add-hook 'erc-mode-hook 'my-erc-mode-hook-func)
 
+;; This is important when using ZNC, otherwise different network's connections will use the same ERC server buffer and ERC will
+;; reconnect every few minutes.
+(setf erc-rename-buffers t)
+
 (setf erc-save-buffer-on-part t)
 (setf erc-log-channels-directory "~/.erc/logs/")
 (setf erc-server-reconnect-timeout 5)
 (setf erc-server-reconnect-attempts t)
+
+(setf erc-track-exclude-types
+      '("NICK" "333" "353"))
 
 (defface erc-header-line-disconnected
   '((t (:inherit magit-diff-removed)))
@@ -152,7 +159,7 @@
 
 (use-package erc-nick-notify
   :straight (:host github
-		   :repo "emacsmirror/erc-nick-notify"
-		   :branch "master"))
+	     :repo "emacsmirror/erc-nick-notify"
+	     :branch "master"))
 
 (setf znc-identifier (system-name))
