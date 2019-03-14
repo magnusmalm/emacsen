@@ -310,7 +310,7 @@ If there's no text, delete the previous line ending."
         (linum-mode 1)
         (call-interactively #'goto-line))
     (linum-mode -1)))
-(bind-key "s-L" 'goto-line-show)
+(bind-key "C-s-L" 'goto-line-show)
 
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
@@ -711,3 +711,40 @@ Lisp function does not specify a special indentation."
                                      indent-point normal-indent))
               (method
                (funcall method indent-point state))))))))
+
+(defun my/dynamic-xref-apropos ()
+  (interactive)
+  (let ((buf (current-buffer)))
+    (ivy-read "Search for pattern: "
+	      (lambda (str)
+                (cond
+                 ((< (length str) 1) (counsel-more-chars 1))
+                 (t
+                  (with-current-buffer buf
+                    (when-let ((backend (xref-find-backend)))
+		      (unless (eq backend 'etags)
+                        (mapcar
+                         (lambda (xref)
+                           (let ((loc (xref-item-location xref)))
+                             (propertize
+			      (concat
+			       (when (xref-file-location-p loc)
+                                 (with-slots (file line column) loc
+                                   (format "%s:%s:%s:"
+                                           (propertize (file-relative-name file)
+						       'face 'compilation-info)
+                                           (propertize (format "%s" line)
+						       'face 'compilation-line
+						       )
+                                           column)))
+			       (xref-item-summary xref))
+			      'xref xref)))
+                         (xref-backend-apropos backend str))))))))
+	      :dynamic-collection t
+	      :action (lambda (item)
+                        (xref--pop-to-location (get-text-property 0 'xref item))))))
+
+(defun my/gns3-term (host port desc)
+  (telnet host port)
+  (rename-buffer (format "*%s - %s*" desc port))
+  (message (format "%s:%s - %s" host port desc)))

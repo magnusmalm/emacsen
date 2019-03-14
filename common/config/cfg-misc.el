@@ -132,12 +132,6 @@ one by line."
   :config
   (back-button-mode 1))
 
-(use-package smart-forward
-  :bind (("M-<up>" . smart-up)
-	 ("M-<down>" . smart-down)
-	 ("M-<left>" . smart-backward)
-	 ("M-<right>" . smart-forward)))
-
 (use-package restclient
   :config
   (defun my-restclient-mode-hook-func ()
@@ -156,3 +150,18 @@ one by line."
   (setf free-keys-modifiers '("" "C" "M" "C-M" "s" "H"))
   (setf free-keys-keys
 	"abcdefghijklmnopqrstuvwxyzåäöABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ1234567890!@#$%^&*()-=[]{};'\\:\"|,./<>?`~"))
+
+(use-package goto-last-change
+  :bind ("C-x C-/" . goto-last-change))
+
+(use-package outorg)
+
+(use-package outshine)
+
+;; (use-package navi-mode)
+
+(use-package wiki-summary)
+
+(use-package md4rd
+  :config
+  (setq md4rd-subs-active '(lisp+Common_Lisp emacs commandline embeddedlinux debian)))

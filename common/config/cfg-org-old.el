@@ -31,9 +31,9 @@
 
 ;; (provide 'org-version)
 
-(add-hook 'text-mode-hook
-          (lambda ()
-            (variable-pitch-mode 1)))
+;; (add-hook 'text-mode-hook
+;;           (lambda ()
+;;             (variable-pitch-mode 1)))
 
 (use-package org
   :straight nil

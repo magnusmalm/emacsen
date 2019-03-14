@@ -1,8 +1,8 @@
 (use-package windmove
-  :bind* (("s-i" . windmove-up)
-	  ("s-k" . windmove-down)
-	  ("s-j" . windmove-left)
-	  ("s-l" . windmove-right))
+  :bind* (("H-i" . windmove-up)
+	  ("H-k" . windmove-down)
+	  ("H-j" . windmove-left)
+	  ("H-l" . windmove-right))
   :config
   (setf windmove-wrap-around t))
 

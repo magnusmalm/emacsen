@@ -10,27 +10,11 @@
   (key-chord-define-global "yy" 'popup-kill-ring)
   (key-chord-define-global "YY" 'counsel-yank-pop)
   (key-chord-define-global "MM" 'magit-file-popup)
+  (key-chord-define-global "QQ" 'hydra-avy/body)
   (key-chord-define-global "  " ". ")
 
   ;; This create a prefix keymap
   ;; https://stackoverflow.com/questions/25473660/how-do-i-use-a-key-chord-combination-as-a-prefix-binding
-  (let
-      ((sub-keymap (make-sparse-keymap)))
-    (define-key sub-keymap "o" 'avy-goto-subword-1)
-    (define-key sub-keymap "O" 'avy-goto-word-1)
-    (define-key sub-keymap "l" 'avy-goto-line)
-    (define-key sub-keymap "b" 'avy-goto-char)
-    (define-key sub-keymap "B" 'avy-goto-char-timer)
-    (key-chord-define-global "qq" sub-keymap))
-
-  (let
-      ((sub-keymap (make-sparse-keymap)))
-    (define-key sub-keymap "P" 'persp-switch-last)
-    (define-key sub-keymap "K" 'persp-kill)
-    (define-key sub-keymap "O" 'projectile-persp-switch-project)
-    (define-key sub-keymap "n" 'persp-next)
-    (define-key sub-keymap "p" 'persp-prev)
-    (key-chord-define-global "PP" sub-keymap))
 
   (let
       ((sub-keymap (make-sparse-keymap)))
@@ -109,10 +93,6 @@
 (bind-key "C-<next>" 'next-emacs-buffer)
 (bind-key "M-<prior>" 'previous-user-buffer)
 (bind-key "M-<next>" 'next-user-buffer)
-(bind-key "s-I" 'previous-emacs-buffer)
-(bind-key "s-K" 'next-emacs-buffer)
-(bind-key "s-J" 'previous-user-buffer)
-(bind-key "s-L" 'next-user-buffer)
 (bind-key "C-x C-b" 'ibuffer)
 (bind-key "H-c" 'compile)
 (bind-key " " 'compile)
@@ -132,7 +112,6 @@
 (unbind-key (kbd "C-x C-c")) ; save-buffers-kill-terminal
 (bind-key "H-r" 'repeat)
 (bind-key "M-A" 'shell-command)
-(bind-key "H-o" 'ff-find-other-file)
 (bind-key "C-c C-u" 'mmm:uuid)
 (bind-key* "M-j" 'backward-char)
 (bind-key* "M-l" 'forward-char)

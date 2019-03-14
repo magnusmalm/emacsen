@@ -1,24 +1,62 @@
-(use-package smart-mode-line
-  :init
-  (setf sml/no-confirm-load-theme t)
-  :config
-  (setf sml/mode-width 'right)
-  (setf sml/modified-char "*")
-  (setf sml/position-percentage-format "")
-  (setf sml/show-client t)
-  (setf sml/show-eol t)
-  (setf sml/show-frame-identification t)
-  (setf sml/use-projectile-p 'after-prefixes)
-  (setf sml/vc-mode-show-backend nil))
+(setq mode-line-position
+      '(;; %p print percent of buffer above top of window, o Top, Bot or All
+        ;; (-3 "%p")
+        ;; %I print the size of the buffer, with kmG etc
+        ;; (size-indication-mode ("/" (-4 "%I")))
+        ;; " "
+        ;; %l print the current line number
+        ;; %c print the current column
+        (line-number-mode ("%l" (column-number-mode ":%c")))))
 
-(use-package powerline)
+(defun shorten-directory (dir max-length)
+  "Show up to `max-length' characters of a directory name `dir'."
+  (let ((path (reverse (split-string (abbreviate-file-name dir) "/")))
+        (output ""))
+    (when (and path (equal "" (car path)))
+      (setq path (cdr path)))
+    (while (and path (< (length output) (- max-length 4)))
+      (setq output (concat (car path) "/" output))
+      (setq path (cdr path)))
+    (when path
+      (setq output (concat "../" output)))
+    output))
 
-(use-package smart-mode-line-powerline-theme
-  :after powerline
-  :after smart-mode-line
-  :config
-  (setf sml/theme 'powerline)
-  (sml/setup))
+(setq-default mode-line-buffer-identification
+	      (propertized-buffer-identification "%b "))
+
+
+(defface mode-line-directory
+  '((t :background "blue" :foreground "gray"))
+  "Face used for buffer identification parts of the mode line."
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
+(defvar mode-line-directory
+  '(:propertize
+    (:eval (if (buffer-file-name) (concat " " (shorten-directory default-directory 20)) " "))
+    face mode-line-directory)
+  "Formats the current directory.")
+(put 'mode-line-directory 'risky-local-variable t)
+
+(setq-default mode-line-format
+	      '("%e"
+		mode-line-front-space
+		;; mode-line-mule-info -- I'm always on utf-8
+		mode-line-client
+		mode-line-modified
+		;; mode-line-remote -- no need to indicate this specially
+		;; mode-line-frame-identification -- this is for text-mode emacs only
+		" "
+		mode-line-directory
+		mode-line-buffer-identification
+		" "
+		mode-line-position
+		;;(vc-mode vc-mode)  -- I use magit, not vc-mode
+		(flycheck-mode flycheck-mode-line)
+		" "
+		mode-line-modes
+		mode-line-misc-info
+		mode-line-end-spaces))
 
 (use-package delight)
 
@@ -327,6 +365,70 @@ Git gutter:
 
 (use-package quick-peek)
 
-(use-package minions
-  :custom (minions-direct '(flycheck-mode projectile-mode))
-  :config (minions-mode 1))
+(use-package rich-minority
+  :config
+  (setq rm-whitelist
+	(format "^ \\(%s\\)$"
+		(mapconcat #'identity
+                           '("Fly.*" "Projectile.*" "PgLn")
+                           "\\|")))
+  (rich-minority-mode 1))
+
+(use-package company-box
+  :config
+  (setf company-box-max-candidates 25)
+  (setf company-box-backends-colors
+	'((company-yasnippet . (:candidate "yellow" :annotation some-face))
+	  (company-elisp . (:icon "yellow" :selected (:background "orange"
+						      :foreground "black")))
+	  (company-dabbrev . "purple")))
+  :hook
+  (company-mode . company-box-mode))
+
+
+(setq company-box-icons-unknown 'fa_question_circle)
+
+(setq company-box-icons-elisp
+      '((fa_tag :face font-lock-function-name-face) ;; Function
+	(fa_cog :face font-lock-variable-name-face) ;; Variable
+	(fa_cube :face font-lock-constant-face) ;; Feature
+	(md_color_lens :face font-lock-doc-face))) ;; Face
+
+(setq company-box-icons-yasnippet 'fa_bookmark)
+
+(setq company-box-icons-lsp
+      '((1 . fa_text_height) ;; Text
+        (2 . (fa_tags :face font-lock-function-name-face)) ;; Method
+        (3 . (fa_tag :face font-lock-function-name-face)) ;; Function
+        (4 . (fa_tag :face font-lock-function-name-face)) ;; Constructor
+        (5 . (fa_cog :foreground "#FF9800")) ;; Field
+        (6 . (fa_cog :foreground "#FF9800")) ;; Variable
+        (7 . (fa_cube :foreground "#7C4DFF")) ;; Class
+        (8 . (fa_cube :foreground "#7C4DFF")) ;; Interface
+        (9 . (fa_cube :foreground "#7C4DFF")) ;; Module
+        (10 . (fa_cog :foreground "#FF9800")) ;; Property
+        (11 . md_settings_system_daydream) ;; Unit
+        (12 . (fa_cog :foreground "#FF9800")) ;; Value
+        (13 . (md_storage :face font-lock-type-face)) ;; Enum
+        (14 . (md_closed_caption :foreground "#009688")) ;; Keyword
+        (15 . md_closed_caption) ;; Snippet
+        (16 . (md_color_lens :face font-lock-doc-face)) ;; Color
+        (17 . fa_file_text_o) ;; File
+        (18 . md_refresh) ;; Reference
+        (19 . fa_folder_open) ;; Folder
+        (20 . (md_closed_caption :foreground "#009688")) ;; EnumMember
+        (21 . (fa_square :face font-lock-constant-face)) ;; Constant
+        (22 . (fa_cube :face font-lock-type-face)) ;; Struct
+        (23 . fa_calendar) ;; Event
+        (24 . fa_square_o) ;; Operator
+        (25 . fa_arrows)) ;; TypeParameter
+      )
+
+(use-package font-lock+)
+(add-to-list 'load-path "~/.local/share/icons-in-terminal/")
+(require 'icons-in-terminal)
+
+(use-package mixed-pitch
+  :hook
+  ;; If you want it in all text modes:
+  (text-mode . mixed-pitch-mode))

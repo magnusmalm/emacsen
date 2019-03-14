@@ -46,40 +46,9 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package yaml-tomato)
 
-(use-package eglot
-  :config
-  (defun my/dynamic-xref-apropos ()
-    (interactive)
-    (let ((buf (current-buffer)))
-      (ivy-read "Search for pattern: "
-		(lambda (str)
-                  (cond
-                   ((< (length str) 1) (counsel-more-chars 1))
-                   (t
-                    (with-current-buffer buf
-                      (when-let ((backend (xref-find-backend)))
-			(unless (eq backend 'etags)
-                          (mapcar
-                           (lambda (xref)
-                             (let ((loc (xref-item-location xref)))
-                               (propertize
-				(concat
-				 (when (xref-file-location-p loc)
-                                   (with-slots (file line column) loc
-                                     (format "%s:%s:%s:"
-                                             (propertize (file-relative-name file)
-							 'face 'compilation-info)
-                                             (propertize (format "%s" line)
-							 'face 'compilation-line
-							 )
-                                             column)))
-				 (xref-item-summary xref))
-				'xref xref)))
-                           (xref-backend-apropos backend str))))))))
-		:dynamic-collection t
-		:action (lambda (item)
-                          (xref--pop-to-location (get-text-property 0 'xref item))))))
-  (add-hook 'prog-mode-hook 'eglot-ensure))
+;; (use-package eglot
+;;   :config
+;;   (add-hook 'prog-mode-hook 'eglot-ensure))
 
 (setf gdb-many-windows t)
 
@@ -105,7 +74,7 @@ and set the focus back to Emacs frame"
   :demand t
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
-  :bind ("H-l" . hydra-flycheck/body)
+  :bind ("H-L" . hydra-flycheck/body)
   :config
   (setf flycheck-cppcheck-suppressions '("variableScope"))
   (setf flycheck-display-errors-delay 0.3)
@@ -113,10 +82,10 @@ and set the focus back to Emacs frame"
   (setf flycheck-indication-mode 'left-fringe)
   (setf flycheck-display-errors-function nil)
 
-  (use-package flycheck-pos-tip
-    :config
-    (setf flycheck-pos-tip-timeout (* 60 10))
-    (flycheck-pos-tip-mode))
+  ;; (use-package flycheck-pos-tip
+  ;;   :config
+  ;;   (setf flycheck-pos-tip-timeout (* 60 10))
+  ;;   (flycheck-pos-tip-mode))
 
   (defhydra hydra-flycheck
     (:pre (progn (setf hydra-lv t) (flycheck-list-errors))
@@ -141,7 +110,12 @@ and set the focus back to Emacs frame"
   (global-aggressive-indent-mode 1)
   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
-  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+  (add-to-list
+   'aggressive-indent-dont-indent-if
+   '(and (derived-mode-p 'c++-mode)
+	 (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+                             (thing-at-point 'line))))))
 
 (use-package auto-indent-mode)
 
@@ -155,21 +129,21 @@ and set the focus back to Emacs frame"
   (setf dtrt-indent-min-quality 70.0)
   (setf dtrt-indent-run-after-smie t))
 
-(use-package flycheck-inline
-  :straight (:host github
-	     :repo "flycheck/flycheck-inline")
-  :config
-  ;; (setf flycheck-inline-display-function 'flycheck-inline-display-phantom)
-  ;; (setf flycheck-inline-clear-function 'flycheck-inline-clear-phantoms)
-  (setf flycheck-inline-display-function
-  	(lambda (msg pos)
-          (let* ((ov (quick-peek-overlay-ensure-at pos))
-  		 (contents (quick-peek-overlay-contents ov)))
-            (setf (quick-peek-overlay-contents ov)
-                  (concat contents (when contents "\n") msg))
-            (quick-peek-update ov)))
-  	flycheck-inline-clear-function #'quick-peek-hide)
-  (global-flycheck-inline-mode))
+;; (use-package flycheck-inline
+;;   :straight (:host github
+;; 	     :repo "flycheck/flycheck-inline")
+;;   :config
+;;   ;; (setf flycheck-inline-display-function 'flycheck-inline-display-phantom)
+;;   ;; (setf flycheck-inline-clear-function 'flycheck-inline-clear-phantoms)
+;;   (setf flycheck-inline-display-function
+;;   	(lambda (msg pos)
+;;           (let* ((ov (quick-peek-overlay-ensure-at pos))
+;;   		 (contents (quick-peek-overlay-contents ov)))
+;;             (setf (quick-peek-overlay-contents ov)
+;;                   (concat contents (when contents "\n") msg))
+;;             (quick-peek-update ov)))
+;;   	flycheck-inline-clear-function #'quick-peek-hide)
+;;   (global-flycheck-inline-mode))
 
 (use-package gitlab)
 (use-package ivy-gitlab)
@@ -187,3 +161,38 @@ and set the focus back to Emacs frame"
   (setf ivy-xref-remove-text-properties nil)
   (setf ivy-xref-use-file-path t)
   )
+
+(use-package json-snatcher
+  :config
+  (defun js-mode-bindings ()
+    "Sets a hotkey for using the json-snatcher plugin"
+    (when (string-match  "\\.json$" (buffer-name))
+      (local-set-key (kbd "C-c C-g") 'jsons-print-path)))
+  (add-hook 'js-mode-hook 'js-mode-bindings)
+  (add-hook 'js2-mode-hook 'js-mode-bindings))
+
+(use-package json-reformat)
+
+(use-package json-mode)
+
+(use-package lsp-mode)
+
+(use-package lsp-ui
+  :after lsp-mode)
+
+(use-package company-lsp
+  :after lsp-mode)
+
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode) .
+         (lambda () (require 'ccls) (lsp))))
+
+(add-hook 'prog-mode-hook #'lsp)
+
+
+(use-package smartparens
+  :delight smartparens-mode
+  :config
+  (progn
+    (require 'smartparens-config)
+    (smartparens-global-mode 1)))

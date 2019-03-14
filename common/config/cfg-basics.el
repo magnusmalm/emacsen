@@ -196,14 +196,6 @@
     ;; (setf save-place-file (concat user-emacs-directory "var/places"))
     ))
 
-(use-package perspective
-  :bind (("C-<right>" . persp-next)
-	 ("C-<left>" . persp-prev))
-  :config
-  (setf persp-modestring-dividers '("(" ")" " "))
-  (setf persp-sort-chronologically t)
-  (persp-mode))
-
 (use-package tramp
   :ensure nil
   :config
@@ -311,6 +303,8 @@
 
 (use-package ripgrep)
 
+(use-package deadgrep)
+
 (use-package expand-region
   :bind (("C-M-c" . er/expand-region)
 	 ("C-M-h" . er/mark-defun)))
@@ -344,7 +338,7 @@
 (use-package counsel
   :bind* (
           ("C-M-S" . counsel-projectile-rg)
-          ("M-S" . mmm/ripgrep-in-current-directory)
+	  ("M-s-s" . counsel-projectile-rg)
           ("M-a" . counsel-M-x)
           ("C-h v" . counsel-describe-variable)
           ("C-h f" . counsel-describe-function)
@@ -353,6 +347,7 @@
           ("C-o" . counsel-find-file)
           ("C-M-y" . counsel-yank-pop))
   :bind (("C-'" . counsel-semantic-or-imenu)
+         ("M-S" . mmm/ripgrep-in-current-directory)
 	 ("M-s" . counsel-grep-or-swiper))
   :bind (:map counsel-mode-map
          ("M-k" . ivy-next-line)
@@ -436,9 +431,24 @@
   (crux-with-region-or-buffer untabify))
 
 (use-package avy
+  :bind (("H-q" . avy-goto-char)
+	 ("H-Q" . hydra-avy/body))
   :config
-  (setf avy-style 'pre)
+  (setf avy-style 'at-full)
   (setf avy-background t)
+  (defun avy-show-dispatch-help ()
+    "Display action shortucts in echo area."
+    (interactive)
+    (message "%s" (mapconcat
+		   (lambda (action)
+		     (cl-destructuring-bind (key . fn) action
+		       (format "%s: %s"
+			       (propertize
+				(char-to-string key)
+				'face 'avy-lead-face)
+			       fn)))
+		   avy-dispatch-alist
+		   "\n")))
   (defun avy-goto-open-paren-followed-by-char-or-num (&optional arg)
     "Jump to an open bracket followed by a letter or a number.
  The window scope is determined by `avy-all-windows' (ARG negates it)."
@@ -447,16 +457,51 @@
       (avy--generic-jump
        "([[:alnum:]]"
        arg
-       avy-style))))
+       avy-style)))
+  (defun my-avy-action-copy-and-yank (pt)
+    "Copy and yank sexp starting on PT."
+    (avy-action-copy pt)
+    (yank))
+  (setq avy-dispatch-alist '((?x . avy-action-kill-move)
+			     (?X . avy-action-kill-stay)
+			     (?m . avy-action-mark)
+			     (?p . my-avy-action-copy-and-yank)
+			     (?P . avy-action-teleport)
+			     (?n . avy-action-copy)
+			     (?y . avy-action-yank)))
+  (defhydra hydra-avy (:exit t :hint nil :column t)
+    "avy"
+    ("c" avy-goto-char "char" :column "Char")
+    ("C" avy-goto-char-2 "Char 2 tier")
+    ("ac" avy-goto-char-2-above "Char 2 tier above point")
+    ("bc" avy-goto-char-2-below "Char 2 tier below point")
+    ("lc" avy-goto-char-in-line "Char in current line")
+    ("tc" avy-goto-char-timer "Char timed")
+
+    ("w" avy-goto-word-1 "Word" :column "Word")
+    ("aw" avy-goto-word-1-above "Word above point")
+    ("bw" avy-goto-word-1-below "Word below")
+
+    ("i" avy-goto-symbol-1 "Identifier" :column "Identifier")
+    ("ai" avy-goto-symbol-1-above "Identifier above point")
+    ("bi" avy-goto-symbol-1-below "Identifier below point")
+
+    ("l" avy-goto-line "Line" :column "Line")
+    ("al" avy-goto-line-above "Line above point")
+    ("bl" avy-goto-line-below "Line below point")
+    ("el" avy-goto-end-of-line "End of line")
+
+    ("x" avy-goto-open-paren-followed-by-char-or-num "" :column "Other")
+
+    ("?" avy-show-dispatch-help "Show actions" :foreign-keys run)
+
+    ("q"  nil)))
 
 (use-package link-hint
   :defer 1
   :config
   (setf link-hint-avy-style 'pre)
   (setf link-hint-avy-background t))
-
-(use-package persp-projectile
-  :after (perspective projectile))
 
 (use-package projectile
   :preface
@@ -468,6 +513,8 @@
   :delight
   :bind (("H-p" . projectile-command-map))
   :config
+  (setf projectile-git-command "fdfind . -0")
+  (setf projectile-generic-command "fdfind . -0")
   (setf projectile-enable-caching t)
   (setf projectile-mode-line '(:eval (format " Proj:%s" (projectile-project-name))))
   (setf projectile-keymap-prefix (kbd "C-x p"))
@@ -479,7 +526,7 @@
                 projectile-project-root-files-top-down-recurring))
   (setf projectile-completion-system 'ivy)
   (setf projectile-globally-ignored-directories
-        '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work"))
+        '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" ".ccls-cache" "kernel-dev"))
   (def-projectile-commander-method ?s
     "Open a *shell* buffer for the project."
     (projectile-run-shell))
@@ -516,11 +563,13 @@
 (use-package swiper
   :bind (:map  ivy-minibuffer-map
 	 ("C-7" . swiper-mc)
+	 ("M-s" . insert-symbol-at-point)
+         ("M-S" . insert-word-at-point)
 	 :map swiper-map
 	 ("M-I" . ivy-scroll-down-command)
 	 ("M-K" . ivy-scroll-up-command)
-         ("M-s" . insert-symbol-at-point)
-         ("M-S" . insert-word-at-point))
+	 ("M-s" . insert-symbol-at-point)
+	 ("M-S" . insert-word-at-point))
   :config
   (defun insert-symbol-at-point ()
     (interactive)
@@ -530,7 +579,7 @@
     (interactive)
     (insert (format "%s" (with-ivy-window (thing-at-point 'word)))))
   ;; (setf ivy-use-virtual-buffers nil)
-  (setf swiper-include-line-number-in-search t)
+  (setf swiper-include-line-number-in-search nil)
   (setf swiper-action-recenter t))
 
 (use-package ivy
@@ -731,12 +780,12 @@
   (setf pdf-view-resize-factor 1.1)
   ;;
   (add-hook 'pdf-view-mode-hook
-            (lambda ()
-              (pdf-misc-size-indication-minor-mode)
-              (pdf-links-minor-mode)
-              (pdf-isearch-minor-mode)
-              )
-            )
+	    (lambda ()
+	      (pdf-misc-size-indication-minor-mode)
+	      (pdf-links-minor-mode)
+	      (pdf-isearch-minor-mode)
+	      )
+	    )
   (add-to-list 'auto-mode-alist (cons "\\.pdf$" 'pdf-view-mode))
 
   ;; Keys
@@ -820,7 +869,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
   (set-face-attribute 'Man-underline nil :inherit 'underline :foreground "#cc9393"))
 
 (add-hook 'emacs-lisp-mode-hook
-          (lambda () (setq-local lisp-indent-function #'fuco1/lisp-indent-function)))
+	  (lambda () (setq-local lisp-indent-function #'fuco1/lisp-indent-function)))
 
 (setf calendar-latitude 59.393768)
 (setf calendar-longitude 15.838480)

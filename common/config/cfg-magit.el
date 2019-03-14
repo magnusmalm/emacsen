@@ -2,7 +2,6 @@
 
 (use-package magit
   :bind (("C-c m" . magit-status)
-	 ("s-m" . magit-status)
 	 ("C-c l" . magit-log-buffer-file)
 	 ("C-c M-g" . magit-dispatch-popup))
   :config
@@ -124,4 +123,32 @@
   :config
   (setf git-messenger:show-detail t))
 
+(autoload 'org-read-date "org")
+
+(defun magit-org-read-date (prompt &optional _default)
+  (org-read-date 'with-time nil nil prompt))
+
+(magit-define-popup-option 'magit-log-popup
+  ?s "Since date" "--since=" #'magit-org-read-date)
+
+(magit-define-popup-option 'magit-log-popup
+  ?u "Until date" "--until=" #'magit-org-read-date)
+
+(magit-define-popup-switch
+  'magit-log-popup
+  ?s "Always sort by date" "--date-order")
+
 (use-package magit-imerge)
+
+(define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
+  "Mode for showing staged and unstaged changes."
+  :group 'magit-status)
+
+(defun magit-staging-refresh-buffer ()
+  (magit-insert-section (status)
+    (magit-insert-unstaged-changes)
+    (magit-insert-staged-changes)))
+
+(defun magit-staging ()
+  (interactive)
+  (magit-mode-setup #'magit-staging-mode))

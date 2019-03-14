@@ -124,7 +124,7 @@ Emacs buffers are those whose name starts with *."
 (use-package ace-jump-buffer)
 
 (use-package broadcast
-  :bind (("s-b" . broadcast-mode)))
+  :bind (("C-s-b" . broadcast-mode)))
 
 (defvar recently-closed-buffers (cons nil nil)
   "A list of recently closed buffers.

@@ -58,14 +58,12 @@ Your installed Emacs reports:
 	  (server-is "lisp"))
   (my-load "cfg-devel"))
 
-;; The stuff we want for C and python lang devel servers
-(when (server-is "devel")
+;; The stuff we want for devel servers
+(when (or (server-is "devel")
+	  (server-is "lisp"))
   (my-load "cfg-c-devel")
-  (my-load "cfg-python-devel"))
-
-;; The stuff we want for Lisp devel servers
-(when (server-is "lisp")
-  (my-load "cfg-lisp"))
+  (my-load "cfg-python-devel")
+  (my-load "cfg-lisp-devel"))
 
 ;; The stuff we want for mail
 (when (server-is "mail")

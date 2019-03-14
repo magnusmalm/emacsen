@@ -84,40 +84,32 @@
   (ws-butler-global-mode))
 
 (use-package edit-at-point
-  :bind*
-  (("C-c C-s a". edit-at-point-word-copy)
-   ("C-c C-s b". edit-at-point-word-cut)
-   ("C-c C-s d". edit-at-point-word-paste)
-   ("C-c C-s e". edit-at-point-symbol-copy)
-   ("C-c C-s f". edit-at-point-symbol-cut)
-   ("C-c C-s h". edit-at-point-symbol-paste)
-   ("C-c C-s i". edit-at-point-str-copy)
-   ("C-c C-s j". edit-at-point-str-cut)
-   ("C-c C-s l". edit-at-point-str-paste)
-   ("C-c C-s m". edit-at-point-line-copy)
-   ("C-c C-s n". edit-at-point-line-cut)
-   ("C-c C-s p". edit-at-point-line-paste)
-   ("C-c C-s q". edit-at-point-line-dup)
-   ("C-c C-s r". edit-at-point-line-up)
-   ("C-c C-s s". edit-at-point-line-down)
-   ("C-c C-s t". edit-at-point-paren-copy)
-   ("C-c C-s u". edit-at-point-paren-cut)
-   ("C-c C-s w". edit-at-point-paren-paste)
-   ("C-c C-s x". edit-at-point-paren-dup)
-   ("C-c C-s y". edit-at-point-defun-copy)
-   ("C-c C-s z". edit-at-point-defun-cut)
-   ("C-c C-s )"  . edit-at-point-defun-paste)
-   ("C-c C-s SPC" . edit-at-point-defun-dup)
-   ("H-w" . edit-at-point-word-copy)
-   ("H-W" . edit-at-point-word-cut)
-   ("H-i" . edit-at-point-symbol-copy)
-   ("H-I" . edit-at-point-symbol-cut)
-   ("H-s" . edit-at-point-str-copy)
-   ("H-S" . edit-at-point-str-cut)
-   ("H-e" . edit-at-point-paren-copy)
-   ("H-E" . edit-at-point-paren-cut)
-   ("H-f" . edit-at-point-defun-copy)
-   ("H-F" . edit-at-point-defun-cut)))
+  :bind (("M-C" . hydra-edit-at-point/body))
+  :config
+  (defhydra hydra-edit-at-point (:color blue :hint nil :column t)
+    "Copy/Cut/Duplicate/Move thing"
+    ("w"  edit-at-point-word-copy "word" :column "Copy")
+    ("i"  edit-at-point-symbol-copy "identifier")
+    ("s"  edit-at-point-str-copy "string")
+    ("e"  edit-at-point-paren-copy "expression")
+    ("l"  edit-at-point-line-copy "line")
+    ("f"  edit-at-point-defun-copy "function")
+
+    ("W"  edit-at-point-word-cut "word" :column "Cut")
+    ("I"  edit-at-point-symbol-cut "identifier")
+    ("S"  edit-at-point-str-cut "string")
+    ("E"  edit-at-point-paren-cut "expression")
+    ("L"  edit-at-point-line-cut "line")
+    ("F"  edit-at-point-defun-cut "function")
+
+    ("dl"  edit-at-point-line-dup "line" :column "Duplicate")
+    ("de"  edit-at-point-paren-dup "expression")
+    ("df"  edit-at-point-defun-dup "function")
+
+    ("ml"  edit-at-point-line-up "line up" :column "Move" :color red)
+    ("Ml"  edit-at-point-line-down "line down"  :color red)
+
+    ("q"  nil)))
 
 (use-package iedit
   :config
@@ -177,10 +169,11 @@
   (add-hook 'text-mode-hook #'my-guess-lang-mode-hook-function)
   (add-hook 'prog-mode-hook #'my-guess-lang-mode-hook-function))
 
+(use-package define-word)
 (use-package synosaurus
   :bind (:map synosaurus-mode-map
-	      (("H-l" . synosaurus-lookup)
-	       ("H-c" . synosaurus-choose-and-replace)))
+	 (("H-M-l" . synosaurus-lookup)
+	  ("H-M-c" . synosaurus-choose-and-replace)))
   :config
   (setf synosaurus-choose-method 'popup))
 

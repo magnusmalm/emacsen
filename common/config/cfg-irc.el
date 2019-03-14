@@ -73,7 +73,7 @@
       erc-fill-prefix "      "
       erc-insert-timestamp-function 'ks-timestamp)
 
-(setf erc-auto-query 'buffer)
+(setf erc-auto-query 'window-noselect)
 
 (use-package erc-hl-nicks)
 
@@ -163,3 +163,5 @@
 	     :branch "master"))
 
 (setf znc-identifier (system-name))
+
+(setf erc-join-buffer 'bury)
