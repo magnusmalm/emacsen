@@ -25,16 +25,10 @@
 	      (propertized-buffer-identification "%b "))
 
 
-(defface mode-line-directory
-  '((t :background "blue" :foreground "gray"))
-  "Face used for buffer identification parts of the mode line."
-  :group 'mode-line-faces
-  :group 'basic-faces)
-
 (defvar mode-line-directory
   '(:propertize
     (:eval (if (buffer-file-name) (concat " " (shorten-directory default-directory 20)) " "))
-    face mode-line-directory)
+    face mode-line)
   "Formats the current directory.")
 (put 'mode-line-directory 'risky-local-variable t)
 
