@@ -1,9 +1,14 @@
 (use-package git-link)
 
 (use-package magit
-  :bind (("C-c m" . magit-status)
-	 ("C-c l" . magit-log-buffer-file)
-	 ("C-c M-g" . magit-dispatch-popup))
+  :bind
+  (("C-c m" . magit-status)
+   ("C-c l" . magit-log-buffer-file)
+   ("C-c M-g" . magit-dispatch-popup))
+
+  :custom-face
+  (magit-hash ((t (:foreground "spring green"))))
+
   :config
   (setenv "GIT_PAGER" "")
   (setf magit-blame-echo-style 'lines)
@@ -155,6 +160,7 @@
 
 
 
+;; TODO: Rewrite to use ivy
 ;;; search commit log by anything
 (defvar anything-c-source-log-edit-comment
   '((name . "Log-edit Comment")
