@@ -104,18 +104,18 @@ and set the focus back to Emacs frame"
 
 ;;;; INDENTING
 
-(use-package aggressive-indent
-  :delight
-  :config
-  (global-aggressive-indent-mode 1)
-  (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
-  (add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
-  (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
-  (add-to-list
-   'aggressive-indent-dont-indent-if
-   '(and (derived-mode-p 'c++-mode)
-	 (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-                             (thing-at-point 'line))))))
+;; (use-package aggressive-indent
+;;   :delight
+;;   :config
+;;   (global-aggressive-indent-mode 1)
+;;   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
+;;   (add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
+;;   (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+;;   (add-to-list
+;;    'aggressive-indent-dont-indent-if
+;;    '(and (derived-mode-p 'c++-mode)
+;; 	 (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+;;                              (thing-at-point 'line))))))
 
 (use-package auto-indent-mode)
 
@@ -175,7 +175,11 @@ and set the focus back to Emacs frame"
 
 (use-package json-mode)
 
-(use-package lsp-mode)
+(use-package lsp-mode
+  :config
+  (setq lsp-prefer-flymake nil)
+  (setq-default flycheck-disabled-checkers
+		'(c/c++-clang c/c++-cppcheck c/c++-gcc)))
 
 (use-package lsp-ui
   :after lsp-mode)
@@ -184,10 +188,12 @@ and set the focus back to Emacs frame"
   :after lsp-mode)
 
 (use-package ccls
+  :config
+  (setf ccls-executable "~/scripts/ccls")
   :hook ((c-mode c++-mode objc-mode) .
          (lambda () (require 'ccls) (lsp))))
 
-(add-hook 'prog-mode-hook #'lsp)
+;; (add-hook 'prog-mode-hook #'lsp)
 
 
 (use-package smartparens
@@ -196,3 +202,5 @@ and set the focus back to Emacs frame"
   (progn
     (require 'smartparens-config)
     (smartparens-global-mode 1)))
+
+(use-package py-autopep8)

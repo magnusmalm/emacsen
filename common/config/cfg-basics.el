@@ -511,7 +511,13 @@
     (let* ((root (projectile-project-root dir)))
       (and root (cons 'transient root))))
   :delight
-  :bind (("H-p" . projectile-command-map))
+  :bind (("H-p" . projectile-command-map)
+	 ("M-P M-P" . counsel-projectile-switch-project)
+	 ("M-P M-F" . counsel-projectile-find-file)
+	 ("M-P M-S" . counsel-projectile-rg)
+	 ("M-P M-M" . magit-status)
+	 ("M-P M-W" . git-messenger:popup-message)
+	 ("M-P M-D" . projectile-dired))
   :config
   (setf projectile-git-command "fdfind . -0")
   (setf projectile-generic-command "fdfind . -0")
@@ -721,11 +727,6 @@
 (use-package company-prescient
   :config
   (company-prescient-mode))
-
-(use-package winner
-  :ensure nil
-  :config
-  (winner-mode))
 
 (use-package wgrep-ag
   :after ag)

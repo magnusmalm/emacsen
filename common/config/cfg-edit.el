@@ -370,7 +370,3 @@
   :bind (("C-x C-'" . cycle-quotes)))
 
 (use-package string-edit)
-
-(use-package smart-shift
-  :config
-  (global-smart-shift-mode 1))

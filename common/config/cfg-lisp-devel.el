@@ -1,15 +1,26 @@
-(use-package sly
-  :straight (:files ("*.el" ("lib" "lib/*")
-		     ("slynk/backend" "slynk/backend/*")
-		     ("slynk" "slynk/*") ("contrib" "contrib/*")
-		     "doc/*.texi" "doc/*.info" "doc/dir")
-		    :host github :repo "joaotavora/sly")
+;; Superior Lisp Interaction Mode for Emacs
+(use-package slime
+  :defer t
+  :init
+  (setq inferior-lisp-program "sbcl")
   :config
-  (setf inferior-lisp-program "sbcl"))
+  (use-package slime-company
+    :ensure t)
+  (add-hook 'slime-mode-hook
+            (lambda ()
+              (add-to-list 'slime-contribs 'inferior-slime)
+              (load (expand-file-name "~/quicklisp/slime-helper.el"))
+              (add-to-list 'slime-contribs 'slime-fancy))))
 
-(use-package sly-quicklisp)
-(use-package sly-macrostep)
-
-(use-package elisp-docstring-mode)
-
-(use-package common-lisp-snippets)
+(use-package lispy
+  :bind (:map lispy-mode-map
+	 ("C-i" . special-lispy-tab)
+	 ("L" . special-lispy-flow)
+	 ("J" . special-lispy-back))
+  :config
+  (lispy-define-key lispy-mode-map "i" 'lispy-up)
+  (lispy-define-key lispy-mode-map "k" 'lispy-down)
+  (lispy-define-key lispy-mode-map "j" 'lispy-left)
+  (lispy-define-key lispy-mode-map "l" 'lispy-right)
+  (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+  (add-hook 'lisp-interaction-mode-hook (lambda () (lispy-mode 1))))
