@@ -874,3 +874,7 @@ _h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
 (setf calendar-latitude 59.393768)
 (setf calendar-longitude 15.838480)
 (setf calendar-location-name "Arboga, Sweden")
+
+(use-package dumb-jump
+  :bind (("H-." . dumb-jump-go))
+  :config (setq dumb-jump-selector 'ivy))
