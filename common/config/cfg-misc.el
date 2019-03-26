@@ -165,3 +165,11 @@ one by line."
 (use-package md4rd
   :config
   (setq md4rd-subs-active '(lisp+Common_Lisp emacs commandline embeddedlinux debian)))
+
+(use-package ssh-tunnels
+  :config
+  (setq ssh-tunnels-configurations
+      '((:name "solkattenarboga-swank"
+         :local-port 9900
+         :remote-port 9900
+         :login "solkattenarboga"))))

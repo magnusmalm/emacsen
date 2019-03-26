@@ -113,7 +113,7 @@ This font is required for emoji and other Unicode 6+ display.")
 ;;;; Misc
 (setf show-paren-delay 0)
 (show-paren-mode t)
-(setf show-paren-style 'parenthesis)
+(setf show-paren-style 'expression)
 
 ;; turn on highlighting current line
 (global-hl-line-mode 1)
@@ -270,21 +270,29 @@ Git gutter:
 ;;   :config
 ;;   (global-origami-mode))
 ;; Modern code folding
-(use-package origami
-  :config
-  (with-eval-after-load 'hideshow
-    ;; Unloading is unsafe, so this the best I can do to pretend `hideshow'
-    ;; never existed.
-    (setf minor-mode-map-alist
-          (assq-delete-all 'hs-minor-mode minor-mode-map-alist)
-          minor-mode-alist
-          (assq-delete-all 'hs-minor-mode minor-mode-alist)
-          minor-mode-list
-          (delq 'hs-minor-mode minor-mode-list)))
-  :bind (:map origami-mode-map
-         ("M-0"   . origami-open-all-nodes)
-         ("M-9"   . origami-close-all-nodes)
-         ("C-M-/" . origami-recursively-toggle-node)))
+;; (use-package origami
+;;   :config
+;;   (with-eval-after-load 'hideshow
+;;     ;; Unloading is unsafe, so this the best I can do to pretend `hideshow'
+;;     ;; never existed.
+;;     (setf minor-mode-map-alist
+;;           (assq-delete-all 'hs-minor-mode minor-mode-map-alist)
+;;           minor-mode-alist
+;;           (assq-delete-all 'hs-minor-mode minor-mode-alist)
+;;           minor-mode-list
+;;           (delq 'hs-minor-mode minor-mode-list)))
+;;   :bind (:map origami-mode-map
+;;          ("M-0"   . origami-open-all-nodes)
+;;          ("M-9"   . origami-close-all-nodes)
+;;          ("C-M-/" . origami-recursively-toggle-node)))
+
+(add-hook 'prog-mode-hook
+  (lambda()
+    (local-set-key (kbd "C-c <right>") 'hs-show-block)
+    (local-set-key (kbd "C-c <left>")  'hs-hide-block)
+    (local-set-key (kbd "C-c <up>")    'hs-hide-all)
+    (local-set-key (kbd "C-c <down>")  'hs-show-all)
+    (hs-minor-mode t)))
 
 (use-package ov)
 
@@ -368,61 +376,61 @@ Git gutter:
                            "\\|")))
   (rich-minority-mode 1))
 
-(use-package company-box
-  :config
-  (setf company-box-max-candidates 25)
-  (setf company-box-backends-colors
-	'((company-yasnippet . (:candidate "yellow" :annotation some-face))
-	  (company-elisp . (:icon "yellow" :selected (:background "orange"
-						      :foreground "black")))
-	  (company-dabbrev . "purple")))
-  :hook
-  (company-mode . company-box-mode))
+;; (use-package company-box
+;;   :config
+;;   (setf company-box-max-candidates 25)
+;;   (setf company-box-backends-colors
+;; 	'((company-yasnippet . (:candidate "yellow" :annotation some-face))
+;; 	  (company-elisp . (:icon "yellow" :selected (:background "orange"
+;; 						      :foreground "black")))
+;; 	  (company-dabbrev . "purple")))
+;;   :hook
+;;   (company-mode . company-box-mode))
 
 
-(setq company-box-icons-unknown 'fa_question_circle)
+;; (setq company-box-icons-unknown 'fa_question_circle)
 
-(setq company-box-icons-elisp
-      '((fa_tag :face font-lock-function-name-face) ;; Function
-	(fa_cog :face font-lock-variable-name-face) ;; Variable
-	(fa_cube :face font-lock-constant-face) ;; Feature
-	(md_color_lens :face font-lock-doc-face))) ;; Face
+;; (setq company-box-icons-elisp
+;;       '((fa_tag :face font-lock-function-name-face) ;; Function
+;; 	(fa_cog :face font-lock-variable-name-face) ;; Variable
+;; 	(fa_cube :face font-lock-constant-face) ;; Feature
+;; 	(md_color_lens :face font-lock-doc-face))) ;; Face
 
-(setq company-box-icons-yasnippet 'fa_bookmark)
+;; (setq company-box-icons-yasnippet 'fa_bookmark)
 
-(setq company-box-icons-lsp
-      '((1 . fa_text_height) ;; Text
-        (2 . (fa_tags :face font-lock-function-name-face)) ;; Method
-        (3 . (fa_tag :face font-lock-function-name-face)) ;; Function
-        (4 . (fa_tag :face font-lock-function-name-face)) ;; Constructor
-        (5 . (fa_cog :foreground "#FF9800")) ;; Field
-        (6 . (fa_cog :foreground "#FF9800")) ;; Variable
-        (7 . (fa_cube :foreground "#7C4DFF")) ;; Class
-        (8 . (fa_cube :foreground "#7C4DFF")) ;; Interface
-        (9 . (fa_cube :foreground "#7C4DFF")) ;; Module
-        (10 . (fa_cog :foreground "#FF9800")) ;; Property
-        (11 . md_settings_system_daydream) ;; Unit
-        (12 . (fa_cog :foreground "#FF9800")) ;; Value
-        (13 . (md_storage :face font-lock-type-face)) ;; Enum
-        (14 . (md_closed_caption :foreground "#009688")) ;; Keyword
-        (15 . md_closed_caption) ;; Snippet
-        (16 . (md_color_lens :face font-lock-doc-face)) ;; Color
-        (17 . fa_file_text_o) ;; File
-        (18 . md_refresh) ;; Reference
-        (19 . fa_folder_open) ;; Folder
-        (20 . (md_closed_caption :foreground "#009688")) ;; EnumMember
-        (21 . (fa_square :face font-lock-constant-face)) ;; Constant
-        (22 . (fa_cube :face font-lock-type-face)) ;; Struct
-        (23 . fa_calendar) ;; Event
-        (24 . fa_square_o) ;; Operator
-        (25 . fa_arrows)) ;; TypeParameter
-      )
+;; (setq company-box-icons-lsp
+;;       '((1 . fa_text_height) ;; Text
+;;         (2 . (fa_tags :face font-lock-function-name-face)) ;; Method
+;;         (3 . (fa_tag :face font-lock-function-name-face)) ;; Function
+;;         (4 . (fa_tag :face font-lock-function-name-face)) ;; Constructor
+;;         (5 . (fa_cog :foreground "#FF9800")) ;; Field
+;;         (6 . (fa_cog :foreground "#FF9800")) ;; Variable
+;;         (7 . (fa_cube :foreground "#7C4DFF")) ;; Class
+;;         (8 . (fa_cube :foreground "#7C4DFF")) ;; Interface
+;;         (9 . (fa_cube :foreground "#7C4DFF")) ;; Module
+;;         (10 . (fa_cog :foreground "#FF9800")) ;; Property
+;;         (11 . md_settings_system_daydream) ;; Unit
+;;         (12 . (fa_cog :foreground "#FF9800")) ;; Value
+;;         (13 . (md_storage :face font-lock-type-face)) ;; Enum
+;;         (14 . (md_closed_caption :foreground "#009688")) ;; Keyword
+;;         (15 . md_closed_caption) ;; Snippet
+;;         (16 . (md_color_lens :face font-lock-doc-face)) ;; Color
+;;         (17 . fa_file_text_o) ;; File
+;;         (18 . md_refresh) ;; Reference
+;;         (19 . fa_folder_open) ;; Folder
+;;         (20 . (md_closed_caption :foreground "#009688")) ;; EnumMember
+;;         (21 . (fa_square :face font-lock-constant-face)) ;; Constant
+;;         (22 . (fa_cube :face font-lock-type-face)) ;; Struct
+;;         (23 . fa_calendar) ;; Event
+;;         (24 . fa_square_o) ;; Operator
+;;         (25 . fa_arrows)) ;; TypeParameter
+;;       )
 
 (use-package font-lock+)
 (add-to-list 'load-path "~/.local/share/icons-in-terminal/")
 (require 'icons-in-terminal)
 
-(use-package mixed-pitch
-  :hook
-  ;; If you want it in all text modes:
-  (text-mode . mixed-pitch-mode))
+;; (use-package mixed-pitch
+;;   :hook
+;;   ;; If you want it in all text modes:
+;;   (text-mode . mixed-pitch-mode))

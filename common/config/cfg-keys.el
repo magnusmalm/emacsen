@@ -18,21 +18,6 @@
 
   (let
       ((sub-keymap (make-sparse-keymap)))
-    (define-key sub-keymap "W" 'eyebrowse-switch-to-window-config)
-    (define-key sub-keymap "A" 'eyebrowse-switch-to-window-config-1)
-    (define-key sub-keymap "S" 'eyebrowse-switch-to-window-config-2)
-    (define-key sub-keymap "D" 'eyebrowse-switch-to-window-config-3)
-    (define-key sub-keymap "F" 'eyebrowse-switch-to-window-config-4)
-    (define-key sub-keymap "C" 'eyebrowse-create-window-config)
-    (define-key sub-keymap "K" 'eyebrowse-close-window-config)
-    (define-key sub-keymap " " 'eyebrowse-last-window-config)
-    (define-key sub-keymap "N" 'eyebrowse-next-window-config)
-    (define-key sub-keymap "P" 'eyebrowse-prev-window-config)
-    (define-key sub-keymap "R" 'eyebrowse-rename-window-config)
-    (key-chord-define-global "WW" sub-keymap))
-
-  (let
-      ((sub-keymap (make-sparse-keymap)))
     (define-key sub-keymap "B" 'bm-toggle)
     (define-key sub-keymap "N" 'bm-next)
     (define-key sub-keymap "P" 'bm-previous)
@@ -55,9 +40,10 @@
     (define-key sub-keymap "b" 'projectile-switch-to-buffer)
     (define-key sub-keymap "d" 'projectile-dired)
     (define-key sub-keymap "m" 'magit-status)
+    (define-key sub-keymap "M" 'magit-status)
     (define-key sub-keymap "w" 'git-messenger:popup-message)
     (define-key sub-keymap "l" 'multi-line)
-    (key-chord-define-global "ww" sub-keymap))
+    (key-chord-define-global "WW" sub-keymap))
 
   (let
       ((sub-keymap (make-sparse-keymap)))
@@ -78,7 +64,7 @@
     (define-key sub-keymap "ö" "'")
     (define-key sub-keymap "c" 'compile)
     (define-key sub-keymap "p" 'pwd)
-    (key-chord-define-global "ii" sub-keymap)))
+    (key-chord-define-global "II" sub-keymap)))
 
 
 ;;;; KEYBINDINGS
@@ -150,8 +136,8 @@
 (bind-key "M->" 'split-window-vertically)
 (bind-key "M-<" 'split-window-horizontally)
 
-(bind-key "C-<up>" 'gcm-scroll-up)
-(bind-key "C-<down>" 'gcm-scroll-down)
+;; (bind-key "C-<up>" 'gcm-scroll-up)
+;; (bind-key "C-<down>" 'gcm-scroll-down)
 
 (bind-key "C-M-<up>" 'gcm-scroll-up-5)
 (bind-key "C-M-<down>" 'gcm-scroll-down-5)
