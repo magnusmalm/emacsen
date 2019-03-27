@@ -4,8 +4,7 @@
   :init
   (setq inferior-lisp-program "sbcl")
   :config
-  (use-package slime-company
-    :ensure t)
+  (use-package slime-company)
   (add-hook 'slime-mode-hook
             (lambda ()
               (add-to-list 'slime-contribs 'inferior-slime)

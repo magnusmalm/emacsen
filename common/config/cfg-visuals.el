@@ -156,15 +156,6 @@ This font is required for emoji and other Unicode 6+ display.")
 
 (use-package linum-relative)
 
-(use-package scrollkeeper
-  :straight (:host github
-	     :repo "alphapapa/scrollkeeper.el")
-  :general ([remap scroll-up-command] #'scrollkeeper-contents-up
-            [remap scroll-down-command] #'scrollkeeper-contents-down)
-  :config
-  (setf scrollkeeper-guideline-fn 'scrollkeeper--thinline)
-  (setf scrollkeeper-guideline-pulse-interval 0.07))
-
 (use-package beacon
   :delight
   :init (beacon-mode 1)
