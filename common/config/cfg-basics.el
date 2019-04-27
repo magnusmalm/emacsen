@@ -54,6 +54,7 @@
 (setf vc-follow-symlinks t)
 
 ;;;; ENCRYPTION
+(setq epg-gpg-program "gpg2")
 (setf auth-sources
       '("~/.authinfo.gpg"))
 
@@ -328,7 +329,7 @@
 (add-to-list 'auto-mode-alist '("\\.ctml\\'" . html-mode))
 (add-to-list 'auto-mode-alist '("\\.lass\\'" . css-mode))
 
-(setf browse-url-browser-function 'browse-url-chrome)
+(setf browse-url-browser-function 'browse-url-default-browser)
 
 (use-package executable
   :config
@@ -343,7 +344,6 @@
           ("C-h v" . counsel-describe-variable)
           ("C-h f" . counsel-describe-function)
           ("C-*" . counsel-descbinds)
-          ("C-c C-e" . counsel-colors-emacs)
           ("C-o" . counsel-find-file)
           ("C-M-y" . counsel-yank-pop))
   :bind (("C-'" . counsel-semantic-or-imenu)

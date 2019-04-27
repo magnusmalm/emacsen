@@ -13,12 +13,12 @@
 			irccontrols move-to-prompt stamp menu list))
 (setf erc-pcomplete-order-nickname-completions nil)
 
-(erc-spelling-mode 1)
 
 (setf erc-prompt  (lambda () (concat (buffer-name) ">")))
 
 (defun my-erc-mode-hook-func ()
   (flyspell-mode 1)
+  (erc-spelling-mode 1)
   (bind-key* "C-c C-n" 'counsel-irc-query-nick)
   (bind-key* "M-RET" 'counsel-irc-query-nick))
 

@@ -64,18 +64,18 @@
 (bind-key "s-3" #'split-window-right-focus)
 
 ;; Window layout management
-(use-package eyebrowse
-  :defer 1
-  :config
-  (setf eyebrowse-close-window-config-prompt t)
-  (setf eyebrowse-mode-line-left-delimiter "{")
-  (setf eyebrowse-mode-line-right-delimiter "}")
-  (setf eyebrowse-mode-line-separator "|")
-  (setf eyebrowse-new-workspace nil)
-  (setf eyebrowse-switch-back-and-forth t)
-  (setf eyebrowse-wrap-around t)
-  (setq-default eyebrowse-new-workspace t)
-  (eyebrowse-mode 1))
+;; (use-package eyebrowse
+;;   :defer 1
+;;   :config
+;;   (setf eyebrowse-close-window-config-prompt t)
+;;   (setf eyebrowse-mode-line-left-delimiter "{")
+;;   (setf eyebrowse-mode-line-right-delimiter "}")
+;;   (setf eyebrowse-mode-line-separator "|")
+;;   (setf eyebrowse-new-workspace nil)
+;;   (setf eyebrowse-switch-back-and-forth t)
+;;   (setf eyebrowse-wrap-around t)
+;;   (setq-default eyebrowse-new-workspace t)
+;;   (eyebrowse-mode 1))
 
 (use-package minibuffer
   :straight nil

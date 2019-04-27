@@ -68,11 +68,6 @@
   :straight (:host github
 		   :repo "rafoo/wicd-mode.el"))
 
-(use-package twittering-mode
-  :config
-  (setf twittering-use-master-password t)
-  (setf twittering-icon-mode t)
-  (setf twittering-display-remaining t))
 
 (use-package dockerfile-mode)
 (use-package docker-compose-mode)
@@ -173,3 +168,27 @@ one by line."
          :local-port 9900
          :remote-port 9900
          :login "solkattenarboga"))))
+
+(use-package twittering-mode
+  :init
+  (defalias 'epa--decode-coding-string 'decode-coding-string)
+
+  :config
+  (twittering-enable-unread-status-notifier)
+  (setq twittering-use-master-password t)
+
+  (add-hook 'twittering-mode-hook
+            (lambda ()
+              (setq twittering-timer-interval 300)
+              (setq twittering-url-show-status nil)
+	      (setf twittering-icon-mode t)
+              (setq twittering-status-format "%i %s\n%FILL[ ]{%T}\n %FACE[glyphless-char]{%@ from %f%L%r%R}\n")
+              (set-face-attribute 'twittering-username-face nil
+                                  :underline nil
+                                  :weight 'bold
+                                  :foreground "darksalmon")))
+
+  (add-hook 'twittering-edit-mode-hook
+            (lambda ()
+              (auto-fill-mode -1)
+              (visual-line-mode))))

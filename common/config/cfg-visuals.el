@@ -178,11 +178,9 @@ This font is required for emoji and other Unicode 6+ display.")
   :config
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package highlight-symbol
-  :bind (("C-<f3>" . highlight-symbol)
-	 ("<f3>" . highlight-symbol-next)
-	 ("S-<f3>" . highlight-symbol-prev)
-	 ("M-<f3>" . highlight-symbol-query-replace)))
+(use-package auto-highlight-symbol
+  :config
+  (global-auto-highlight-symbol-mode t))
 
 (use-package visible-mark)
 
@@ -420,8 +418,3 @@ Git gutter:
 (use-package font-lock+)
 (add-to-list 'load-path "~/.local/share/icons-in-terminal/")
 (require 'icons-in-terminal)
-
-;; (use-package mixed-pitch
-;;   :hook
-;;   ;; If you want it in all text modes:
-;;   (text-mode . mixed-pitch-mode))

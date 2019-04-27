@@ -1,15 +1,19 @@
 ;; Superior Lisp Interaction Mode for Emacs
 (use-package slime
-  :defer t
-  :init
-  (setq inferior-lisp-program "sbcl")
   :config
-  (use-package slime-company)
-  (add-hook 'slime-mode-hook
-            (lambda ()
-              (add-to-list 'slime-contribs 'inferior-slime)
-              (load (expand-file-name "~/quicklisp/slime-helper.el"))
-              (add-to-list 'slime-contribs 'slime-fancy))))
+  (setq inferior-lisp-program "/usr/bin/sbcl")
+  (setq slime-contribs '(slime-fancy)))
+
+;; (use-package slime
+;;   :init
+;;   (setq inferior-lisp-program "sbcl")
+;;   :config
+;;   (use-package slime-company)
+;;   (add-hook 'slime-mode-hook
+;;             (lambda ()
+;;               (add-to-list 'slime-contribs 'inferior-slime)
+;;               (load (expand-file-name "~/quicklisp/slime-helper.el"))
+;;               (add-to-list 'slime-contribs 'slime-fancy))))
 
 (use-package lispy
   :bind (:map lispy-mode-map
