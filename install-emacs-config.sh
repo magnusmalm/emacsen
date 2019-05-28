@@ -17,6 +17,8 @@ set -euxo pipefail
 
 chemacs_dir=~/src/chemacs
 
+sudo apt -y install tree
+
 if [[ ! -d common ]] ; then
     printf "The common directory does not exist!\n"
     printf "Verify that the git clone was ok and that you are in the correct directory.\n"
@@ -60,8 +62,8 @@ if [[ -f ~/.emacs-profiles.el ]] ; then
     mv -v ~/.emacs "$tmp"
 fi
 
-ln -vs "$(pwd)/".emacs-profiles.el ~/
-mkdir -v common/straight
+ln -vsf "$(pwd)/".emacs-profiles.el ~/
+mkdir -vp common/straight
 
 for d in devel org irc lisp; do
     if [[ -d "$d" ]] ; then
