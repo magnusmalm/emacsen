@@ -183,3 +183,31 @@
   (anything-other-buffer 'anything-c-source-log-edit-comment
                          "*anything log-edit comment*"))
 (define-key magit-log-mode-map (kbd "C-s") 'anything-show-log-edit-comment)
+
+(defun magma/copy-short-hash ()
+  (interactive)
+  (magit-copy-buffer-revision)
+  (let* ((hash (caar magit-revision-stack))
+	 (short-hash (magit-rev-parse '"--short" hash)))
+    (kill-new (message "%s" short-hash))))
+
+(use-package git-identity
+  :after magit
+  :config
+  (git-identity-magit-mode 1)
+  ;; Bind I to git-identity-info in magit-status
+  (define-key magit-status-mode-map (kbd "I") 'git-identity-info)
+  :custom
+  ;; Warn if the global identity setting violates your policy
+  (git-identity-verify t)
+  ;; The default user name
+  (git-identity-default-username "Magnus Malm"))
+
+;; And set git-identity-list in your custom-file or init file
+(setq git-identity-list
+      '(("magnusmalm@gmail.com"
+         :domains ("github.com")
+         :dirs ("~/emacsen" "~/src"))
+        ("magnus.malm@westermo.se"
+         :domains ("git.labs.westermo.se")
+         :dirs ("~/devel/etbnd-client" "~/devel/5.x"))))

@@ -82,7 +82,7 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (use-package which-key
-  :delight
+  :blackout
   :config
   (which-key-mode)
   (which-key-setup-side-window-bottom)
@@ -90,6 +90,7 @@
   (setf which-key-prevent-C-h-from-cycling t)
   (setf which-key-max-display-columns nil)
   (setf which-key-max-description-length 50))
+
 
 (setf user-full-name "Magnus Malm")
 
@@ -182,10 +183,10 @@
   (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 (use-package beginend
-  :delight beginend-global-mode
-  :delight beginend-prog-mode
-  :delight beginend-magit-status-mode
-  :delight beginend-dired-mode
+  :blackout beginend-global-mode
+  :blackout beginend-prog-mode
+  :blackout beginend-magit-status-mode
+  :blackout beginend-dired-mode
   :config
   (beginend-global-mode))
 
@@ -215,16 +216,16 @@
 (use-package google-this
   :bind (:map google-this-mode-submap
 	 ("C-x g" . google-this-mode-submap))
-  :delight
+  :blackout
   :config
   (google-this-mode 1))
 
 (use-package anzu
-  :delight
+  :blackout
   :bind (("M-%" . anzu-query-replace)
 	 ("C-M-%" . anzu-query-replace-regexp))
   :init (global-anzu-mode +1)
-  :delight)
+  :blackout)
 
 (use-package phi-search
   :bind ("π" . phi-search))
@@ -240,50 +241,103 @@
 (setf scroll-conservatively 10000)
 (setf scroll-error-top-bottom t)
 
+
+
+
+
 ;;;; COMPANY
+
+
+
 (use-package company
-  :bind (
-	 ("M-<tab>" . company-complete-common-or-cycle)
-	 :map company-active-map
-	 ("M-k" . company-select-next)
-	 ("M-i" . company-select-previous)
-	 ("M-K" . company-next-page)
-	 ("M-I" . company-previous-page)
-	 ("C-j" . company-complete-common)
-	 ("C-M-j" . company-complete-selection))
-  :commands (company-mode global-company-mode)
-  :delight
+  :commands (company-complete-common company-manual-begin company-grab-line)
   :init
-  (defvar-local company-fci-mode-on-p nil)
+  (setq company-minimum-prefix-length 2
+	company-selection-wrap-around t
+	company-show-numbers t
+	company-idle-delay 0.1
+        company-tooltip-limit 14
+        company-dabbrev-downcase nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-code-other-buffers t
+        company-tooltip-align-annotations t
+        company-require-match 'never
+        company-global-modes
+        '(not erc-mode message-mode help-mode gud-mode eshell-mode)
+        company-backends '(company-capf)
+        company-frontends
+        '(company-pseudo-tooltip-frontend
+          company-echo-metadata-frontend))
+
   :config
-  (global-company-mode t)
-  (defun company-turn-off-fci (&rest ignore)
-    (when (boundp 'fci-mode)
-      (setf company-fci-mode-on-p fci-mode)
-      (when fci-mode (fci-mode -1))))
+  (setq company-backends '((company-capf
+                            company-ispell
+                            company-keywords
+                            company-yasnippet)
+                           (company-abbrev company-dabbrev)))
+  (global-company-mode +1))
 
-  (defun company-maybe-turn-on-fci (&rest ignore)
-    (when company-fci-mode-on-p (fci-mode 1)))
+(use-package company-prescient
+  :after company
+  :init (company-prescient-mode))
 
-  (setf company-selection-wrap-around t)
-  (setf company-require-match nil)
-  (setf company-show-numbers t)
-  (setf company-minimum-prefix-length 2)
-  (setf company-idle-delay 0.1)
-  (setf company-global-modes '(not gud-mode))
-  (add-hook 'company-completion-started-hook 'company-turn-off-fci)
-  (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
-  (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci))
+(use-package company-posframe
+  :delight company-posframe-mode
+  :config (company-posframe-mode 1))
 
-(use-package company-quickhelp
-  :bind (:map company-active-map
-	 ("M-h" . company-quickhelp-manual-begin))
-  :config
-  (setf company-quickhelp-delay nil)
-  (setf company-quickhelp-delay 2.0)
-  (setf company-quickhelp-max-lines nil)
-  (setf company-quickhelp-use-propertized-text t)
-  (company-quickhelp-mode 1))
+
+
+;; (use-package company
+;;   :bind (
+;; 	 ("M-<tab>" . company-complete-common-or-cycle)
+;; 	 :map company-active-map
+;; 	 ("M-k" . company-select-next)
+;; 	 ("M-i" . company-select-previous)
+;; 	 ("M-K" . company-next-page)
+;; 	 ("M-I" . company-previous-page)
+;; 	 ("C-j" . company-complete-common)
+;; 	 ("C-M-j" . company-complete-selection))
+;;   :commands (company-mode global-company-mode)
+;;   :blackout
+;;   :init
+;;   (defvar-local company-fci-mode-on-p nil)
+;;   :config
+;;   (global-company-mode t)
+;;   (defun company-turn-off-fci (&rest ignore)
+;;     (when (boundp 'fci-mode)
+;;       (setf company-fci-mode-on-p fci-mode)
+;;       (when fci-mode (fci-mode -1))))
+
+;;   (defun company-maybe-turn-on-fci (&rest ignore)
+;;     (when company-fci-mode-on-p (fci-mode 1)))
+
+;;   (setf company-selection-wrap-around t)
+;;   (setf company-require-match nil)
+;;   (setf company-show-numbers t)
+;;   (setf company-minimum-prefix-length 2)
+;;   (setf company-idle-delay 0.1)
+;;   (setf company-global-modes '(not gud-mode))
+;;   (add-hook 'company-completion-started-hook 'company-turn-off-fci)
+;;   (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
+;;   (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci))
+
+
+;; (use-package company-flx
+;;   :after company
+;;   :config
+;;   (add-hook 'company-mode-hook (lambda ()
+;;                                  (add-to-list 'company-backends 'company-capf)))
+;;   (company-flx-mode +1))
+
+;; (use-package company-quickhelp
+;;   :bind (:map company-active-map
+;; 	 ("M-h" . company-quickhelp-manual-begin))
+;;   :config
+;;   (setf company-quickhelp-delay nil)
+;;   (setf company-quickhelp-delay 2.0)
+;;   (setf company-quickhelp-max-lines nil)
+;;   (setf company-quickhelp-use-propertized-text t)
+;;   (company-quickhelp-mode 1))
 
 ;;;; NOTIFICATIONS
 (use-package notify
@@ -300,7 +354,7 @@
 
 (use-package eldoc
   :straight nil
-  :delight)
+  :blackout)
 
 (use-package ripgrep)
 
@@ -311,7 +365,7 @@
 	 ("C-M-h" . er/mark-defun)))
 
 (use-package syntax-subword
-  :delight
+  :blackout
   :ensure t
   :config
   (setf syntax-subword-skip-spaces t))
@@ -510,7 +564,7 @@
   (defun projectile-project-find-function (dir)
     (let* ((root (projectile-project-root dir)))
       (and root (cons 'transient root))))
-  :delight
+  :blackout
   :bind (("H-p" . projectile-command-map)
 	 ("M-P M-P" . counsel-projectile-switch-project)
 	 ("M-P M-F" . counsel-projectile-find-file)
@@ -589,7 +643,7 @@
   (setf swiper-action-recenter t))
 
 (use-package ivy
-  :delight
+  :blackout
   :bind* (("M-M" . ivy-switch-buffer)
 	  ("M-m" . projectile-switch-to-buffer)
   	  ("C-c C-r" . ivy-resume))
@@ -613,13 +667,12 @@
 	 ("C-M-S-o" . ivy-dispatching-call)
 	 ("C-M-j" . ivy-immediate-done)
 	 ("C-g" . ar/ivy-keyboard-quit-dwim))
-  :delight
+  :blackout
   :init
   :config
   (setf ivy-action-wrap t)
   (setf ivy-count-format "(%d/%d) ")
   (setf ivy-display-function nil)
-  (setf ivy-posframe-border-width 0)
   (setf ivy-wrap t)
   (setf ivy-use-virtual-buffers t)
   (setf ivy-height 15)
@@ -659,6 +712,10 @@
 
   (ivy-mode 1))
 
+;; (use-package ivy-explorer
+;;   :config
+;;   (ivy-explorer-mode 1))
+
 ;; (use-package ivy-historian
 ;;   :init (ivy-mode +1)
 ;;   (historian-mode +1)
@@ -685,7 +742,7 @@
 	'(ivy-switch-buffer
           (:columns
            ((ivy-rich-switch-buffer-icon :width 2)
-            (ivy-rich-candidate (:width 30))
+            (ivy-rich-candidate (:width 20))
             (ivy-rich-switch-buffer-size (:width 7))
             (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
             (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
@@ -711,10 +768,25 @@
 	    (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))))) ; return the last modified time of the file)
   (ivy-rich-mode 1))
 
+
 ;; (use-package ivy-posframe
 ;;   :config
-;;   (setf ivy-display-function #'ivy-posframe-display-at-point)
+;;   (setq
+;;    ;; ivy-posframe-width (window-width)
+;; 	ivy-posframe-min-width 90
+;; 	ivy-posframe-width 110
+;;         ivy-posframe-hide-minibuffer nil
+;;         ivy-posframe-border-width 1
+;;         ;; ivy-display-function #'ivy-posframe-display-at-frame-bottom-left)
+;;         ivy-display-function #'ivy-posframe-display-at-frame-center)
 ;;   (ivy-posframe-enable))
+
+;; (use-package ivy-explorer
+;;   :diminish ivy-explorer-mode
+;;   :config
+;;   (if (display-graphic-p)
+;;       (setq ivy-explorer-message-function #'ivy-explorer--posframe))
+;;   (ivy-explorer-mode 1))
 
 (use-package prescient
   :config
@@ -750,7 +822,7 @@
   (setf markdown-command "/usr/bin/pandoc"))
 
 (use-package super-save
-  :delight
+  :blackout
   :config
   (setf super-save-auto-save-when-idle nil)
   (setf super-save-idle-duration 0)
@@ -758,6 +830,26 @@
 
 (setf next-error-highlight t)
 (setf next-error-recenter '(4))
+
+(defun magma/buffer-filename-and-func-name ()
+  (interactive)
+  (if buffer-file-name
+      (let ((text (concat (file-relative-name buffer-file-name (projectile-project-root))
+			  ":" (which-function))))
+	(kill-new text)
+	(message text))
+    (message "Buffer is not visiting a regular file.")))
+(bind-key* "C-M-S-f" 'magma/buffer-filename-and-func-name)
+
+(defun magma/buffer-filename-and-pos ()
+  (interactive)
+  (if buffer-file-name
+      (let ((text (concat (file-relative-name buffer-file-name (projectile-project-root)) (s-replace "Line " ":" (what-line)))))
+	(kill-new text)
+	(message text))
+    (message "Buffer is not visiting a regular file.")))
+(bind-key* "C-M-S-l" 'magma/buffer-filename-and-pos)
+
 
 (use-package easy-kill
   :config

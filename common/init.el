@@ -66,8 +66,8 @@ Your installed Emacs reports:
   (my-load "cfg-lisp-devel"))
 
 ;; The stuff we want for mail
-(when (server-is "mail")
-  (my-load "cfg-mail"))
+;; (when (server-is "mail")
+(my-load "cfg-mail")
 
 ;; The stuff we want for IRC
 (when (server-is "irc")

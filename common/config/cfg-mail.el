@@ -1,130 +1,133 @@
-
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
 
-(require 'mu4e)
-(require 'smtpmail)
-(require 'gnus-dired)
-(require'org-mu4e)
+(use-package mu4e
+  :straight nil
+  :bind ("<f1>" . mu4e)
+  :preface
+  (defadvice mu4e (before mu4e-start activate)
+    (when (> 1 (count-windows))
+      (window-configuration-to-register :mu4e-fullscreen)
+      (delete-other-windows)))
 
-;; List of mail accounts.
-(defvar my-mu4e-account-alist nil)
-;; List of email signatures that can be added to a mail.
-(defvar mu4e-mail-sigs nil)
+  (defadvice mu4e-quit (after mu4e-close-and-push activate)
+    (start-process "pushmail" "*pushmail-mbsync*" "mbsync" "-a" "--push")
+    (when (get-register :mu4e-fullscreen)
+      (jump-to-register :mu4e-fullscreen)))
+  :init
+  (require 'mu4e-contrib)
+  (load-file "~/.secrets/emacs-mail.el")
+  (setq mail-user-agent 'mu4e-user-agent
+        ;; message-citation-line-format "\nEl %A %d de %B del %Y a las %H%M horas, %N escribiÃ³:\n"
+        message-citation-line-function 'message-insert-formatted-citation-line
+        message-cite-reply-position 'below
+        message-kill-buffer-on-exit t
 
-(setf org-mu4e-link-query-in-headers-mode nil)
-(setf mu4e-maildir "~/.mail")
-(setf mu4e-completing-read-function 'ivy-completing-read)
+	message-send-mail-function 'message-send-mail-with-sendmail
 
-;; Directory to save attachments
-(setf mu4e-attachment-dir
-      (lambda (fname mtype)
-	(cond
-	 ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
-	 ((and fname (string-match "\\.pdf$" fname))  "~/sync/Documents")
-	 ;; ... other cases  ...
-	 (t "~/sync/Downloads"))))
+	;; Directory to save attachments
+	mu4e-attachment-dir
+	(lambda (fname mtype)
+	  (cond
+	   ((and fname (string-match "\\.vcs$" fname))  "~/sync/org/meetings")
+	   ((and fname (string-match "\\.pdf$" fname))  "~/sync/Documents")
+	   ;; ... other cases  ...
+	   (t "~/sync/Downloads")))
 
-(define-key mu4e-main-mode-map "u" 'mu4e-update-index)
+        mu4e-auto-retrieve-keys t
+        mu4e-compose-context-policy 'ask
+        mu4e-compose-dont-reply-to-self t
+        mu4e-compose-keep-self-cc nil
+        mu4e-context-policy 'pick-first
+        mu4e-headers-date-format "%Y-%m-%d %H:%M"
+        mu4e-headers-include-related t
+        mu4e-headers-auto-update nil
+        mu4e-headers-leave-behavior 'ignore
+        mu4e-headers-visible-lines 8
+        mu4e-headers-fields '((:date . 25)
+                              (:flags . 6)
+                              (:from . 22)
+                              (:subject . nil))
+        mu4e-view-prefer-html t
+	mu4e-html2text-command "html2text"
+        ;; mu4e-html2text-command "w3m -dump -T text/html -cols 72 -o display_link_number=true -o auto_image=false -o display_image=true -o ignore_null_img_alt=true"
+        mu4e-maildir "/home/magnus/.mail"
+        mu4e-view-show-images t
+        ;; sendmail-program "msmtp"
+        mu4e-get-mail-command "mbsync -aV")
 
-(load-file "~/.secrets/emacs-mail.el")
+  (defun mu4e-message-maildir-matches (msg rx)
+    (when rx
+      (if (listp rx)
+          ;; If rx is a list, try each one for a match
+          (or (mu4e-message-maildir-matches msg (car rx))
+              (mu4e-message-maildir-matches msg (cdr rx)))
+        ;; Not a list, check rx
+        (string-match rx (mu4e-message-field msg :maildir)))))
 
-;; Shortcuts to often visited mailboxes
-(setf mu4e-maildir-shortcuts
-      '( ("/gmail/archive" . ?A)
-	 ("/gmail/drafts" . ?D)
-	 ("/gmail/inbox" . ?I)
-	 ("/gmail/sent" . ?S)
-	 ("/gmail/trash" . ?T)
+  (when (fboundp 'imagemagick-register-types)
+    (imagemagick-register-types))
 
-	 ("/work/archive" . ?a)
-	 ("/work/drafts" . ?d)
-	 ("/work/inbox"  . ?i)
-	 ("/work/sent" . ?s)
-	 ("/work/trash" . ?t)))
+  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
 
-(setf mu4e-compose-complete-only-personal t)
-;; If non-nil _and_ mu4e is running, get mail in the background periodically
-;; Value in minutes
-(setf mu4e-update-interval nil)
+  (run-at-time nil (* 60 5) 'mu4e-update-mail-and-index t)
 
-(setf mu4e-use-fancy-chars t)
-(setf mu4e-headers-date-format "%Y-%m-%d %H:%M")
-(setf mu4e-headers-skip-duplicates t)
-(setf mu4e-headers-include-related t)
-(setf mu4e-view-date-format "%a %Y-%m-%d %H:%M")
-(setf gnus-dired-mail-mode 'mu4e-user-agent)
-(setf mu4e-change-filenames-when-moving t)
-;; show full addresses in view message (instead of just names)
-;; toggle per name with M-RET
-(setf mu4e-view-show-addresses t)
+  (bind-key "C-c c" 'org-mu4e-store-and-capture mu4e-headers-mode-map)
+  (bind-key "C-c c" 'org-mu4e-store-and-capture mu4e-view-mode-map))
 
-(setf message-send-mail-function 'smtpmail-send-it)
-(setf starttls-use-gnutls t)
-(setf smtpmail-debug-info t)
+(use-package mu4e-alert
+  :if (executable-find "mu")
+  :init
+  (add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
+  (add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)
+  (setq mu4e-compose-forward-as-attachment t
+        mu4e-compose-crypto-reply-encrypted-policy 'sign-and-encrypt
+        mu4e-compose-crypto-reply-plain-policy 'sign
+        mu4e-index-update-in-background t
+        mu4e-alert-email-notification-types '(subjects))
+  :config
+  (defun conf:refresh-mu4e-alert-mode-line ()
+    (interactive)
+    (mu4e~proc-kill)
+    (mu4e-alert-enable-mode-line-display))
+  (run-with-timer 0 60 'conf:refresh-mu4e-alert-mode-line)
+  (mu4e-alert-set-default-style 'libnotify))
 
-;; when you want to use some external command for html->text
-;; conversion, e.g. the  html2text  program
-;; (cpbotha: html2text sees to work better than the built-in one)
-(setf mu4e-html2text-command "html2text")
+(use-package mu4e-alert
+  :if (executable-find "mu")
+  :init
+  (add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
+  (add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)
+  (setq mu4e-compose-forward-as-attachment t
+        mu4e-compose-crypto-reply-encrypted-policy 'sign-and-encrypt
+        mu4e-compose-crypto-reply-plain-policy 'sign
+        mu4e-index-update-in-background t
+        mu4e-alert-email-notification-types '(subjects))
+  :config
+  (defun conf:refresh-mu4e-alert-mode-line ()
+    (interactive)
+    (mu4e~proc-kill)
+    (mu4e-alert-enable-mode-line-display))
+  (run-with-timer 0 60 'conf:refresh-mu4e-alert-mode-line)
+  (mu4e-alert-set-default-style 'libnotify))
 
-;; mu4e-action-view-in-browser is built into mu4e
-;; by adding it to these lists of custom actions
-;; it can be invoked by first pressing a, then selecting
-(add-to-list 'mu4e-headers-actions
-	     '("in browser" . mu4e-action-view-in-browser) t)
-(add-to-list 'mu4e-view-actions
-	     '("in browser" . mu4e-action-view-in-browser) t)
+;; This overloads the amazing C-c C-c commands in org-mode with one more function
+;; namely the htmlize-and-send, above.
+(add-hook 'org-ctrl-c-ctrl-c-hook 'htmlize-and-send t)
 
-;; the headers to show in the headers list   a pair of a field
-;; and its width, with `nil  meaning  unlimited
-;; (better only use that for the last field.
-;; These are the defaults:
-(setf mu4e-headers-fields
-      '( (:date . 20)
-	 (:maildir . 20)
-	 (:flags . 6)
-	 (:from-or-to . 35)
-	 (:subject . nil)))
+;; Originally, I set the `mu4e-compose-mode-hook' here, but
+;; this new hook works much, much better for me.
+(add-hook 'mu4e-compose-post-hook
+          (defun do-compose-stuff ()
+            "My settings for message composition."
+            (org-mu4e-compose-org-mode)))
 
-;; enable inline images
-(setf mu4e-view-show-images t)
+(use-package mu4e-conversation
+  :after mu4e
+  :config
+  (setq mu4e-conversation-print-function 'mu4e-conversation-print-tree
+        mu4e-compose-dont-reply-to-self t
+        mu4e-conversation-kill-buffer-on-exit t))
 
-(setf mu4e-context-policy 'pick-first)
-
-(setf mu4e-compose-context-policy nil)
-
-(setf message-kill-buffer-on-exit t)
-
-;; use imagemagick, if available
-(when (fboundp 'imagemagick-register-types)
-  (imagemagick-register-types))
-
-(add-hook 'mu4e-compose-mode-hook
-	  (defun my-do-compose-stuff ()
-	    "My settings for message composition."
-	    (set-fill-column 72)
-	    (super-save-mode -1)
-	    (flyspell-mode)))
-
-(setf mu4e-compose-signature-auto-include t)
-
-(defun my-render-html-message ()
-  (let ((dom (libxml-parse-html-region (point-min) (point-max))))
-    (erase-buffer)
-    (shr-insert-document dom)
-    (goto-char (point-min))))
-
-(setf mu4e-html2text-command 'my-render-html-message)
-;; make the `gnus-dired-mail-buffers' function also work on
-;; message-mode derived modes, such as mu4e-compose-mode
-(defun gnus-dired-mail-buffers ()
-  "Return a list of active message buffers."
-  (let (buffers)
-    (save-current-buffer
-      (dolist (buffer (buffer-list t))
-	(set-buffer buffer)
-	(when (and (derived-mode-p 'message-mode)
-		   (null message-sent-message-via))
-	  (push (buffer-name buffer) buffers))))
-    (nreverse buffers)))
-(add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+(use-package mu4e-maildirs-extension
+  :after mu4e
+  :config (mu4e-maildirs-extension))
