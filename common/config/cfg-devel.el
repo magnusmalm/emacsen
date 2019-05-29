@@ -70,7 +70,7 @@ and set the focus back to Emacs frame"
 	     'notify-compilation-result)
 
 (use-package flycheck
-  :delight flymake-mode
+  :blackout flymake-mode
   :demand t
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
@@ -105,7 +105,7 @@ and set the focus back to Emacs frame"
 ;;;; INDENTING
 
 ;; (use-package aggressive-indent
-;;   :delight
+;;   :blackout
 ;;   :config
 ;;   (global-aggressive-indent-mode 1)
 ;;   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
@@ -122,7 +122,7 @@ and set the focus back to Emacs frame"
 (use-package elf-mode)
 
 (use-package dtrt-indent
-  :delight
+  :blackout
   :config
   (setf dtrt-indent-global-mode t)
   (setf dtrt-indent-ignore-single-chars-flag t)
@@ -175,17 +175,72 @@ and set the focus back to Emacs frame"
 
 (use-package json-mode)
 
-(use-package lsp-mode
+
+(use-package lsp
+  :straight lsp-mode
+  :commands lsp
+  :defer t
   :config
-  (setq lsp-prefer-flymake nil)
-  (setq-default flycheck-disabled-checkers
-		'(c/c++-clang c/c++-cppcheck c/c++-gcc)))
+  (require 'lsp-clients)
+  (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
+  :init
+  (setq lsp-eldoc-render-all nil
+        lsp-print-io nil
+        ;; lsp-inhibit-message t
+        ;; lsp-message-project-root-warning t
+        lsp-auto-guess-root t
+        lsp-prefer-flymake nil
+        ;; lsp-session-file (concat conf:cache-dir "lsp-session")
+	))
+
+(defvar-local conf:lsp-on-change-exist nil)
+
+(defun conf:lsp-on-change-modify-hook ()
+  (if (not conf:lsp-on-change-exist)
+      (when (memq 'lsp-on-change after-change-functions)
+        (setq conf:lsp-on-change-exist t)
+        (remove-hook 'after-change-functions 'lsp-on-change t))
+    (add-hook 'after-change-functions #'lsp-on-change nil t)
+    (setq conf:lsp-on-change-exist nil)))
+
 
 (use-package lsp-ui
-  :after lsp-mode)
+  :after lsp
+  :commands lsp-ui-mode
+  :init
+  (setq lsp-ui-sideline-enable t
+        lsp-ui-sideline-ignore-duplicate t
+        lsp-ui-sideline-show-hover nil
+        lsp-ui-doc-enable nil)
+  :config
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
 
 (use-package company-lsp
-  :after lsp-mode)
+  :defer t
+  :commands company-lsp
+  :config
+  (setq company-lsp-async t)
+  (push '(company-lsp :with company-yasnippet) company-backends))
+
+
+
+
+;; (use-package lsp-mode
+;;   :commands lsp
+;;   :config
+;;   (setq lsp-prefer-flymake nil)
+;;   (setq-default flycheck-disabled-checkers
+;; 		'(c/c++-clang c/c++-cppcheck c/c++-gcc)))
+
+;; (use-package lsp-ui
+;;   :commands lsp-ui-mode
+;;   :after lsp-mode)
+
+;; (use-package company-lsp
+;;   :after lsp-mode
+;;   :commands company-lsp)
 
 (use-package ccls
   :config
@@ -193,14 +248,28 @@ and set the focus back to Emacs frame"
   :hook ((c-mode c++-mode objc-mode) .
          (lambda () (require 'ccls) (lsp))))
 
-;; (add-hook 'prog-mode-hook #'lsp)
+(defun my-devel-mode-hook-func ()
+    ;; Show the current function name in the header line
+  (which-function-mode)
+  (setq-default header-line-format
+		'((which-func-mode ("" which-func-format " "))))
+  (setq mode-line-misc-info
+        ;; We remove Which Function Mode from the mode line, because it's mostly
+        ;; invisible here anyway.
+        (assq-delete-all 'which-func-mode mode-line-misc-info))
 
+  (semantic-mode 1)
+  (rainbow-identifiers-mode -1))
+
+(add-hook 'prog-mode-hook 'my-devel-mode-hook-func)
 
 (use-package smartparens
-  :delight smartparens-mode
+  :blackout smartparens-mode
   :config
   (progn
     (require 'smartparens-config)
     (smartparens-global-mode 1)))
 
-(use-package py-autopep8)
+(use-package makefile-runner
+  :straight (makefile-runner :type git :host github :repo "danamlund/emacs-makefile-runner")
+  :bind ("<C-f11>" . makefile-runner))

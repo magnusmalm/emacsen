@@ -1,5 +1,5 @@
 (use-package hungry-delete
-  :delight
+  :blackout
   :init
   (global-hungry-delete-mode))
 
@@ -43,7 +43,7 @@
 (use-package ace-mc)
 
 (use-package easy-escape
-  :delight easy-escape-minor-mode
+  :blackout easy-escape-minor-mode
   :config
   (add-hook 'lisp-mode-hook 'my-lisp-mode-hook-fn)
   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook-fn))
@@ -79,7 +79,7 @@
   :bind ("M-'" . comment-dwim-2))
 
 (use-package ws-butler
-  :delight
+  :blackout
   :config
   (ws-butler-global-mode))
 
@@ -147,18 +147,18 @@
 
 (use-package subword
   :ensure nil
-  :delight subword-mode
+  :blackout subword-mode
   :config
   (global-subword-mode +1)
   (setf c-subword-mode t))
 
 (use-package smart-tab
-  :delight
+  :blackout
   :config
   (global-smart-tab-mode 1))
 
 (use-package guess-language
-  :delight
+  :blackout
   :config
   (setf guess-language-languages '(en sv))
   (setf guess-language-langcodes '((en . ("british" . nil))
@@ -181,8 +181,11 @@
   :bind ("<H-tab>" . ialign))
 
 (use-package yasnippet
+  :defer 2
   :after hydra
   :bind (:map yas-minor-mode-map ("<f2>" . hydra-yas/body))
+  :config
+  (yas-global-mode)
   :hydra (hydra-yas (:color blue :hint nil)
 		    "
               ^YASnippets^
@@ -206,7 +209,7 @@
 		    ("a" yas-reload-all)))
 
 (use-package yasnippet-snippets
-  :delight yas-minor-mode
+  :blackout yas-minor-mode
   :after yasnippet
   :config (yasnippet-snippets-initialize))
 
@@ -288,7 +291,7 @@
 	 ))
 
 (use-package abbrev
-  :delight
+  :blackout
   :straight nil
   :ensure nil
   :config

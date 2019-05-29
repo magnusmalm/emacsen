@@ -109,7 +109,7 @@ Emacs buffers are those whose name starts with *."
 
 (use-package autorevert
   :commands auto-revert-mode
-  :delight auto-revert-mode
+  :blackout auto-revert-mode
   :init
   (add-hook 'find-file-hook #'(lambda () (auto-revert-mode 1)))
   :config

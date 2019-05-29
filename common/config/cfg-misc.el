@@ -43,7 +43,7 @@
 (use-package undo-tree
   :bind (("M-Z" . undo-tree-redo)
 	 ("M-z" . undo-tree-undo))
-  :delight
+  :blackout
   :config
   (global-undo-tree-mode))
 
@@ -123,7 +123,7 @@ one by line."
 (use-package back-button
   :bind (("H-<right>" . back-button-local-forward)
 	 ("H-<left>"  . back-button-local-backward))
-  :delight
+  :blackout
   :config
   (back-button-mode 1))
 
@@ -192,3 +192,9 @@ one by line."
             (lambda ()
               (auto-fill-mode -1)
               (visual-line-mode))))
+
+(use-package frog-menu)
+
+(use-package shx)
+
+(use-package emamux)

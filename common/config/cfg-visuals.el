@@ -52,8 +52,6 @@
 		mode-line-misc-info
 		mode-line-end-spaces))
 
-(use-package delight)
-
 (use-package all-the-icons)
 
 (use-package all-the-icons-ivy
@@ -61,7 +59,7 @@
   (all-the-icons-ivy-setup))
 
 (use-package all-the-icons-dired
-  :delight all-the-icons-dired-mode
+  :blackout all-the-icons-dired-mode
   :config
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
@@ -157,7 +155,7 @@ This font is required for emoji and other Unicode 6+ display.")
 (use-package linum-relative)
 
 (use-package beacon
-  :delight
+  :blackout
   :init (beacon-mode 1)
   :config
   (setf beacon-blink-when-focused t)
@@ -197,9 +195,9 @@ This font is required for emoji and other Unicode 6+ display.")
   (define-key esc-map (kbd "C-s") 'vr/isearch-forward)) ;; C-M-s)
 
 (use-package git-gutter
-  :delight
+  :blackout
   :bind (("H-g" . hydra-git-gutter/body))
-  :delight
+  :blackout
   :config
   (defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
 					:hint nil)
@@ -231,7 +229,7 @@ Git gutter:
   (global-git-gutter-mode +1))
 
 (use-package zoom
-  :delight
+  :blackout
   :config
   (zoom-mode t)
   (defun size-callback ()
