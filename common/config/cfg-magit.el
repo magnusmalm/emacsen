@@ -1,5 +1,3 @@
-(use-package git-link)
-
 (use-package magit
   :bind
   (("C-c m" . magit-status)
@@ -68,29 +66,8 @@
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
 
-(use-package magit-rockstar
-  :config
-  (magit-define-popup-action 'magit-rebase-popup
-    ?R "Rockstar" 'magit-rockstar)
+(use-package git-link)
 
-  (magit-define-popup-action 'magit-commit-popup
-    ?n "Reshelve" 'magit-reshelve))
-
-(use-package magit-todos
-  :straight (:host github :repo "alphapapa/magit-todos")
-  :config
-  (setf magit-todos-exclude-globs '("kernel-dev"))
-  (setf magit-todos-group-by
-	'(magit-todos-item-keyword magit-todos-item-first-path-component))
-  (setf magit-todos-ignore-directories '("foo" "kernel-dev"))
-  (setf magit-todos-rg-extra-args nil)
-  (setf magit-todos-rg-ignore-directories '("foo" "gnu"))
-  (setf magit-todos-scanner 'magit-todos--scan-with-rg)
-  (setf magit-todos-update t)
-  (magit-todos-mode 1))
-
-(use-package magit-lfs
-  :ensure t)
 
 (use-package git-timemachine
   :straight (:host github
@@ -130,59 +107,7 @@
 
 (autoload 'org-read-date "org")
 
-(defun magit-org-read-date (prompt &optional _default)
-  (org-read-date 'with-time nil nil prompt))
-
-(magit-define-popup-option 'magit-log-popup
-  ?s "Since date" "--since=" #'magit-org-read-date)
-
-(magit-define-popup-option 'magit-log-popup
-  ?u "Until date" "--until=" #'magit-org-read-date)
-
-(magit-define-popup-switch
-  'magit-log-popup
-  ?s "Always sort by date" "--date-order")
-
-(use-package magit-imerge)
-
-(define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
-  "Mode for showing staged and unstaged changes."
-  :group 'magit-status)
-
-(defun magit-staging-refresh-buffer ()
-  (magit-insert-section (status)
-    (magit-insert-unstaged-changes)
-    (magit-insert-staged-changes)))
-
-(defun magit-staging ()
-  (interactive)
-  (magit-mode-setup #'magit-staging-mode))
-
-
-
-;; TODO: Rewrite to use ivy
-;;; search commit log by anything
-(defvar anything-c-source-log-edit-comment
-  '((name . "Log-edit Comment")
-    (candidates . anything-c-log-edit-comment-candidates)
-    (action . (("Insert" . (lambda (str) (insert str)))))
-    (migemo)
-    (multiline))
-  "Source for browse and insert Log-edit comment.")
-
-(defun anything-c-log-edit-comment-candidates ()
-  (let* ((candidates
-          (shell-command-to-string "\\git \\log -500 | \\grep -E '^    .+'"))
-         (logs (string-to-list (split-string candidates "\n    "))))
-    (push (replace-regexp-in-string "^    " "" (pop logs)) logs)
-    logs))
-
-(defun anything-show-log-edit-comment ()
-  "`anything' for Log-edit comment."
-  (interactive)
-  (anything-other-buffer 'anything-c-source-log-edit-comment
-                         "*anything log-edit comment*"))
-(define-key magit-log-mode-map (kbd "C-s") 'anything-show-log-edit-comment)
+;; (use-package magit-imerge)
 
 (defun magma/copy-short-hash ()
   (interactive)
@@ -211,3 +136,20 @@
         ("magnus.malm@westermo.se"
          :domains ("git.labs.westermo.se")
          :dirs ("~/devel/etbnd-client" "~/devel/5.x"))))
+
+;; TODO: Re-enable when no longer depends on magit-popup
+;; (use-package magit-todos
+;;   :straight (:host github :repo "alphapapa/magit-todos")
+;;   :config
+;;   (setf magit-todos-exclude-globs '("kernel-dev"))
+;;   (setf magit-todos-group-by
+;; 	'(magit-todos-item-keyword magit-todos-item-first-path-component))
+;;   (setf magit-todos-ignore-directories '("foo" "kernel-dev"))
+;;   (setf magit-todos-rg-extra-args nil)
+;;   (setf magit-todos-rg-ignore-directories '("foo" "gnu"))
+;;   (setf magit-todos-scanner 'magit-todos--scan-with-rg)
+;;   (setf magit-todos-update t)
+;;   (magit-todos-mode 1))
+
+;; TODO: Re-enable when no longer depends on magit-popup
+;; (use-package magit-lfs)

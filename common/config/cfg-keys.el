@@ -1,6 +1,6 @@
 ;; Source: https://www.reddit.com/r/emacs/comments/89yofa/keychord_mode/
 (use-package key-chord
-  :ensure t
+  :ensure nil
   :config
   (key-chord-mode 1)
   (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer)

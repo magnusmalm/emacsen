@@ -531,13 +531,12 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
   (org-super-agenda-mode 1))
 
 (use-package org-bullets
-  :ensure t
+  :after org
   :init
   ;; (add-hook 'org-mode-hook 'org-bullets-mode)
   (setf org-bullets-bullet-list '("◉" "○")))
 
   (use-package ox-html5slide
-    :ensure t
     :init
     (setf org-html-postamble nil)
     (setf org-export-with-section-numbers nil)

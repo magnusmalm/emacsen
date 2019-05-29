@@ -90,7 +90,6 @@
 			("q" (lambda (nick) (erc-cmd-QUERY nick)) "Open query window")))))
 
 (use-package erc-colorize
-  :ensure t
   :config
   (erc-colorize-mode 1))
 

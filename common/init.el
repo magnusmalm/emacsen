@@ -53,25 +53,14 @@ Your installed Emacs reports:
 (my-load "cfg-magit")
 (my-load "cfg-org")
 
-;; The stuff we want for general devel servers
-(when (or (server-is "devel")
-	  (server-is "lisp"))
-  (my-load "cfg-devel"))
+(my-load "cfg-devel")
 
-;; The stuff we want for devel servers
-(when (or (server-is "devel")
-	  (server-is "lisp"))
-  (my-load "cfg-c-devel")
-  (my-load "cfg-python-devel")
-  (my-load "cfg-lisp-devel"))
+(my-load "cfg-c-devel")
+(my-load "cfg-python-devel")
+(my-load "cfg-lisp-devel")
 
-;; The stuff we want for mail
-;; (when (server-is "mail")
 (my-load "cfg-mail")
-
-;; The stuff we want for IRC
-(when (server-is "irc")
-  (my-load "cfg-irc"))
+(my-load "cfg-irc")
 
 ;; All my keybindings (based on ErgoKeys)
 (my-load "cfg-keys")

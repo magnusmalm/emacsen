@@ -34,3 +34,7 @@
   (add-hook 'shell-mode-hook
 	    (lambda () (setq-local company-backends
 			      '((company-shell company-files))))))
+
+(use-package aweshell
+  :straight (:host github
+	     :repo "manateelazycat/aweshell"))

@@ -366,7 +366,6 @@
 
 (use-package syntax-subword
   :blackout
-  :ensure t
   :config
   (setf syntax-subword-skip-spaces t))
 
@@ -793,10 +792,12 @@
   (prescient-persist-mode))
 
 (use-package ivy-prescient
+  :after (ivy prescient)
   :config
   (ivy-prescient-mode))
 
 (use-package company-prescient
+  :after (company prescient)
   :config
   (company-prescient-mode))
 
