@@ -496,8 +496,6 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
   ("j" org-refile-goto-last-stored "Jump to last refile" :exit t)
   ("q" nil "cancel"))
 
-(global-set-key (kbd "<f9> r") 'josh/org-refile-hydra/body)
-
 (use-package org-timeline
   :config
   (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
@@ -530,76 +528,43 @@ KEYANDHEADLINE should be a list of cons cells of the form (\"key\" . \"headline\
   :config
   (org-super-agenda-mode 1))
 
-(use-package org-bullets
-  :ensure t
-  :init
-  ;; (add-hook 'org-mode-hook 'org-bullets-mode)
-  (setf org-bullets-bullet-list '("◉" "○")))
-
-  (use-package ox-html5slide
-    :ensure t
-    :init
-    (setf org-html-postamble nil)
-    (setf org-export-with-section-numbers nil)
-    (setf org-export-with-toc nil)
-    (setf org-html-head-extra "
-       <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-       <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
-       <style type='text/css'>
-          body {
-             font-family: 'Source Sans Pro', sans-serif;
-          }
-          pre, code {
-             font-family: 'Source Code Pro', monospace;
-          }
-       </style>"))
-
-(use-package org-gcal)
-
-(use-package ox-reveal
-  :init
-  (setf org-reveal-postamble "Magnus Malm")
-  (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
-
-(use-package org-pdfview)
-
 (use-package ical2org
   :ensure nil
   :load-path "lisp/"
   :config
   (setf ical2org/completing-read #'ivy-completing-read))
 
-(use-package calfw-ical)
-(use-package calfw-org)
+;; (use-package calfw-ical)
+;; (use-package calfw-org)
 
-(use-package calfw
-  :config
-  (setf calendar-week-start-day 1)
-  (setf cfw:fchar-junction ?╬
-	cfw:fchar-vertical-line ?║
-	cfw:fchar-horizontal-line ?═
-	cfw:fchar-left-junction ?╠
-	cfw:fchar-right-junction ?╣
-	cfw:fchar-top-junction ?╦
-	cfw:fchar-top-left-corner ?╔
-	cfw:fchar-top-right-corner ?╗)
+;; (use-package calfw
+;;   :config
+;;   (setf calendar-week-start-day 1)
+;;   (setf cfw:fchar-junction ?╬
+;; 	cfw:fchar-vertical-line ?║
+;; 	cfw:fchar-horizontal-line ?═
+;; 	cfw:fchar-left-junction ?╠
+;; 	cfw:fchar-right-junction ?╣
+;; 	cfw:fchar-top-junction ?╦
+;; 	cfw:fchar-top-left-corner ?╔
+;; 	cfw:fchar-top-right-corner ?╗)
 
-  (setf mmm/cfw-sources
-	(list
-	 (cfw:org-create-source "Green")
-	 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
-				 (second mmm/cfw-cal-magnus)
-				 (third mmm/cfw-cal-magnus))
-	 (cfw:ical-create-source (first mmm/cfw-cal-misc)
-				 (second mmm/cfw-cal-misc)
-				 (third mmm/cfw-cal-misc))))
-  (defun my-open-calendar ()
-    (interactive)
-    (cfw:open-calendar-buffer
-     :contents-sources mmm/cfw-sources))
+;;   (setf mmm/cfw-sources
+;; 	(list
+;; 	 (cfw:org-create-source "Green")
+;; 	 (cfw:ical-create-source (first mmm/cfw-cal-magnus)
+;; 				 (second mmm/cfw-cal-magnus)
+;; 				 (third mmm/cfw-cal-magnus))
+;; 	 (cfw:ical-create-source (first mmm/cfw-cal-misc)
+;; 				 (second mmm/cfw-cal-misc)
+;; 				 (third mmm/cfw-cal-misc))))
+;;   (defun my-open-calendar ()
+;;     (interactive)
+;;     (cfw:open-calendar-buffer
+;;      :contents-sources mmm/cfw-sources))
 
-  (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
-   %(cfw:org-capture-day)")))
+;;   (setf cfw:org-capture-template'("c" "calfw2org" entry (file nil)  "* %?
+;;    %(cfw:org-capture-day)")))
 
 (use-package poporg)
 

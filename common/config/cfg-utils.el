@@ -579,6 +579,13 @@ Uses `current-date-time-format' for the formatting the date/time."
   (insert (format-time-string current-time-format (current-time)))
   (insert "\n"))
 
+;; from http://emacswiki.org/emacs/InsertingTodaysDate
+(defun insert-todays-date (arg)
+  (interactive "P")
+  (insert (if arg
+              (format-time-string "%d-%m-%Y")
+            (format-time-string "%Y-%m-%d"))))
+
 ;; TODO
 ;; (global-set-key "\C-c\C-d" 'insert-current-date-time)
 ;; (global-set-key "\C-c\C-t" 'insert-current-time)

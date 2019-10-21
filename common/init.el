@@ -2,8 +2,32 @@
 
 (defvar status-fname (format "/tmp/emacs-status-%s" server-name))
 
+(defvar *total-time* 0.0)
+
+(defvar url-http-method nil)
+(defvar url-http-data nil)
+(defvar url-http-extra-headers nil)
+(defvar oauth--token-data nil)
+(defvar url-callback-function nil)
+(defvar url-callback-arguments nil)
+
+(defmacro measure-time (&rest body)
+  "Measure the time it takes to evaluate BODY."
+  (let ((time (gensym))
+	(diff (gensym)))
+    `(let ((,time (current-time)))
+       ,@body
+       (let ((,diff (time-since ,time)))
+	 (setf *total-time* (+ *total-time* (float-time ,diff)))
+	 (message "%s - Time spent: %.06f (total: %.06f)" ',@body (float-time ,diff) *total-time*)))))
+
+(defun display-startup-echo-area-message ()
+  (message "Emacs loaded in %.01f seconds. Let the hacking begin!" *total-time*))
+
 (defun my-log (msg &optional append)
-  (write-region (format "%s\n" msg) nil status-fname append))
+  (let ((inhibit-message t))
+    (write-region (format "%s\n" msg) nil status-fname append)
+    (message "%s" msg)))
 
 (defun server-is (name)
   (string-equal name server-name))
@@ -21,7 +45,7 @@
 (add-to-list 'load-path
 	     (expand-file-name "config/" user-emacs-directory))
 
-(setf custom-file "custom.el")
+(setf custom-file (expand-file-name "config/custom.el" user-emacs-directory))
 
 ;;;; Emacs version check
 (when (or (< emacs-major-version 26)
@@ -34,62 +58,64 @@ Your installed Emacs reports:
        ("OK :(" . t)))
   (save-buffers-kill-emacs t))
 
+
+
 ;; Load user's secrets file
 ;; Ensure that the secrets file is not part of any public repo!
-(my-load "~/.secrets/emacs-secrets.el" t)
+(measure-time (my-load "~/.secrets/emacs-secrets.el" t))
 
 ;; Setup package management
-(my-load "package-bootstrap")
+(measure-time (my-load "package-bootstrap"))
+(measure-time (my-load "cfg-themes"))
 
 ;; The stuff we want for all servers
-(my-load "cfg-basics")
-(my-load "cfg-themes")
-(my-load "cfg-visuals")
-(my-load "cfg-utils")
-(my-load "cfg-shell")
-(my-load "cfg-windows")
-(my-load "cfg-buffers")
-(my-load "cfg-edit")
-(my-load "cfg-magit")
-(my-load "cfg-org")
+(measure-time (my-load "cfg-org"))
+(measure-time (my-load "cfg-basics"))
+(measure-time (my-load "cfg-visuals"))
+(measure-time (my-load "cfg-utils"))
+(measure-time (my-load "cfg-shell"))
+(measure-time (my-load "cfg-windows"))
+(measure-time (my-load "cfg-buffers"))
+(measure-time (my-load "cfg-edit"))
+(measure-time (my-load "cfg-magit"))
+
+(measure-time (my-load "cfg-hide-mode-line"))
 
 ;; The stuff we want for general devel servers
 (when (or (server-is "devel")
 	  (server-is "lisp"))
-  (my-load "cfg-devel"))
+  (measure-time (my-load "cfg-devel")))
 
 ;; The stuff we want for devel servers
 (when (or (server-is "devel")
 	  (server-is "lisp"))
-  (my-load "cfg-c-devel")
-  (my-load "cfg-python-devel")
-  (my-load "cfg-lisp-devel"))
+  (measure-time (my-load "cfg-c-devel"))
+  (measure-time (my-load "cfg-python-devel"))
+  (measure-time (my-load "cfg-lisp-devel")))
 
 ;; The stuff we want for mail
 ;; (when (server-is "mail")
-(my-load "cfg-mail")
+;; (my-load "cfg-mail")
 
 ;; The stuff we want for IRC
 (when (server-is "irc")
-  (my-load "cfg-irc"))
-
-;; All my keybindings (based on ErgoKeys)
-(my-load "cfg-keys")
+  (measure-time (my-load "cfg-irc")))
 
 ;; Other random stuff
-(my-load "cfg-misc")
+(measure-time (my-load "cfg-misc"))
 
 ;; Host specific configuration (cfg-<hostname>.el)
-(my-load (format "cfg-%s" (system-name)))
+(measure-time (my-load (format "cfg-%s" (system-name))))
 
 ;; user specific configuration (cfg-<logged in name>.el)
-(my-load (format "cfg-%s" (user-login-name)))
+(measure-time (my-load (format "cfg-%s" (user-login-name))))
 
 ;; Place custom stuff in separate file
-(my-load custom-file)
+(measure-time (my-load custom-file))
 
 ;; End Init
-(message "Done loading init.el")
+(message "Done loading init.el. Took %.06f" *total-time*)
+
 
 (setq gc-cons-threshold 800000)
 

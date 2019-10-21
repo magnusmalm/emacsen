@@ -1,59 +1,45 @@
-
 ;;;; BUFFERS
+
+(bind-key "C-s" 'save-buffer)
+(bind-key "C-S-s" 'write-file)
+(bind-key "C-a" 'mark-whole-buffer)
+(bind-key "C-<prior>" 'previous-emacs-buffer)
+(bind-key "C-<next>" 'next-emacs-buffer)
+(bind-key "M-<prior>" 'previous-user-buffer)
+(bind-key "M-<next>" 'next-user-buffer)
+(bind-key "C-x C-b" 'ibuffer)
+
 (use-package ibuffer
   :ensure nil
   :requires (ibuf-ext)
   :config
   (setf ibuffer-formats
-        '((mark modified read-only " "
+	'((mark modified read-only " "
 		git-status-mini
 		" "
-                (name 30 30 :left :elide) ; change: 30s were originally 18s
-                " "
-                (size 9 -1 :right)
-                " "
-                (mode 16 16 :left :elide)
-                " " filename-and-process)
-          (mark " "
-                (name 16 -1)
-                " " filename)))
+		(name 30 30 :left :elide) ; change: 30s were originally 18s
+		" "
+		(size 9 -1 :right)
+		" "
+		(mode 16 16 :left :elide)
+		" " filename-and-process)
+	  (mark " "
+		(name 16 -1)
+		" " filename)))
   (defun oni:ibuffer-mode-func ()
     "Function for `ibuffer-mode-hook'."
     (ibuffer-switch-to-saved-filter-groups "default"))
   (add-hook 'ibuffer-mode-hook 'oni:ibuffer-mode-func))
 
-(defun app-launcher ()
-  (interactive)
-  (with-current-buffer (get-buffer-create "*modal-ivy*")
-    (let ((frame (make-frame '((auto-raise . t)
-                               (left-fringe . 0)
-                               (line-spacing . 3)
-                               (menu-bar-lines . 0)
-                               (minibuffer . only)
-                               (right-fringe . 0)
-                               (undecorated . t)
-                               (unsplittable . t)
-                               (vertical-scroll-bars . nil)))))
-      (let ((ivy-height 20)
-            (ivy-count-format ""))
-	(ivy-read "Emacs acronyms: "
-                  '(" Emacs: Escape-Meta-Alt-Control-Shift "
-                    " Emacs: Eight Megabytes And Constantly Swapping "
-                    " Emacs: Even a Master of Arts Comes Simpler ")
-                  :action (lambda (funny-quote)
-                            (async-shell-command (format "notify-send \"Test\" %s" funny-quote)))
-                  :unwind (lambda ()
-                            (shell-command "notify-send \"Test\" done &")
-                            (delete-frame)
-                            (other-window 1)))))))
-
 (defun find-file-in-config-dir ()
   (interactive)
   (counsel-find-file (expand-file-name "config/" user-emacs-directory)))
+(bind-key "C-S-O" 'find-file-in-config-dir)
 
 (defun find-file-in-sync-dir ()
   (interactive)
   (counsel-find-file "~/sync/org/"))
+(bind-key "C-S-M-O" 'find-file-in-sync-dir)
 
 (defun next-user-buffer ()
   "Switch to the next user buffer.
@@ -98,11 +84,13 @@ Emacs buffers are those whose name starts with *."
     (switch-to-buffer buf)
     (funcall (and initial-major-mode))
     (setf buffer-offer-save t)))
+(bind-key "C-S-n" 'new-empty-buffer)
 
 (defun close-current-buffer ()
   "Close the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
+(bind-key "C-w" 'close-current-buffer)
 
 (setf temp-buffer-resize-mode t)
 
@@ -151,11 +139,11 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
     ;; buffer. (because kill-buffer does not offer to save buffers that are not associated with
     ;; files)
     (when (and (buffer-modified-p)
-               (not emacsBuff-p)
-               (not (string-equal major-mode "dired-mode"))
-               (if (equal (buffer-file-name) nil)
-                   (if (string-equal "" (save-restriction (widen) (buffer-string))) nil t)
-                 t))
+	       (not emacsBuff-p)
+	       (not (string-equal major-mode "dired-mode"))
+	       (if (equal (buffer-file-name) nil)
+		   (if (string-equal "" (save-restriction (widen) (buffer-string))) nil t)
+		 t))
       (if (y-or-n-p
 	   (concat "Buffer " (buffer-name) " modified; Do you want to save?"))
 	  (save-buffer)
@@ -164,7 +152,7 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
     ;; save to a list of closed buffer
     (when (not (equal buffer-file-name nil))
       (setf recently-closed-buffers
-            (cons (cons (buffer-name) (buffer-file-name)) recently-closed-buffers))
+	    (cons (cons (buffer-name) (buffer-file-name)) recently-closed-buffers))
       (when (> (length recently-closed-buffers) recently-closed-buffers-max)
 	(setf recently-closed-buffers (butlast recently-closed-buffers 1))))
 
@@ -208,9 +196,9 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
 	 ("K" . dired-k)
 	 ("g" . dired-k))
   :init (setq-default diredp-hide-details-initially-flag nil
-                      dired-dwim-target t
-                      ;;omit boring auto save files in dired views
-                      dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$")
+		      dired-dwim-target t
+		      ;;omit boring auto save files in dired views
+		      dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$")
   :config ;; after loading dired, do this stuff
   (setf dired-recursive-deletes 'always
 	dired-recursive-copies 'always
@@ -222,8 +210,31 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
 
 (use-package diredfl
   :config
-  (add-hook 'dired-mode-hook 'diredfl-mode))
+  (add-hook 'dired-mode-hook 'diredfl-mode)
+  :custom-face
+  (diredfl-file-name ((t (:foreground "SpringGreen"))))
+  (diredfl-dir-name ((t (:foreground "DeepSkyBlue"))))
+  (diredfl-dir-heading ((t (:foreground "LightBlue"))))
+  (diredfl-ignored-file-name ((t (:foreground "#7F9F7F"))))
+  )
 
 (use-package dired-collapse)
+(use-package dired-rainbow)
 
 (use-package dired-hacks-utils)
+
+(defun my-dired-mode-hook-func ()
+  (diredfl-mode)
+  dired-rainbow-mode)
+
+(use-package super-save
+  :after ace-window
+  :blackout
+  :config
+  (setf auto-save-default nil)
+  (setf super-save-idle-duration 3)
+  (setf super-save-auto-save-when-idle t)
+  (add-to-list 'super-save-triggers 'ace-window)
+  (add-to-list 'super-save-hook-triggers 'find-file-hook)
+  (setf super-save-exclude '(".gpg"))
+  (super-save-mode +1))

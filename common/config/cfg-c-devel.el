@@ -15,19 +15,22 @@
     "Add semicolon at the end of the line and return to current position"
     (interactive)
     (end-of-line)
-    (insert ";")
-    (c-newline-and-indent))
-  :bind (:map c-mode-base-map ("M-RET" . insert-semicolon)))
+    (insert ";"))
+  :bind (:map c-mode-base-map ("C-RET" . insert-semicolon)))
 
 (defun my-c-mode-hook-func ()
   (setf fill-column 132)
-  (yas-minor-mode)
+  ;; (yas-minor-mode)
   ;; (electrci-pair-mode 1)
-  (company-mode 1)
+  ;; (company-mode 1)
+  ;; (flycheck-mode 1)
   (key-chord-mode 1)
   (ws-butler-mode 1)
   (setq company-transformers nil)
-  (push 'company-lsp company-backends))
+  (bind-key "M-j" 'backward-char c-mode-map)
+  (bind-key "M-e" 'backward-kill-word c-mode-map)
+  (push 'company-lsp company-backends)
+  )
 
 (add-hook 'c-mode-hook 'my-c-mode-hook-func)
 

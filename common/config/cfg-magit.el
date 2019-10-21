@@ -3,6 +3,7 @@
 (use-package magit
   :bind
   (("C-c m" . magit-status)
+   ("<f2>" . magit-status)
    ("C-c l" . magit-log-buffer-file)
    ("C-c M-g" . magit-dispatch-popup))
 
@@ -68,34 +69,36 @@
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
 
-(use-package magit-rockstar
-  :config
-  (magit-define-popup-action 'magit-rebase-popup
-    ?R "Rockstar" 'magit-rockstar)
+(use-package magit-popup)
 
-  (magit-define-popup-action 'magit-commit-popup
-    ?n "Reshelve" 'magit-reshelve))
+;; (use-package magit-rockstar
+;;   :config
+;;   (magit-define-popup-action 'magit-rebase-popup
+;;     ?R "Rockstar" 'magit-rockstar)
 
-(use-package magit-todos
-  :straight (:host github :repo "alphapapa/magit-todos")
-  :config
-  (setf magit-todos-exclude-globs '("kernel-dev"))
-  (setf magit-todos-group-by
-	'(magit-todos-item-keyword magit-todos-item-first-path-component))
-  (setf magit-todos-ignore-directories '("foo" "kernel-dev"))
-  (setf magit-todos-rg-extra-args nil)
-  (setf magit-todos-rg-ignore-directories '("foo" "gnu"))
-  (setf magit-todos-scanner 'magit-todos--scan-with-rg)
-  (setf magit-todos-update t)
-  (magit-todos-mode 1))
+;;   (magit-define-popup-action 'magit-commit-popup
+;;     ?n "Reshelve" 'magit-reshelve))
 
-(use-package magit-lfs
-  :ensure t)
+;; (use-package magit-todos
+;;   :straight (:host github :repo "alphapapa/magit-todos")
+;;   :config
+;;   (setf magit-todos-exclude-globs '("kernel-dev"))
+;;   (setf magit-todos-group-by
+;; 	'(magit-todos-item-keyword magit-todos-item-first-path-component))
+;;   (setf magit-todos-ignore-directories '("foo" "kernel-dev"))
+;;   (setf magit-todos-rg-extra-args nil)
+;;   (setf magit-todos-rg-ignore-directories '("foo" "gnu"))
+;;   (setf magit-todos-scanner 'magit-todos--scan-with-rg)
+;;   (setf magit-todos-update t)
+;;   (magit-todos-mode 1))
+
+;; (use-package magit-lfs
+;;   :ensure t)
 
 (use-package git-timemachine
   :straight (:host github
-		   :repo "emacsmirror/git-timemachine"
-		   :branch "master")
+	     :repo "emacsmirror/git-timemachine"
+	     :branch "master")
 
   ;; https://github.com/emacsmirror/git-timemachine
   :bind (("C-x M-t" . git-timemachine)
@@ -128,61 +131,61 @@
   :config
   (setf git-messenger:show-detail t))
 
-(autoload 'org-read-date "org")
+;; (autoload 'org-read-date "org")
 
-(defun magit-org-read-date (prompt &optional _default)
-  (org-read-date 'with-time nil nil prompt))
+;; (defun magit-org-read-date (prompt &optional _default)
+;;   (org-read-date 'with-time nil nil prompt))
 
-(magit-define-popup-option 'magit-log-popup
-  ?s "Since date" "--since=" #'magit-org-read-date)
+;; (magit-define-popup-option 'magit-log-popup
+;;   ?s "Since date" "--since=" #'magit-org-read-date)
 
-(magit-define-popup-option 'magit-log-popup
-  ?u "Until date" "--until=" #'magit-org-read-date)
+;; (magit-define-popup-option 'magit-log-popup
+;;   ?u "Until date" "--until=" #'magit-org-read-date)
 
-(magit-define-popup-switch
-  'magit-log-popup
-  ?s "Always sort by date" "--date-order")
+;; (magit-define-popup-switch
+;;   'magit-log-popup
+;;   ?s "Always sort by date" "--date-order")
 
 (use-package magit-imerge)
 
-(define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
-  "Mode for showing staged and unstaged changes."
-  :group 'magit-status)
+;; (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
+;;   "Mode for showing staged and unstaged changes."
+;;   :group 'magit-status)
 
-(defun magit-staging-refresh-buffer ()
-  (magit-insert-section (status)
-    (magit-insert-unstaged-changes)
-    (magit-insert-staged-changes)))
+;; (defun magit-staging-refresh-buffer ()
+;;   (magit-insert-section (status)
+;;     (magit-insert-unstaged-changes)
+;;     (magit-insert-staged-changes)))
 
-(defun magit-staging ()
-  (interactive)
-  (magit-mode-setup #'magit-staging-mode))
+;; (defun magit-staging ()
+;;   (interactive)
+;;   (magit-mode-setup #'magit-staging-mode))
 
 
 
 ;; TODO: Rewrite to use ivy
 ;;; search commit log by anything
-(defvar anything-c-source-log-edit-comment
-  '((name . "Log-edit Comment")
-    (candidates . anything-c-log-edit-comment-candidates)
-    (action . (("Insert" . (lambda (str) (insert str)))))
-    (migemo)
-    (multiline))
-  "Source for browse and insert Log-edit comment.")
+;; (defvar anything-c-source-log-edit-comment
+;;   '((name . "Log-edit Comment")
+;;     (candidates . anything-c-log-edit-comment-candidates)
+;;     (action . (("Insert" . (lambda (str) (insert str)))))
+;;     (migemo)
+;;     (multiline))
+;;   "Source for browse and insert Log-edit comment.")
 
-(defun anything-c-log-edit-comment-candidates ()
-  (let* ((candidates
-          (shell-command-to-string "\\git \\log -500 | \\grep -E '^    .+'"))
-         (logs (string-to-list (split-string candidates "\n    "))))
-    (push (replace-regexp-in-string "^    " "" (pop logs)) logs)
-    logs))
+;; (defun anything-c-log-edit-comment-candidates ()
+;;   (let* ((candidates
+;;           (shell-command-to-string "\\git \\log -500 | \\grep -E '^    .+'"))
+;;          (logs (string-to-list (split-string candidates "\n    "))))
+;;     (push (replace-regexp-in-string "^    " "" (pop logs)) logs)
+;;     logs))
 
-(defun anything-show-log-edit-comment ()
-  "`anything' for Log-edit comment."
-  (interactive)
-  (anything-other-buffer 'anything-c-source-log-edit-comment
-                         "*anything log-edit comment*"))
-(define-key magit-log-mode-map (kbd "C-s") 'anything-show-log-edit-comment)
+;; (defun anything-show-log-edit-comment ()
+;;   "`anything' for Log-edit comment."
+;;   (interactive)
+;;   (anything-other-buffer 'anything-c-source-log-edit-comment
+;;                          "*anything log-edit comment*"))
+;; (define-key magit-log-mode-map (kbd "C-s") 'anything-show-log-edit-comment)
 
 (defun magma/copy-short-hash ()
   (interactive)
@@ -211,3 +214,33 @@
         ("magnus.malm@westermo.se"
          :domains ("git.labs.westermo.se")
          :dirs ("~/devel/etbnd-client" "~/devel/5.x"))))
+
+(defun magit-insert-head-branch-header (&optional branch)
+  "Insert a header line about the current branch.
+If `HEAD' is detached, then insert information about that commit
+instead.  The optional BRANCH argument is for internal use only."
+  (let ((branch (or branch (magit-get-current-branch)))
+        (output (magit-rev-format "%h %s" (or branch "HEAD"))))
+    (string-match "^\\([^ ]+\\) \\(.*\\)" output)
+    (magit-bind-match-strings (commit summary) output
+      (when (equal summary "")
+        (setq summary "(no commit message)"))
+      (if branch
+          (magit-insert-section (branch branch)
+            (insert (format "%-10s" "Head: "))
+            (when magit-status-show-hashes-in-headers
+              (insert (propertize commit 'font-lock-face 'magit-hash) ?\s))
+            (insert (propertize branch 'font-lock-face 'magit-branch-local))
+            (insert ?\s)
+            (insert (funcall magit-log-format-message-function branch summary))
+            (insert ?\n))
+        (magit-insert-section (commit commit)
+          (insert (format "%-10s" "Head: "))
+          (insert (propertize commit 'font-lock-face 'magit-hash))
+          (insert ?\s)
+          (insert (funcall magit-log-format-message-function nil summary))
+          (insert ?\n))))))
+
+(use-package magit-pretty-graph
+  :straight (:host github
+	     :repo "georgek/magit-pretty-graph"))
