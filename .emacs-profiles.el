@@ -23,4 +23,9 @@
  ("wemo" . ((user-emacs-directory . "~/sync/emacsen/wemo")
 	    (server-name . "wemo")))
 
+ ("munen" . ((user-emacs-directory . "~/emacs-munen")
+	     (server-name . "munen")))
+ ("andemacs" . ((user-emacs-directory . "~/sync/andemacs")
+	     (server-name . "andemacs")))
+
  )

@@ -11,12 +11,13 @@
 
 ;; Based on https://emacs.stackexchange.com/a/26981
 (setf mmm/themes '(solarized-light solarized-dark zenburn))
-(setf mmm/themes-index 0)
+(setf mmm/themes-index 2)
 
 (defun mmm/cycle-theme ()
   (interactive)
   (setf mmm/themes-index (% (1+ mmm/themes-index) (length mmm/themes)))
   (mmm/load-indexed-theme))
+(bind-key "<f5>" 'mmm/cycle-theme)
 
 (defun mmm/load-indexed-theme ()
   (mmm/try-load-theme (nth mmm/themes-index mmm/themes)))
@@ -36,6 +37,8 @@
 
 ;; Set solarized light if daylight, otherwise
 ;; solarized dark
-(mmm/load-theme-dwim)
+;; (mmm/load-theme-dwim)
+
+(mmm/load-indexed-theme)
 
 (provide 'cfg-themes)

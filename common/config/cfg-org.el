@@ -32,6 +32,10 @@ Inserted by installing org-mode or when a release is made."
 (provide 'org-version)
 
 (use-package org
+  ;; :straight nil
+  ;; :type built-in
+  ;; :demand nil
+  ;; :ensure nil
   :init
   (defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
 	 (unless (file-directory-p dir)
@@ -43,20 +47,48 @@ Inserted by installing org-mode or when a release is made."
 	     (let ((file (concat dir file "/")))
 	       (when (file-directory-p file)
 		 (load-org-agenda-files-recursively file))))))
-  :config
+  ;; :config
   (setq org-agenda-files '("~/sync/org/work.org"
 			   "~/sync/org/private.org"
 			   "~/sync/org/solkatten.org"
-			   "~/sync/org/wemo_cal/"
 			   ))
-	;; (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
+
+  (setf org-log-done (quote time))
+  (setf org-log-redeadline (quote time))
+  (setf org-log-reschedule (quote time))
+
+  (setf org-pretty-entities t)
+  (setf org-use-sub-superscripts '{})
+
+  (setf org-log-into-drawer t)
+  (setf org-use-speed-commands t
+	org-hide-emphasis-markers t
+	org-src-fontify-natively t ;; Pretty code blocks
+	org-src-tab-acts-natively t
+	org-confirm-babel-evaluate nil)
+  (setf org-src-fontify-natively t)
+  (setf org-src-tab-acts-natively t)
+  (setf org-return-follows-link t)
+
+  (setf org-ellipsis "⤵")
+  (setf org-todo-keywords
+	'((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w@/!)" "|"
+		    "DONE(d!)" "CANCELED(c@)")))
+
+  (setf org-todo-keyword-faces
+	'(("TODO" . "LightSkyBlue")
+	  ("IN-PROGRESS" . "yellow2")
+	  ("WAIT" . "IndianRed")
+	  ("DONE" . "gold")
+	  ("CANCELED" . "red")))
+
+  ;; (load-org-agenda-files-recursively "~/sync/org/") ; trailing slash required
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((awk . t)
      (emacs-lisp . t)
      (lisp . t)
      (python . t)
-     (ruby . t)
      (shell . t)
      (ditaa . t)
      (C . t)
@@ -83,75 +115,179 @@ Inserted by installing org-mode or when a release is made."
 			("household" . ?H)
 			("economy" . ?e)
 			("crypt" . ?y)))
-)
+  (setf org-refile-targets '((nil :maxlevel . 2)
+  			     (org-agenda-files :maxlevel . 2)))
+
+  (setf org-tag-faces
+	'(("@home"
+	   :foreground "Green3"
+	   :background nil
+	   :weight bold)
+	  ("@work"
+	   :foreground "DeepSkyBlue"
+	   :background nil
+	   :weight bold)
+	  ("@computer"
+	   :foreground "LightSeaGreen"
+	   :background nil
+	   :weight bold)
+	  ("@mobile"
+	   :foreground "Orange"
+	   :background nil
+	   :weight bold)))
+
+  )
+
+(defun mmm/org-capture-mode-hook ()
+  (bind-keys :map org-capture-mode-map
+    ("C-d" . insert-current-time)
+    ("M->" . org-priority-up)
+    ("M-<" . org-priority-down)))
+(add-hook 'org-capture-mode-hook 'mmm/org-capture-mode-hook)
+
+(use-package org-bullets
+  :init
+  (add-hook 'org-mode-hook 'org-bullets-mode)
+  (setf org-bullets-bullet-list '("◉" "○")))
+
+(setf org-capture-templates
+      '(
+	("m" "meeting" entry (file+headline "~/sync/org/inbox.org" "meetings")
+	 "* TODO %? :meeting:\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"
+	 :prepend t)
+	("T" "todo" entry (file+headline "~/sync/org/inbox.org" "todos")
+	 "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
+	 :prepend t)
+	("j" "Journal entry" plain
+	 (file+olp+datetree "~/sync/org/journal/journal.org")
+	 "%i\n\n**** %?\n" :empty-lines 1)
+	("t" "TODO" entry
+	 (file+headline "~/sync/org/inbox.org" "todos")
+	 "* TODO %?\n%u" :prepend t)
+	("n" "Note" entry
+	 (file+headline "~/sync/org/inbox.org" "notes")
+	 "* %?\n%u" :prepend t)
+	)
+      )
 
 
 (use-package oauth2)
 
+(use-package org-noter)
 
 
-;; (use-package org-caldav
-;;   :init
-;;   ;; This is the sync on close function; it also prompts for save after syncing so
-;;   ;; no late changes get lost
-;;   (defun org-caldav-sync-at-close ()
-;;     (org-caldav-sync)
-;;     (save-some-buffers))
+(use-package ox-publish
+  :straight nil
+  :init
+  (setq my-blog-header-file "~/Projects/blog/org/partials/header.html"
+        my-blog-footer-file "~/Projects/blog/org/partials/footer.html"
+        org-html-validation-link nil)
 
-;;   ;; This is the delayed sync function; it waits until emacs has been idle for
-;;   ;; "secs" seconds before syncing.  The delay is important because the caldav-sync
-;;   ;; can take five or ten seconds, which would be painful if it did that right at save.
-;;   ;; This way it just waits until you've been idle for a while to avoid disturbing
-;;   ;; the user.
-;;   (defvar org-caldav-sync-timer nil
-;;     "Timer that `org-caldav-push-timer' used to reschedule itself, or nil.")
-;;   (defun org-caldav-sync-with-delay (secs)
-;;     (when org-caldav-sync-timer
-;;       (cancel-timer org-caldav-sync-timer))
-;;     (setq org-caldav-sync-timer
-;; 	  (run-with-idle-timer
-;; 	   (* 1 secs) nil 'org-caldav-sync)))
+  ;; Load partials on memory
+  (defun my-blog-header (arg)
+    (with-temp-buffer
+      (insert-file-contents my-blog-header-file)
+      (buffer-string)))
 
-;;   ;; Actual calendar configuration edit this to meet your specific needs
-;;   ;; (setf org-caldav-uuid-extension ".EML")
-;;   (setq org-caldav-calendars
-;; 	'(;; (:url google
-;; 	  ;;  :calendar-id "Main"
-;; 	  ;;  :files ("~/sync/org/google_cal/main.org")
-;; 	  ;;  :inbox "~/sync/org/google_cal/main_inbox.org")
-;; 	  ;; (:url 'google
-;; 	  ;;  :calendar-id "Övrigt"
-;; 	  ;;  :files ("~/sync/org/google_cal/övrigt.org")
-;; 	  ;;  :inbox "~/sync/org/google_cal/main_övrigt.org")
-;; 	  (:url "http://localhost:1080/users/"
-;; 	   :calendar-id "magnus.malm@westermo.se/calendar"
-;; 	   :files ("~/sync/org/wemo_cal/main.org")
-;; 	   :inbox "~/sync/org/wemo_cal/main-inbox.org")))
-;;   (setq org-caldav-backup-file "~/sync/org/caldav/org-caldav-backup.org")
-;;   (setq org-caldav-save-directory "~/sync/org/caldav/")
-;;   (setf org-caldav-uuid-extension ".EML")
+  (defun my-blog-footer (arg)
+    (with-temp-buffer
+      (insert-file-contents my-blog-footer-file)
+      (buffer-string)))
 
-;;   :config
-;;   (setq org-caldav-oauth2-providers
-;;       '((google
-;;          "https://accounts.google.com/o/oauth2/v2/auth"
-;;          "https://www.googleapis.com/oauth2/v4/token"
-;;          "https://www.googleapis.com/auth/calendar"
-;;          "https://apidata.googleusercontent.com/caldav/v2/%s/events")))
-;;   (setq org-icalendar-alarm-time 1)
-;;   ;; This makes sure to-do items as a category can show up on the calendar
-;;   (setq org-icalendar-include-todo t)
-;;   ;; This ensures all org "deadlines" show up, and show up as due dates
-;;   (setq org-icalendar-use-deadline '(event-if-todo event-if-not-todo todo-due))
-;;   ;; This ensures "scheduled" org items show up, and show up as start times
-;;   (setq org-icalendar-use-scheduled '(todo-start event-if-todo event-if-not-todo))
-;;   (setq org-icalendar-timezone "Europe/Stockholm")
-;;   (setq org-icalendar-date-time-format ";TZID=%Z:%Y%m%dT%H%M%S")
-;;   ;; Add the delayed save hook with a five minute idle timer
-;;   (add-hook 'after-save-hook
-;; 	    (lambda ()
-;; 	      (when (eq major-mode 'org-mode)
-;; 		(org-caldav-sync-with-delay 300))))
-;;   ;; Add the close emacs hook
-;;   ;; (add-hook 'kill-emacs-hook 'org-caldav-sync-at-close)
-;;   )
+  (defun filter-local-links (link backend info)
+    "Filter that converts all the /index.html links to /"
+    (if (org-export-derived-backend-p backend 'html)
+        (replace-regexp-in-string "/index.html" "/" link)))
+
+  :config
+  (setq org-publish-project-alist
+        '(;; Publish the posts
+          ("blog-notes"
+           :base-directory "~/Projects/blog/org"
+           :base-extension "org"
+           :publishing-directory "~/Projects/blog/public"
+           :recursive t
+           :publishing-function org-html-publish-to-html
+           :headline-levels 4
+           :section-numbers nil
+           :html-head nil
+           :html-head-include-default-style nil
+           :html-head-include-scripts nil
+           :html-preamble my-blog-header
+           :html-postamble my-blog-footer
+           )
+
+          ;; For static files that should remain untouched
+          ("blog-static"
+           :base-directory "~/Projects/blog/org/"
+           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|eot\\|svg\\|woff\\|woff2\\|ttf"
+           :publishing-directory "~/Projects/blog/public"
+           :recursive t
+           :publishing-function org-publish-attachment
+           )
+
+          ;; Combine the two previous components in a single one
+          ("blog" :components ("blog-notes" "blog-static"))))
+
+  (add-to-list 'org-export-filter-link-functions 'filter-local-links))
+
+
+
+
+(use-package ox-html5slide
+  :init
+  (setf org-html-postamble nil)
+  (setf org-export-with-section-numbers nil)
+  (setf org-export-with-toc nil)
+  (setf org-html-head-extra "
+       <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+       <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
+       <style type='text/css'>
+          body {
+             font-family: 'Source Sans Pro', sans-serif;
+          }
+          pre, code {
+             font-family: 'Source Code Pro', monospace;
+          }
+       </style>"))
+
+(use-package ox-reveal
+  :init
+  (setf org-reveal-postamble "Magnus Malm")
+  (setf org-reveal-root "file:///home/magnus/src/reveal.js"))
+
+(use-package poporg)
+
+(use-package org-habit
+  :straight nil
+  :ensure nil)
+
+(setf org-modules '(org-habit))
+
+(use-package org-super-agenda
+  :init
+  (setf org-super-agenda-groups
+	'((:log t)  ; Automatically named "Log"
+	  (:name "Schedule"
+		 :time-grid t)
+	  (:name "Today"
+		 :scheduled today)
+	  (:habit t)
+	  (:name "Due today"
+		 :deadline today)
+	  (:name "Overdue"
+		 :deadline past)
+	  (:name "Due soon"
+		 :deadline future)
+	  (:name "Unimportant"
+		 :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
+		 :order 100)
+	  (:name "Waiting..."
+		 :todo "WAIT"
+		 :order 98)
+	  (:name "Scheduled earlier"
+		 :scheduled past)))
+  :config
+  (org-super-agenda-mode 1))
+
+(use-package org-sidebar)

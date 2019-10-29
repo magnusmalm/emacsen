@@ -16,6 +16,15 @@
 (use-package zygospore
   :bind* ("M-1" . zygospore-toggle-delete-other-windows))
 
+
+(bind-key "M->" 'split-window-vertically)
+(bind-key "M-<" 'split-window-horizontally)
+
+(bind-key "H-h" 'split-window-vertically)
+(bind-key "H-v" 'split-window-horizontally)
+
+(bind-key "H-f" 'zygospore-toggle-delete-other-windows)
+
 (use-package ace-window
   :bind (("M-b" . ace-window)
 	 ("C-M-S-k" . ace-swap-window)
@@ -35,7 +44,7 @@
     (call-interactively 'switch-to-buffer))
   (setf aw-dispatch-always nil)
   (setf aw-scope 'frame)
-  (setf aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (setf aw-keys '(?a ?s ?d ?f ?j ?k ?l))
   (setf aw-leading-char-style 'path))
 
 (defun delete-window-balance ()

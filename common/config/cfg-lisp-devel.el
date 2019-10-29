@@ -1,29 +1,16 @@
-;; Superior Lisp Interaction Mode for Emacs
-(use-package slime
-  :config
-  (setq inferior-lisp-program "/usr/bin/sbcl")
-  (setq slime-contribs '(slime-fancy)))
+(use-package slime-docker
+  :custom
+  (slime-docker-implementations `((sbcl ("sbcl")))))
 
-;; (use-package slime
-;;   :init
-;;   (setq inferior-lisp-program "sbcl")
+;; (use-package sly
 ;;   :config
-;;   (use-package slime-company)
-;;   (add-hook 'slime-mode-hook
-;;             (lambda ()
-;;               (add-to-list 'slime-contribs 'inferior-slime)
-;;               (load (expand-file-name "~/quicklisp/slime-helper.el"))
-;;               (add-to-list 'slime-contribs 'slime-fancy))))
+;;   (setf inferior-lisp-program "sbcl"))
 
-(use-package lispy
-  :bind (:map lispy-mode-map
-	 ("C-i" . special-lispy-tab)
-	 ("L" . special-lispy-flow)
-	 ("J" . special-lispy-back))
-  :config
-  (lispy-define-key lispy-mode-map "i" 'lispy-up)
-  (lispy-define-key lispy-mode-map "k" 'lispy-down)
-  (lispy-define-key lispy-mode-map "j" 'lispy-left)
-  (lispy-define-key lispy-mode-map "l" 'lispy-right)
-  (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
-  (add-hook 'lisp-interaction-mode-hook (lambda () (lispy-mode 1))))
+;; (use-package sly-quicklisp
+;;   :requires sly)
+
+;; (use-package sly-named-readtables
+;;   :requires sly)
+
+;; (use-package sly-asdf
+;;   :requires sly)

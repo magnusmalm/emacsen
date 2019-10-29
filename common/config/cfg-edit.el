@@ -1,7 +1,28 @@
+(bind-key "M-e" 'backward-kill-word)
+(bind-key "M-r" 'kill-word)
+
+(use-package editing
+  :straight nil
+  :ensure nil
+  :bind (
+	 ("M-x" . xah-cut-line-or-region)
+	 ("M-c" . xah-copy-line-or-region)
+	 ("M-v" . yank)
+	 ("M-/" . toggle-letter-case)
+	 ("M-q" . fill-paragraph)
+	 ("M-S-SPC" . mark-paragraph)
+	 ("M-SPC" . set-mark-command)
+	 ("M-Z" . zap-to-char)
+	 ("M-z" . undo)
+	 ("C-z" . undo)
+	 ))
+
 (use-package hungry-delete
   :blackout
   :init
-  (global-hungry-delete-mode))
+  (global-hungry-delete-mode)
+  :bind (("M-d" . hungry-delete-backward)
+	 ("M-f" . hungry-delete-forward)))
 
 (use-package browse-kill-ring
   :bind ("M-Y" . browse-kill-ring))
@@ -38,7 +59,9 @@
 	 ("C-c C-m <" . mc/mark-previous-like-this)
 	 ("C-c C-m #" . mc/insert-numbers)
 	 ("C-c C-m s" . mc/sort-regions)
-	 ("C-c C-m r" . mc/reverse-regions)))
+	 ("C-c C-m r" . mc/reverse-regions)
+	 :map mc/keymap
+	 ("C-'" . hide-unmatched-lines-mode)))
 
 (use-package ace-mc)
 
@@ -120,14 +143,14 @@
 	(iedit-mode)
       (save-excursion
 	(save-restriction
-          (widen)
-          ;; this function determines the scope of `iedit-start'.
-          (if iedit-mode
-              (iedit-done)
-            ;; `current-word' can of course be replaced by other
-            ;; functions.
-            (narrow-to-defun)
-            (iedit-start (current-word) (point-min) (point-max)))))))
+	  (widen)
+	  ;; this function determines the scope of `iedit-start'.
+	  (if iedit-mode
+	      (iedit-done)
+	    ;; `current-word' can of course be replaced by other
+	    ;; functions.
+	    (narrow-to-defun)
+	    (iedit-start (current-word) (point-min) (point-max)))))))
   :bind (("C-;" . iedit-dwim)))
 
 (use-package clipmon
@@ -137,13 +160,12 @@
 (use-package selected
   :init (selected-minor-mode)
   :bind (:map selected-keymap
-              ("M-W" . er/expand-region)
-              ("M-Q" . selected-off)
-              ("M-U" . upcase-region)
-              ("M-D" . downcase-region)
-              ("M-G" . google-this)
-	      ("M-E" . iedit-dwim)
-              ("M-M" . apply-macro-to-region-lines)))
+	 ("M-Q" . selected-off)
+	 ("M-U" . upcase-region)
+	 ("M-D" . downcase-region)
+	 ("M-L" . mc/edit-lines)
+	 ("C-M-L" . mc/mark-all-like-this)
+	 ("M-M" . apply-macro-to-region-lines)))
 
 (use-package subword
   :ensure nil
@@ -180,38 +202,15 @@
 (use-package ialign
   :bind ("<H-tab>" . ialign))
 
-(use-package yasnippet
-  :defer 2
-  :after hydra
-  :bind (:map yas-minor-mode-map ("<f2>" . hydra-yas/body))
-  :config
-  (yas-global-mode)
-  :hydra (hydra-yas (:color blue :hint nil)
-		    "
-              ^YASnippets^
---------------------------------------------
-  Modes:    Load/Visit:    Actions:
+;; (use-package yasnippet
+;;   :blackout yas-minor-mode
+;;   :custom
+;;   (yas-snippet-dirs (list (expand-file-name "config/yasnippets/snippets" user-emacs-directory))))
 
- _g_lobal  _d_irectory    _i_nsert
- _m_inor   _f_ile         _t_ryout
- _e_xtra   _l_ist         _n_ew
- ^ ^       _a_ll
-"
-		    ("d" yas-load-directory)
-		    ("e" yas-activate-extra-mode)
-		    ("i" yas-insert-snippet)
-		    ("f" yas-visit-snippet-file :color blue)
-		    ("n" yas-new-snippet)
-		    ("t" yas-tryout-snippet)
-		    ("l" yas-describe-tables)
-		    ("g" yas/global-mode)
-		    ("m" yas/minor-mode)
-		    ("a" yas-reload-all)))
-
-(use-package yasnippet-snippets
-  :blackout yas-minor-mode
-  :after yasnippet
-  :config (yasnippet-snippets-initialize))
+;; (use-package yasnippet-snippets
+;;   :blackout yas-minor-mode
+;;   :after yasnippet
+;;   :config (yasnippet-snippets-initialize))
 
 (setf flyspell-issue-welcome-flag nil)
 
@@ -285,8 +284,8 @@
 
   :config
   (progn (setf ispell-program-name "/usr/bin/ispell")
-         (setf ispell-dictionary "svenska")
-         ;; (setf ispell-personal-dictionary
+	 (setf ispell-dictionary "svenska")
+	 ;; (setf ispell-personal-dictionary
 	 ;;       (expand-file-name "dict/" user-emacs-directory))
 	 ))
 
@@ -299,50 +298,50 @@
       (quietly-read-abbrev-file))
 ;;;; ispell + abbrev = cool auto-complete
   ;; (setf abbrev-file-name
-  ;; 	(expand-file-name "personal_abbrev.txt" user-emacs-directory))
+  ;;	(expand-file-name "personal_abbrev.txt" user-emacs-directory))
   (setf save-abbrevs t)
 
   (setf save-abbrevs 'silently)
   (setq-default abbrev-mode t))
 
-(use-package auto-dictionary
-  :config
-  (add-hook 'flyspell-mode-hook (lambda () (auto-dictionary-mode 1))))
+;; (use-package auto-dictionary
+;;   :config
+;;   (add-hook 'flyspell-mode-hook (lambda () (auto-dictionary-mode 1))))
 
 (use-package flyspell-correct-popup
   :bind (:map popup-menu-keymap
-              ("TAB" . popup-next)
-              ("S-TAB" . popup-previous)))
+	 ("TAB" . popup-next)
+	 ("S-TAB" . popup-previous)))
 
 (defun ap/iedit-or-flyspell ()
   "Call `iedit-mode' or correct misspelling with flyspell, depending..."
   (interactive)
   (if (or iedit-mode
-          (and (derived-mode-p 'prog-mode)
-               (not (or (nth 4 (syntax-ppss))
-                        (nth 3 (syntax-ppss))))))
+	  (and (derived-mode-p 'prog-mode)
+	       (not (or (nth 4 (syntax-ppss))
+			(nth 3 (syntax-ppss))))))
       ;; prog-mode is active and point is in a comment, string, or
       ;; already in iedit-mode
       (iedit-mode)
     ;; Not prog-mode or not in comment or string
     (if (not (equal flyspell-previous-command this-command))
-        ;; FIXME: This mostly works, but if there are two words on the
-        ;; same line that are misspelled, it doesn't work quite right
-        ;; when correcting the earlier word after correcting the later
-        ;; one
+	;; FIXME: This mostly works, but if there are two words on the
+	;; same line that are misspelled, it doesn't work quite right
+	;; when correcting the earlier word after correcting the later
+	;; one
 
-        ;; First correction; autocorrect
-        (call-interactively 'flyspell-auto-correct-previous-word)
+	;; First correction; autocorrect
+	(call-interactively 'flyspell-auto-correct-previous-word)
       ;; First correction was not wanted; use popup to choose
       (progn
-        (save-excursion
-          (undo))  ; This doesn't move point, which I think may be the problem.
-        (flyspell-region (line-beginning-position) (line-end-position))
-        (call-interactively 'flyspell-correct-previous-word-generic)))))
+	(save-excursion
+	  (undo))  ; This doesn't move point, which I think may be the problem.
+	(flyspell-region (line-beginning-position) (line-end-position))
+	(call-interactively 'flyspell-correct-previous-word-generic)))))
 
 (use-package flyspell-correct
   ;; :straight (:host github
-  ;; 		   :repo "d12frosted/flyspell-correct")
+  ;;		   :repo "d12frosted/flyspell-correct")
   :config
   (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 
@@ -359,11 +358,11 @@
   (defun inflect-string ()
     (interactive)
     (cond ((memq major-mode '(java-mode js-mode js2-mode rjsx-mode typescript-mode go-mode))
-           (string-inflection-java-style-cycle))
-          ((memq major-mode '(python-mode ruby-mode c-mode rust-mode))
-           (string-inflection-python-style-cycle))
-          ((derived-mode-p major-mode 'prog-mode)
-           (string-inflection-all-cycle))))
+	   (string-inflection-java-style-cycle))
+	  ((memq major-mode '(python-mode ruby-mode c-mode rust-mode))
+	   (string-inflection-python-style-cycle))
+	  ((derived-mode-p major-mode 'prog-mode)
+	   (string-inflection-all-cycle))))
   :config
   (setf string-inflection-skip-backward-when-done t)
   :bind (("C-x C-y" . inflect-string)))
@@ -373,3 +372,4 @@
   :bind (("C-x C-'" . cycle-quotes)))
 
 (use-package string-edit)
+

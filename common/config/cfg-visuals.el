@@ -1,17 +1,14 @@
-(setq mode-line-position
-      '(;; %p print percent of buffer above top of window, o Top, Bot or All
-        ;; (-3 "%p")
-        ;; %I print the size of the buffer, with kmG etc
-        ;; (size-indication-mode ("/" (-4 "%I")))
-        ;; " "
-        ;; %l print the current line number
-        ;; %c print the current column
-        (line-number-mode ("%l" (column-number-mode ":%c")))))
+(use-package frames
+  :straight nil
+  :ensure nil
+  :bind (
+	 ("C-S-w" . delete-frame)))
+
 
 (defun shorten-directory (dir max-length)
   "Show up to `max-length' characters of a directory name `dir'."
   (let ((path (reverse (split-string (abbreviate-file-name dir) "/")))
-        (output ""))
+	(output ""))
     (when (and path (equal "" (car path)))
       (setq path (cdr path)))
     (while (and path (< (length output) (- max-length 4)))
@@ -19,38 +16,74 @@
       (setq path (cdr path)))
     (when path
       (setq output (concat "../" output)))
-    output))
+    (string-trim-right output "/")))
 
 (setq-default mode-line-buffer-identification
 	      (propertized-buffer-identification "%b "))
 
-
 (defvar mode-line-directory
   '(:propertize
-    (:eval (if (buffer-file-name) (concat " " (shorten-directory default-directory 20)) " "))
-    face mode-line)
+    (:eval (if (buffer-file-name)
+	       (concat " " (shorten-directory
+			    (file-relative-name buffer-file-name (projectile-project-root))
+			    20)) " "))
+    face font-lock-keyword-face)
   "Formats the current directory.")
 (put 'mode-line-directory 'risky-local-variable t)
 
+(use-package my-mode-line
+  :straight nil
+  :ensure nil
+  :custom-face
+  (mode-line ((t (:background "#2B2B2B" :foreground "#8FB28F" :box (:line-width 1 :color "deep sky blue"))))))
+
 (setq-default mode-line-format
-	      '("%e"
-		mode-line-front-space
-		;; mode-line-mule-info -- I'm always on utf-8
-		mode-line-client
-		mode-line-modified
-		;; mode-line-remote -- no need to indicate this specially
-		;; mode-line-frame-identification -- this is for text-mode emacs only
-		" "
-		mode-line-directory
-		mode-line-buffer-identification
-		" "
-		mode-line-position
-		;;(vc-mode vc-mode)  -- I use magit, not vc-mode
-		(flycheck-mode flycheck-mode-line)
-		" "
-		mode-line-modes
-		mode-line-misc-info
-		mode-line-end-spaces))
+	      (list
+
+	       mode-line-client
+	       mode-line-modified
+
+	       " "
+	       mode-line-directory
+	       ;; '(:propertize "%f" face font-lock-keyword-face)
+	       ;; mode-line-buffer-identification
+	       " "
+
+	       '(:eval (if vc-mode "@ "))
+	       '(:eval (if vc-mode (propertize (substring vc-mode 5)
+					       'face 'font-lock-comment-face)))
+	       " "
+	       '(:eval (if (derived-mode-p 'pdf-view-mode)
+			   '(" P" (:eval (number-to-string (pdf-view-current-page)))
+			     ;; Avoid errors during redisplay.
+			     "/" (:eval (or (ignore-errors
+					      (number-to-string (pdf-cache-number-of-pages)))
+					    "???")))))
+	       ;; line and column
+	       '(:eval (unless (derived-mode-p 'pdf-view-mode)
+			 '(" ("
+			   (:eval (propertize "%03l" 'face 'font-lock-keyword-face)) ","
+			   (:eval (propertize "%03c" 'face 'font-lock-keyword-face))
+			   ") ")))
+
+	       '(:eval (let ((workspaces (lsp-workspaces)))
+			 (if workspaces
+			     (concat ""
+				     (string-join
+				      (mapcar (lambda (w)
+						(format "[%s] " (lsp--workspace-print w)))
+					      workspaces))))))
+
+	       (propertize "%n" 'face 'font-lock-constant-face) ;; narrow if appropriate
+	       ;; spaces to align right
+	       '(:eval (propertize
+			" " 'display
+			`((space :align-to (- (+ right right-fringe right-margin)
+					      ,(+ 3 (string-width mode-name)))))))
+
+	       ;; the current major mode
+	       (propertize " %m " 'face 'font-lock-string-face)
+	       ))
 
 (use-package all-the-icons)
 
@@ -104,14 +137,14 @@ This font is required for emoji and other Unicode 6+ display.")
 						      "%b")) " [%*]"))
 (defun my/disable-scroll-bars (frame)
   (modify-frame-parameters frame
-                           '((vertical-scroll-bars . nil)
-                             (horizontal-scroll-bars . nil))))
+			   '((vertical-scroll-bars . nil)
+			     (horizontal-scroll-bars . nil))))
 (add-hook 'after-make-frame-functions 'my/disable-scroll-bars)
 
 ;;;; Misc
 (setf show-paren-delay 0)
 (show-paren-mode t)
-(setf show-paren-style 'expression)
+(setf show-paren-style 'mixed)
 
 ;; turn on highlighting current line
 (global-hl-line-mode 1)
@@ -172,27 +205,17 @@ This font is required for emoji and other Unicode 6+ display.")
   (add-to-list 'beacon-dont-blink-commands 'next-line)
   (add-to-list 'beacon-dont-blink-commands 'previous-line))
 
-(use-package rainbow-delimiters
-  :config
-  :hook (prog-mode . rainbow-delimiters-mode))
-
 (use-package auto-highlight-symbol
   :config
-  (global-auto-highlight-symbol-mode t))
+  (global-auto-highlight-symbol-mode t)
+  :bind (:map auto-highlight-symbol-mode-map
+	 ("C-M-k" . ahs-change-range)
+	 ("C-M-l" . ahs-forward)
+	 ("C-M-j" . ahs-backward)))
 
 (use-package visible-mark)
 
 (use-package visual-ascii-mode)
-
-(use-package visual-regexp-steroids
-  :config
-  (define-key global-map (kbd "C-c C-r r") 'vr/replace)
-  (define-key global-map (kbd "C-c C-r q") 'vr/query-replace)
-  ;; if you use multiple-cursors, this is for you:
-  (define-key global-map (kbd "C-c C-r m") 'vr/mc-mark)
-  ;; to use visual-regexp-steroids's isearch instead of the built-in regexp isearch, also include the following lines:
-  (define-key esc-map (kbd "C-r") 'vr/isearch-backward) ;; C-M-r
-  (define-key esc-map (kbd "C-s") 'vr/isearch-forward)) ;; C-M-s)
 
 (use-package git-gutter
   :blackout
@@ -200,7 +223,7 @@ This font is required for emoji and other Unicode 6+ display.")
   :blackout
   :config
   (defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
-					:hint nil)
+			      :hint nil)
     "
 Git gutter:
   _j_: next hunk        _s_tage hunk     _q_uit
@@ -228,58 +251,22 @@ Git gutter:
      :color blue))
   (global-git-gutter-mode +1))
 
-(use-package zoom
-  :blackout
-  :config
-  (zoom-mode t)
-  (defun size-callback ()
-    (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
-          (t                            '(0.618 . 0.618))))
-  (setf zoom-ignored-major-modes '(dired-mode markdown-mode ediff-mode magit-popup-mode treemacs-mode))
-  (setf zoom-size 'size-callback))
-
 (use-package default-text-scale
   :config
-  (setf default-text-scale-amount 12))
-
-(use-package color-identifiers-mode
-  :disabled
-  :config
-  (add-hook 'after-init-hook 'global-color-identifiers-mode))
-
-;; (use-package yafolding
-;;   :bind* (("C-M-<return>" . 'yafolding-toggle-element))
-;;   :config
-;;   (yafolding-mode 1))
-
-;; (use-package origami
-;;   :bind (("C-<return>" . 'origami-recursively-toggle-node))
-;;   :config
-;;   (global-origami-mode))
-;; Modern code folding
-;; (use-package origami
-;;   :config
-;;   (with-eval-after-load 'hideshow
-;;     ;; Unloading is unsafe, so this the best I can do to pretend `hideshow'
-;;     ;; never existed.
-;;     (setf minor-mode-map-alist
-;;           (assq-delete-all 'hs-minor-mode minor-mode-map-alist)
-;;           minor-mode-alist
-;;           (assq-delete-all 'hs-minor-mode minor-mode-alist)
-;;           minor-mode-list
-;;           (delq 'hs-minor-mode minor-mode-list)))
-;;   :bind (:map origami-mode-map
-;;          ("M-0"   . origami-open-all-nodes)
-;;          ("M-9"   . origami-close-all-nodes)
-;;          ("C-M-/" . origami-recursively-toggle-node)))
+  (setf default-text-scale-amount 12)
+  :bind (
+	 ("C-+" . default-text-scale-increase)
+	 ("C--" . default-text-scale-decrease)
+	 ("C-=" . default-text-scale-reset)
+	 ))
 
 (add-hook 'prog-mode-hook
-  (lambda()
-    (local-set-key (kbd "C-c <right>") 'hs-show-block)
-    (local-set-key (kbd "C-c <left>")  'hs-hide-block)
-    (local-set-key (kbd "C-c <up>")    'hs-hide-all)
-    (local-set-key (kbd "C-c <down>")  'hs-show-all)
-    (hs-minor-mode t)))
+	  (lambda()
+	    (local-set-key (kbd "M-<right>") 'hs-show-block)
+	    (local-set-key (kbd "M-<left>")  'hs-hide-block)
+	    (local-set-key (kbd "M-<up>")    'hs-hide-all)
+	    (local-set-key (kbd "M-<down>")  'hs-show-all)
+	    (hs-minor-mode t)))
 
 (use-package ov)
 
@@ -301,21 +288,37 @@ Git gutter:
 	 ("M-K" . symbol-overlay-remove-all)
 	 ("M-d" . symbol-overlay-jump-to-definition)))
 
+(use-package rainbow-delimiters
+  :custom-face
+  (rainbow-delimiters-base-face ((t (:inherit nil))))
+  (rainbow-delimiters-depth-1-face ((t (:foreground "yellow"))))
+  (rainbow-delimiters-depth-2-face ((t (:foreground "dark orange"))))
+  (rainbow-delimiters-depth-3-face ((t (:foreground "medium spring green"))))
+  (rainbow-delimiters-depth-4-face ((t (:foreground "hot pink"))))
+  (rainbow-delimiters-depth-5-face ((t (:foreground "DarkOrange1"))))
+  (rainbow-delimiters-depth-6-face ((t (:foreground "white smoke"))))
+  (rainbow-delimiters-depth-7-face ((t (:foreground "indian red"))))
+  (rainbow-delimiters-depth-8-face ((t (:foreground "navajo white"))))
+  (rainbow-delimiters-depth-9-face ((t (:foreground "dodger blue"))))
+  :hook ((prog-mode lisp-mode sly-mrepl) . rainbow-delimiters-mode))
+
 (use-package rainbow-identifiers
   :config
   (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
   (setq-default rainbow-identifiers-choose-face-function 'rainbow-identifiers-cie-l*a*b*-choose-face)
   (setq-default rainbow-identifiers-cie-l*a*b*-lightness 60))
 
-(use-package rainbow-mode
-  :hook css-mode)
+(use-package rainbow-blocks)
 
-(setf resize-mini-windows t)
+(use-package rainbow-mode
+  :hook '(css-mode emacs-lisp-mode))
 
 (use-package emojify
   :config
   (setf emojify-download-emojis-p t)
-  (add-hook 'after-init-hook #'global-emojify-mode))
+  ;; (add-hook 'after-init-hook #'global-emojify-mode)
+  :bind* (("M-S-SPC" . emojify-insert-emoji))
+  )
 
 (use-package emoji-cheat-sheet-plus
   :defer t
@@ -337,21 +340,6 @@ Git gutter:
 
 (use-package popup)
 
-
-(use-package yequake
-  :straight (:host github
-	     :repo "alphapapa/yequake")
-  :custom
-  (yequake-frames
-   '(("org-capture"
-      (buffer-fns . (yequake-org-capture))
-      (width . 0.75)
-      (height . 0.5)
-      (alpha . 0.95)
-      (frame-parameters . ((undecorated . t)
-                           (skip-taskbar . t)
-                           (sticky . t)))))))
-
 (use-package quick-peek)
 
 (use-package rich-minority
@@ -359,60 +347,6 @@ Git gutter:
   (setq rm-whitelist
 	(format "^ \\(%s\\)$"
 		(mapconcat #'identity
-                           '("Fly.*" "Projectile.*" "PgLn")
-                           "\\|")))
+			   '("Fly.*" "Projectile.*" "PgLn")
+			   "\\|")))
   (rich-minority-mode 1))
-
-;; (use-package company-box
-;;   :config
-;;   (setf company-box-max-candidates 25)
-;;   (setf company-box-backends-colors
-;; 	'((company-yasnippet . (:candidate "yellow" :annotation some-face))
-;; 	  (company-elisp . (:icon "yellow" :selected (:background "orange"
-;; 						      :foreground "black")))
-;; 	  (company-dabbrev . "purple")))
-;;   :hook
-;;   (company-mode . company-box-mode))
-
-
-;; (setq company-box-icons-unknown 'fa_question_circle)
-
-;; (setq company-box-icons-elisp
-;;       '((fa_tag :face font-lock-function-name-face) ;; Function
-;; 	(fa_cog :face font-lock-variable-name-face) ;; Variable
-;; 	(fa_cube :face font-lock-constant-face) ;; Feature
-;; 	(md_color_lens :face font-lock-doc-face))) ;; Face
-
-;; (setq company-box-icons-yasnippet 'fa_bookmark)
-
-;; (setq company-box-icons-lsp
-;;       '((1 . fa_text_height) ;; Text
-;;         (2 . (fa_tags :face font-lock-function-name-face)) ;; Method
-;;         (3 . (fa_tag :face font-lock-function-name-face)) ;; Function
-;;         (4 . (fa_tag :face font-lock-function-name-face)) ;; Constructor
-;;         (5 . (fa_cog :foreground "#FF9800")) ;; Field
-;;         (6 . (fa_cog :foreground "#FF9800")) ;; Variable
-;;         (7 . (fa_cube :foreground "#7C4DFF")) ;; Class
-;;         (8 . (fa_cube :foreground "#7C4DFF")) ;; Interface
-;;         (9 . (fa_cube :foreground "#7C4DFF")) ;; Module
-;;         (10 . (fa_cog :foreground "#FF9800")) ;; Property
-;;         (11 . md_settings_system_daydream) ;; Unit
-;;         (12 . (fa_cog :foreground "#FF9800")) ;; Value
-;;         (13 . (md_storage :face font-lock-type-face)) ;; Enum
-;;         (14 . (md_closed_caption :foreground "#009688")) ;; Keyword
-;;         (15 . md_closed_caption) ;; Snippet
-;;         (16 . (md_color_lens :face font-lock-doc-face)) ;; Color
-;;         (17 . fa_file_text_o) ;; File
-;;         (18 . md_refresh) ;; Reference
-;;         (19 . fa_folder_open) ;; Folder
-;;         (20 . (md_closed_caption :foreground "#009688")) ;; EnumMember
-;;         (21 . (fa_square :face font-lock-constant-face)) ;; Constant
-;;         (22 . (fa_cube :face font-lock-type-face)) ;; Struct
-;;         (23 . fa_calendar) ;; Event
-;;         (24 . fa_square_o) ;; Operator
-;;         (25 . fa_arrows)) ;; TypeParameter
-;;       )
-
-(use-package font-lock+)
-(add-to-list 'load-path "~/.local/share/icons-in-terminal/")
-(require 'icons-in-terminal)

@@ -19,6 +19,8 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(package-initialize)
+
 (setf straight-use-package-by-default t)
 
 (defun straight-reload-init ()
@@ -44,14 +46,16 @@
 
 (straight-use-package 'use-package)
 
+(straight-use-package 'use-package-ensure-system-package)
+
 (use-package general)
 
-(use-package use-package-hydra
-  :straight (:host gitlab
-	     :repo "to1ne/use-package-hydra"))
+;(use-package use-package-hydra
+;  :straight (:host gitlab
+;	     :repo "to1ne/use-package-hydra"))
 
-(use-package blackout
-  :straight (:host github :repo "raxod502/blackout"))
+;(use-package blackout
+;  :straight (:host github :repo "raxod502/blackout"))
 
 (provide 'package-bootstrap)
 ;;; package-bootstrap.el ends here

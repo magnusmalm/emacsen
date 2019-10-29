@@ -1,15 +1,20 @@
+(unbind-key (kbd "C-z")) ; suspend-frame
+(unbind-key (kbd "s-p")) ; ns-print-buffer
+(unbind-key (kbd "s-q")) ; save-buffers-kill-emacs
+(unbind-key (kbd "s-t")) ; ns-popup-font-panel
+(unbind-key (kbd "C-x C-c")) ; save-buffers-kill-terminal
+
+(bind-key "H-r" 'repeat)
+
+(bind-key "C-c C-u" 'mmm:uuid)
+
 (use-package list-environment)
 
 (use-package iregister)
 
-(use-package cl-format
-  :config
-  (add-hook 'emacs-lisp-mode-hook 'cl-format-font-lock-mode))
-
-(use-package pushover
-  :config
-  (setf pushover-user-key mmm/pushover-user-key)
-  (setf pushover-api-key mmm/pushover-token))
+;; (use-package cl-format
+;;   :config
+;;   (add-hook 'emacs-lisp-mode-hook 'cl-format-font-lock-mode))
 
 (use-package sx
   :config
@@ -38,49 +43,19 @@
 
 (use-package latex-preview-pane)
 
-(use-package mpdel)
-
-(use-package undo-tree
-  :bind (("M-Z" . undo-tree-redo)
-	 ("M-z" . undo-tree-undo))
-  :blackout
-  :config
-  (global-undo-tree-mode))
-
-(use-package simple-mpc)
-
-(use-package mingus)
-
 (use-package blimp
   :straight (:host github
-		   :repo "walseb/blimp")
+	     :repo "walseb/blimp")
   :hook (image-mode . blimp-mode))
-
-(use-package keychain-environment
-  :straight (:host github
-		   :repo "tarsius/keychain-environment")
-  :config
-  (keychain-refresh-environment))
-
-(use-package suggest)
 
 (use-package wicd-mode
   :straight (:host github
-		   :repo "rafoo/wicd-mode.el"))
-
+	     :repo "rafoo/wicd-mode.el"))
 
 (use-package dockerfile-mode)
 (use-package docker-compose-mode)
 (use-package docker-tramp)
 (use-package docker)
-
-(use-package ssh-tunnels
-  :config
-  (setf ssh-tunnels-configurations
-	'((:name "my tunnel"
-	   :local-port 1234
-	   :remote-port 3306
-	   :login "me@host"))))
 
 (use-package pass
   :config
@@ -153,48 +128,60 @@ one by line."
 
 (use-package outshine)
 
-;; (use-package navi-mode)
-
-(use-package wiki-summary)
-
-(use-package md4rd
-  :config
-  (setq md4rd-subs-active '(lisp+Common_Lisp emacs commandline embeddedlinux debian)))
-
 (use-package ssh-tunnels
   :config
   (setq ssh-tunnels-configurations
-      '((:name "solkattenarboga-swank"
-         :local-port 9900
-         :remote-port 9900
-         :login "solkattenarboga"))))
+	'((:name "solkattenarboga-swank"
+	   :local-port 9900
+	   :remote-port 9900
+	   :login "solkattenarboga"))))
 
-(use-package twittering-mode
-  :init
-  (defalias 'epa--decode-coding-string 'decode-coding-string)
+(use-package nginx-mode)
 
+(use-package keyfreq
   :config
-  (twittering-enable-unread-status-notifier)
-  (setq twittering-use-master-password t)
+  (setq keyfreq-excluded-commands
+	'(self-insert-command
+	  org-self-insert-command
+	  abort-recursive-edit
+	  forward-char
+	  backward-char
+	  previous-line
+	  next-line))
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
 
-  (add-hook 'twittering-mode-hook
-            (lambda ()
-              (setq twittering-timer-interval 300)
-              (setq twittering-url-show-status nil)
-	      (setf twittering-icon-mode t)
-              (setq twittering-status-format "%i %s\n%FILL[ ]{%T}\n %FACE[glyphless-char]{%@ from %f%L%r%R}\n")
-              (set-face-attribute 'twittering-username-face nil
-                                  :underline nil
-                                  :weight 'bold
-                                  :foreground "darksalmon")))
+;; (use-package hercules
+;;   :config
+;;   (hercules-def
+;;    :toggle-funs #'my-projectile-mode
+;;    :keymap 'projectile-command-map
+;;    :transient t
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-  (add-hook 'twittering-edit-mode-hook
-            (lambda ()
-              (auto-fill-mode -1)
-              (visual-line-mode))))
+;;   (hercules-def
+;;    :toggle-funs #'my-dired-mode
+;;    :keymap 'dired-mode-map
+;;    :transient t
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-(use-package frog-menu)
+;;   (hercules-def
+;;    :toggle-funs #'my-pdf-mode
+;;    :keymap 'pdf-view-mode
+;;    :transient nil
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-(use-package shx)
+;;   (hercules-def
+;;    ;; read further to see why this works
+;;    :toggle-funs #'org-babel-mode
+;;    :keymap 'org-babel-map
+;;    :transient t)
 
-(use-package emamux)
+;;   ;; tweak binding to taste
+;;   (define-key org-mode-map (kbd "<f7>") #'org-babel-mode)
+;;   (define-key dired-mode-map (kbd "<f7>") #'my-dired-mode)
+;;   (define-key pdf-view-mode (kbd "<f7>") #'my-pdf-mode)
+;;   (define-key global-map (kbd "<f7>") #'my-projectile-mode))

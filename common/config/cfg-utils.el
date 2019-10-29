@@ -579,6 +579,13 @@ Uses `current-date-time-format' for the formatting the date/time."
   (insert (format-time-string current-time-format (current-time)))
   (insert "\n"))
 
+;; from http://emacswiki.org/emacs/InsertingTodaysDate
+(defun insert-todays-date (arg)
+  (interactive "P")
+  (insert (if arg
+              (format-time-string "%d-%m-%Y")
+            (format-time-string "%Y-%m-%d"))))
+
 ;; TODO
 ;; (global-set-key "\C-c\C-d" 'insert-current-date-time)
 ;; (global-set-key "\C-c\C-t" 'insert-current-time)
@@ -757,3 +764,73 @@ Lisp function does not specify a special indentation."
         (inhibit-read-only t))
     (remove-text-properties begin end '(read-only t))
     (set-buffer-modified-p modified)))
+
+(defun goto-symbol ()
+  (interactive)
+  (deactivate-mark)
+  (condition-case err
+      (progn
+	(ring-insert find-tag-marker-ring (point-marker))
+	(cl-flet ((always-no (&rest \_) (signal (car err) (cdr err))))
+	  (cl-letf (((symbol-function 'y-or-no-p) #'always-no)
+		    ((symbol-function 'yes-or-no-p) #'always-no))
+	    (xref-find-definitions))))
+    (error
+     (set-marker (ring-remove find-tag-marker-ring 0) nil nil)
+     (dumb-jump-go))))
+
+(defun keymap-symbol (keymap)
+  "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
+  (catch 'gotit
+    (mapatoms (lambda (sym)
+                (and (boundp sym)
+                     (eq (symbol-value sym) keymap)
+                     (not (eq sym 'keymap))
+                     (throw 'gotit sym))))))
+
+(use-package cl-format
+  :straight (:host github
+	     :repo "alvinfrancis/cl-format"))
+
+(defun window-toggle-split-direction ()
+  "Switch window split from horizontally to vertically, or vice versa.
+
+i.e. change right window to bottom, or change bottom window to right."
+  (interactive)
+  (require 'windmove)
+  (let ((done))
+    (dolist (dirs '((right . down) (down . right)))
+      (unless done
+        (let* ((win (selected-window))
+               (nextdir (car dirs))
+               (neighbour-dir (cdr dirs))
+               (next-win (windmove-find-other-window nextdir win))
+               (neighbour1 (windmove-find-other-window neighbour-dir win))
+               (neighbour2 (if next-win (with-selected-window next-win
+                                          (windmove-find-other-window neighbour-dir next-win)))))
+          ;;(message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
+          (setq done (and (eq neighbour1 neighbour2)
+                          (not (eq (minibuffer-window) next-win))))
+          (if done
+              (let* ((other-buf (window-buffer next-win)))
+                (delete-window next-win)
+                (if (eq nextdir 'right)
+                    (split-window-vertically)
+                  (split-window-horizontally))
+                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))))
+
+(defun window-split-n-below (n)
+  (interactive "p")
+  (if (and n (> n 1))
+      (dotimes (_ (1- n))
+	(split-window-below))
+    (split-window-below))
+  (balance-windows))
+
+(defun window-split-n-right (n)
+  (interactive "p")
+  (if (and n (> n 1))
+      (dotimes (_ (1- n))
+	(split-window-right))
+    (split-window-right))
+  (balance-windows))

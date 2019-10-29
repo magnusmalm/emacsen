@@ -17,10 +17,10 @@
 (setf erc-prompt  (lambda () (concat (buffer-name) ">")))
 
 (defun my-erc-mode-hook-func ()
+  (emojify-mode)
   (flyspell-mode 1)
   (erc-spelling-mode 1)
-  (bind-key* "C-c C-n" 'counsel-irc-query-nick)
-  (bind-key* "M-RET" 'counsel-irc-query-nick))
+  (bind-key "M-RET" 'counsel-irc-query-nick erc-mode-map))
 
 (add-hook 'erc-mode-hook 'my-erc-mode-hook-func)
 
@@ -93,6 +93,12 @@
   :config
   (erc-colorize-mode 1))
 
+;; https://github.com/thisirs/erc-colorize
+
+;; (use-package erc-nick-notify
+;;   :straight (:host github
+;; 	     :repo "emacsmirror/erc-nick-notify"
+;; 	     :branch "master"))
 
 (eval-after-load 'erc-track
   '(progn
@@ -164,3 +170,5 @@
 (setf znc-identifier (system-name))
 
 (setf erc-join-buffer 'bury)
+
+(set-face-attribute 'erc-distinct-1-face nil :foreground "deep sky blue")
