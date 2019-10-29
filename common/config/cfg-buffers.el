@@ -233,7 +233,7 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
   :config
   (setf auto-save-default nil)
   (setf super-save-idle-duration 3)
-  (setf super-save-auto-save-when-idle t)
+  (setf super-save-auto-save-when-idle nil)
   (add-to-list 'super-save-triggers 'ace-window)
   (add-to-list 'super-save-hook-triggers 'find-file-hook)
   (setf super-save-exclude '(".gpg"))

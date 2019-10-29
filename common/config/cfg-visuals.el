@@ -16,7 +16,7 @@
       (setq path (cdr path)))
     (when path
       (setq output (concat "../" output)))
-    output))
+    (string-trim-right output "/")))
 
 (setq-default mode-line-buffer-identification
 	      (propertized-buffer-identification "%b "))
@@ -27,9 +27,15 @@
 	       (concat " " (shorten-directory
 			    (file-relative-name buffer-file-name (projectile-project-root))
 			    20)) " "))
-    face mode-line)
+    face font-lock-keyword-face)
   "Formats the current directory.")
 (put 'mode-line-directory 'risky-local-variable t)
+
+(use-package my-mode-line
+  :straight nil
+  :ensure nil
+  :custom-face
+  (mode-line ((t (:background "#2B2B2B" :foreground "#8FB28F" :box (:line-width 1 :color "deep sky blue"))))))
 
 (setq-default mode-line-format
 	      (list
@@ -39,7 +45,8 @@
 
 	       " "
 	       mode-line-directory
-	       mode-line-buffer-identification
+	       ;; '(:propertize "%f" face font-lock-keyword-face)
+	       ;; mode-line-buffer-identification
 	       " "
 
 	       '(:eval (if vc-mode "@ "))
@@ -59,12 +66,14 @@
 			   (:eval (propertize "%03c" 'face 'font-lock-keyword-face))
 			   ") ")))
 
-	       ;; relative position, size of file
-	       ;; " ["
-	       ;; (propertize "%p" 'face 'font-lock-constant-face) ;; % above top
-	       ;; "/"
-	       ;; (propertize "%I" 'face 'font-lock-constant-face) ;; size
-	       ;; "] "
+	       '(:eval (let ((workspaces (lsp-workspaces)))
+			 (if workspaces
+			     (concat ""
+				     (string-join
+				      (mapcar (lambda (w)
+						(format "[%s] " (lsp--workspace-print w)))
+					      workspaces))))))
+
 	       (propertize "%n" 'face 'font-lock-constant-face) ;; narrow if appropriate
 	       ;; spaces to align right
 	       '(:eval (propertize

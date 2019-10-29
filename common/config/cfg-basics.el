@@ -11,23 +11,23 @@
   :straight nil
   :ensure nil
   :after crux
-  :bind (
-	 ("M-j" . backward-char)
-	 ("M-l" . forward-char)
-	 ("M-i" . previous-line)
-	 ("M-k" . next-line)
-	 ("M-u" . backward-word)
-	 ("M-o" . forward-word)
-	 ("M-J" . backward-paragraph)
-	 ("M-L" . forward-paragraph)
-	 ("M-h" . crux-move-beginning-of-line)
-	 ("M-H" . move-end-of-line)
-	 ("M-I" . scroll-down-command)
-	 ("M-K" . scroll-up-command)
-	 ("M-U" . beginning-of-buffer)
-	 ("M-O" . end-of-buffer)
-	 ("M-g" . goto-line-show)
-	 ))
+  :bind* (
+	  ("M-j" . backward-char)
+	  ("M-l" . forward-char)
+	  ("M-i" . previous-line)
+	  ("M-k" . next-line)
+	  ("M-u" . backward-word)
+	  ("M-o" . forward-word)
+	  ("M-J" . backward-paragraph)
+	  ("M-L" . forward-paragraph)
+	  ("M-h" . crux-move-beginning-of-line)
+	  ("M-H" . move-end-of-line)
+	  ("M-I" . scroll-down-command)
+	  ("M-K" . scroll-up-command)
+	  ("M-U" . beginning-of-buffer)
+	  ("M-O" . end-of-buffer)
+	  ("M-g" . goto-line-show)
+	  ))
 
 (use-package auto-compile
   :demand   t
@@ -284,29 +284,39 @@
 
 ;;;; COMPANY
 (use-package company
-  :commands (company-complete-common company-manual-begin company-grab-line)
+  :commands (company-complete-common-or-cycle company-manual-begin company-grab-line)
   :init
   (defvar-local company-fci-mode-on-p nil)
   (setq company-minimum-prefix-length 1
 	company-selection-wrap-around t
 	company-show-numbers t
-	company-idle-delay 0.1
-        company-tooltip-limit 20
-        company-dabbrev-downcase nil
-        company-dabbrev-ignore-case nil
-        company-dabbrev-code-other-buffers t
-        company-tooltip-align-annotations t
-        company-require-match 'never
-        company-global-modes
-        '(not erc-mode message-mode help-mode gud-mode eshell-mode)
-        company-backends '(company-capf)
-        company-frontends
-        '(company-pseudo-tooltip-frontend
-          company-echo-metadata-frontend))
-  :bind (:map company-active-map
+	company-idle-delay 0.5
+	company-tooltip-limit 20
+	company-dabbrev-downcase nil
+	company-dabbrev-ignore-case nil
+	company-dabbrev-code-other-buffers t
+	company-tooltip-align-annotations t
+	company-require-match 'never
+	company-global-modes
+	'(not erc-mode message-mode help-mode gud-mode eshell-mode)
+	company-backends '(company-capf)
+	company-frontends
+	'(company-pseudo-tooltip-frontend
+	  company-echo-metadata-frontend))
+  :bind (("s-SPC" . smart-tab))
+  :bind (
+	 :map company-active-map
+	 ("<tab>" . company-complete-common-or-cycle)
+	 ("<escape>" . company-abort)
 	 ("M-k" . company-select-next)
-	 ("M-i" . company-select-previous))
+	 ("M-i" . company-select-previous)
+	 )
+  :bind* (("C-<tab>" . my-insert-tab-char))
   :config
+  (defun my-insert-tab-char ()
+    "Insert a tab char. (ASCII 9, \t)"
+    (interactive)
+    (insert "\t"))
   (defun company-turn-off-fci (&rest ignore)
     (when (boundp 'fci-mode)
       (setf company-fci-mode-on-p fci-mode)
@@ -316,25 +326,15 @@
     (when company-fci-mode-on-p (fci-mode 1)))
 
   (setq company-backends '((company-capf
-                            company-ispell
-                            company-keywords)
+			    company-ispell
+			    company-keywords)
 			   ;; company-yasnippet)
-                           (company-abbrev company-dabbrev)))
+			   (company-abbrev company-dabbrev)))
 
   :hook ((company-completion-started . company-turn-off-fci)
 	 (company-completion-finished . company-maybe-turn-on-fci)
 	 (company-completion-cancelled-hook . company-maybe-turn-on-fci)
-	 (after-init . global-company-mode)
-	 ;; ((go-mode
-	 ;;   c++-mode
-	 ;;   c-mode
-	 ;;   objc-mode) . (lambda () (set (make-local-variable 'company-backends)
-	 ;; 			   '(company-yasnippet
-	 ;; 			     company-lsp
-	 ;; 			     company-files
-	 ;; 			     company-dabbrev-code
-	 ;; 			     ))))
-	 ))
+	 (after-init . global-company-mode)))
 
 (use-package company-prescient
   :after company
@@ -351,11 +351,15 @@
   :bind (:map company-active-map
 	 ("M-h" . company-quickhelp-manual-begin))
   :config
-  (setf company-quickhelp-delay nil)
-  (setf company-quickhelp-delay 2.0)
+  (setf company-quickhelp-delay t)
+  (setf company-quickhelp-delay 1.0)
   (setf company-quickhelp-max-lines nil)
   (setf company-quickhelp-use-propertized-text t)
   (company-quickhelp-mode 1))
+
+;; (use-package company-c-headers
+;;   :config
+;;   (add-to-list 'company-backends 'company-c-headers))
 
 ;;;; NOTIFICATIONS
 (use-package notify
@@ -505,10 +509,10 @@
   (crux-with-region-or-buffer untabify))
 
 (use-package avy
-  :bind (("H-q" . avy-goto-char)
-	 ("C-<return>". avy-goto-char-2)
-	 ("C-S-<return>". avy-goto-line)
-	 ("H-Q" . hydra-avy/body))
+  :bind* (("H-q" . avy-goto-char)
+	  ("C-<return>". avy-goto-char-2)
+	  ("C-S-<return>". avy-goto-line)
+	  ("H-Q" . hydra-avy/body))
   :config
   (setf avy-style 'at-full)
   (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l))
@@ -677,7 +681,7 @@
 
 (use-package ivy
   :blackout
-  :bind* (("M-M" . ivy-switch-buffer)
+  :bind* (("M-M" . counsel-switch-buffer)
 	  ("M-m" . projectile-switch-to-buffer)
   	  ("C-c C-r" . ivy-resume))
   :bind (:map ivy-minibuffer-map
@@ -938,9 +942,8 @@
     (add-hook 'kill-emacs-hook #'brds/pdf-set-all-last-viewed-bookmarks))
 
 
-;; Keys
+  ;; Keys
   (bind-keys :map pdf-view-mode-map
-    ("/" . hydra-pdftools/body)
     ("M-s" . isearch-forward)
     ("C-s" . save-buffer)
     ("M-i" . pdf-view-scroll-up-or-next-page)
@@ -966,55 +969,7 @@
     ("b"  . pdf-view-set-slice-from-bounding-box)
     ("r"  . pdf-view-reset-slice))
 
-  (defhydra hydra-pdftools (:color blue :hint nil)
-    "
-      PDF tools
-
-   Move  History   Scale/Fit                  Annotations     Search/Link     Do
-------------------------------------------------------------------------------------------------
-     ^^_g_^^      _B_    ^ ^    _+_    ^ ^     _al_: list    _s_: search    _u_: revert buffer
-     ^^^ ^^^      ^ ^    _H_    ^ ^    _W_     _am_: markup  _o_: outline   _i_: info
-     ^^_p_^^      ^ ^    ^ ^    _0_    ^ ^     _at_: text    _F_: link      _d_: dark mode
-     ^^^ ^^^      ^ ^    ^ ^    ^ ^    ^ ^     _ad_: delete  _f_: search link
-_h_  pag_e_  _l_  _N_    _P_    _-_    _b_     _aa_: dired
-     ^^^ ^^^      ^ ^    ^ ^    ^ ^    ^ ^     _y_:  yank
-     ^^_n_^^      ^ ^  _r_eset slice box
-     ^^^ ^^^
-     ^^_G_^^
-"
-
-    ("\\" hydra-master/body "back")
-    ("<ESC>" nil "quit")
-    ("al" pdf-annot-list-annotations)
-    ("ad" pdf-annot-delete)
-    ("aa" pdf-annot-attachment-dired)
-    ("am" pdf-annot-add-markup-annotation)
-    ("at" pdf-annot-add-text-annotation)
-    ("y"  pdf-view-kill-ring-save)
-    ("+" pdf-view-enlarge :color red)
-    ("-" pdf-view-shrink :color red)
-    ("0" pdf-view-scale-reset)
-    ("H" pdf-view-fit-height-to-window)
-    ("W" pdf-view-fit-width-to-window)
-    ("P" pdf-view-fit-page-to-window)
-    ("n" pdf-view-next-page-command :color red)
-    ("p" pdf-view-previous-page-command :color red)
-    ("d" pdf-view-dark-minor-mode)
-    ("b" pdf-view-set-slice-from-bounding-box)
-    ("r" pdf-view-reset-slice)
-    ("g" pdf-view-first-page)
-    ("G" pdf-view-last-page)
-    ("e" pdf-view-goto-page)
-    ("o" pdf-outline)
-    ("s" pdf-occur)
-    ("i" pdf-misc-display-metadata)
-    ("u" pdf-view-revert-buffer)
-    ("F" pdf-links-action-perfom)
-    ("f" pdf-links-isearch-link)
-    ("B" pdf-history-backward :color red)
-    ("N" pdf-history-forward :color red)
-    ("l" image-forward-hscroll :color red)
-    ("h" image-backward-hscroll :color red)))
+  )
 
 (use-package man
   :straight nil

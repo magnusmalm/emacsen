@@ -6,7 +6,8 @@
  '(safe-local-variable-values
    (quote
     ((eval setenv "PYTHONPATH"
-	   (projectile-project-root))))))
+	   (projectile-project-root))
+     (checkdoc-package-keywords-flag)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -17,6 +18,7 @@
  '(diredfl-file-name ((t (:foreground "SpringGreen"))))
  '(diredfl-ignored-file-name ((t (:foreground "#7F9F7F"))))
  '(magit-hash ((t (:foreground "spring green"))))
+ '(mode-line ((t (:background "#2B2B2B" :foreground "#8FB28F" :box (:line-width 1 :color "deep sky blue")))))
  '(rainbow-delimiters-base-face ((t (:inherit nil))))
  '(rainbow-delimiters-depth-1-face ((t (:foreground "yellow"))))
  '(rainbow-delimiters-depth-2-face ((t (:foreground "dark orange"))))

@@ -151,37 +151,37 @@ one by line."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
-(use-package hercules
-  :config
-  (hercules-def
-   :toggle-funs #'my-projectile-mode
-   :keymap 'projectile-command-map
-   :transient t
-   ;; flatten nested keymaps
-   :flatten t)
+;; (use-package hercules
+;;   :config
+;;   (hercules-def
+;;    :toggle-funs #'my-projectile-mode
+;;    :keymap 'projectile-command-map
+;;    :transient t
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-  (hercules-def
-   :toggle-funs #'my-dired-mode
-   :keymap 'dired-mode-map
-   :transient t
-   ;; flatten nested keymaps
-   :flatten t)
+;;   (hercules-def
+;;    :toggle-funs #'my-dired-mode
+;;    :keymap 'dired-mode-map
+;;    :transient t
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-  (hercules-def
-   :toggle-funs #'my-pdf-mode
-   :keymap 'pdf-view-mode-map
-   :transient nil
-   ;; flatten nested keymaps
-   :flatten t)
+;;   (hercules-def
+;;    :toggle-funs #'my-pdf-mode
+;;    :keymap 'pdf-view-mode
+;;    :transient nil
+;;    ;; flatten nested keymaps
+;;    :flatten t)
 
-  (hercules-def
-   ;; read further to see why this works
-   :toggle-funs #'org-babel-mode
-   :keymap 'org-babel-map
-   :transient t)
+;;   (hercules-def
+;;    ;; read further to see why this works
+;;    :toggle-funs #'org-babel-mode
+;;    :keymap 'org-babel-map
+;;    :transient t)
 
-  ;; tweak binding to taste
-  (define-key org-mode-map (kbd "<f7>") #'org-babel-mode)
-  (define-key dired-mode-map (kbd "<f7>") #'my-dired-mode)
-  (define-key pdf-view-mode-map (kbd "<f7>") #'my-pdf-mode)
-  (define-key global-map (kbd "<f7>") #'my-projectile-mode))
+;;   ;; tweak binding to taste
+;;   (define-key org-mode-map (kbd "<f7>") #'org-babel-mode)
+;;   (define-key dired-mode-map (kbd "<f7>") #'my-dired-mode)
+;;   (define-key pdf-view-mode (kbd "<f7>") #'my-pdf-mode)
+;;   (define-key global-map (kbd "<f7>") #'my-projectile-mode))

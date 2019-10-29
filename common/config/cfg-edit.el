@@ -59,7 +59,9 @@
 	 ("C-c C-m <" . mc/mark-previous-like-this)
 	 ("C-c C-m #" . mc/insert-numbers)
 	 ("C-c C-m s" . mc/sort-regions)
-	 ("C-c C-m r" . mc/reverse-regions)))
+	 ("C-c C-m r" . mc/reverse-regions)
+	 :map mc/keymap
+	 ("C-'" . hide-unmatched-lines-mode)))
 
 (use-package ace-mc)
 
@@ -158,13 +160,12 @@
 (use-package selected
   :init (selected-minor-mode)
   :bind (:map selected-keymap
-	      ("M-W" . er/expand-region)
-	      ("M-Q" . selected-off)
-	      ("M-U" . upcase-region)
-	      ("M-D" . downcase-region)
-	      ("M-G" . google-this)
-	      ("M-E" . iedit-dwim)
-	      ("M-M" . apply-macro-to-region-lines)))
+	 ("M-Q" . selected-off)
+	 ("M-U" . upcase-region)
+	 ("M-D" . downcase-region)
+	 ("M-L" . mc/edit-lines)
+	 ("C-M-L" . mc/mark-all-like-this)
+	 ("M-M" . apply-macro-to-region-lines)))
 
 (use-package subword
   :ensure nil
