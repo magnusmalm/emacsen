@@ -26,10 +26,15 @@
   ;; (flycheck-mode 1)
   (key-chord-mode 1)
   (ws-butler-mode 1)
-  (setq company-transformers nil)
+  ;; (setq company-transformers nil)
+  (setq company-transformers nil
+	company-lsp-async t
+	company-lsp-cache-candidates nil)
   (bind-key "M-j" 'backward-char c-mode-map)
   (bind-key "M-e" 'backward-kill-word c-mode-map)
-  (push 'company-lsp company-backends)
+  ;; (bind-key "M-q" 'fill-function-arguments-dwim)
+
+  (add-to-list 'company-backends 'company-lsp)
   )
 
 (add-hook 'c-mode-hook 'my-c-mode-hook-func)

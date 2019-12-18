@@ -4,7 +4,7 @@
 (unbind-key (kbd "s-t")) ; ns-popup-font-panel
 (unbind-key (kbd "C-x C-c")) ; save-buffers-kill-terminal
 
-(bind-key "H-r" 'repeat)
+;; (bind-key "H-r" 'repeat)
 
 (bind-key "C-c C-u" 'mmm:uuid)
 
@@ -151,37 +151,28 @@ one by line."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
-;; (use-package hercules
-;;   :config
-;;   (hercules-def
-;;    :toggle-funs #'my-projectile-mode
-;;    :keymap 'projectile-command-map
-;;    :transient t
-;;    ;; flatten nested keymaps
-;;    :flatten t)
+(use-package hercules
+  :config
+  (hercules-def
+   :toggle-funs #'org-babel-mode
+   :keymap 'org-babel-map
+   :transient t)
+  (define-key org-mode-map (kbd "C-c C-v") 'org-babel-mode)
 
-;;   (hercules-def
-;;    :toggle-funs #'my-dired-mode
-;;    :keymap 'dired-mode-map
-;;    :transient t
-;;    ;; flatten nested keymaps
-;;    :flatten t)
+  (hercules-def
+   :show-funs #'my-flycheck-mode
+   :keymap 'flycheck-command-map
+   :transient t)
+  (bind-key "C-<f12>" #'my-flycheck-mode)
 
-;;   (hercules-def
-;;    :toggle-funs #'my-pdf-mode
-;;    :keymap 'pdf-view-mode
-;;    :transient nil
-;;    ;; flatten nested keymaps
-;;    :flatten t)
+  (hercules-def
+   :show-funs #'windresize
+   :hide-funs '(windresize-exit windresize-cancel-and-quit)
+   :keymap 'windresize-map)
 
-;;   (hercules-def
-;;    ;; read further to see why this works
-;;    :toggle-funs #'org-babel-mode
-;;    :keymap 'org-babel-map
-;;    :transient t)
+  (bind-key "<f12>" #'windresize))
 
-;;   ;; tweak binding to taste
-;;   (define-key org-mode-map (kbd "<f7>") #'org-babel-mode)
-;;   (define-key dired-mode-map (kbd "<f7>") #'my-dired-mode)
-;;   (define-key pdf-view-mode (kbd "<f7>") #'my-pdf-mode)
-;;   (define-key global-map (kbd "<f7>") #'my-projectile-mode))
+(use-package git-undo)
+;; :straight (:host github :repo " https://github.com/jwiegley/git-undo-el"))
+
+(use-package zone-nyan)

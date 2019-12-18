@@ -47,7 +47,16 @@ Inserted by installing org-mode or when a release is made."
 	     (let ((file (concat dir file "/")))
 	       (when (file-directory-p file)
 		 (load-org-agenda-files-recursively file))))))
-  ;; :config
+  :bind
+  (("C-c M-l" . org-store-link)
+   ("C-c C-l" . org-insert-link)
+   ("C-c a" . org-agenda)
+   ("C-c c" . org-capture)
+   ("<pause>" . org-capture)
+   ("C-c C-e" . org-export-dispatch)
+   )
+  :config
+  (require 'org-tempo)
   (setq org-agenda-files '("~/sync/org/work.org"
 			   "~/sync/org/private.org"
 			   "~/sync/org/solkatten.org"
@@ -69,6 +78,7 @@ Inserted by installing org-mode or when a release is made."
   (setf org-src-fontify-natively t)
   (setf org-src-tab-acts-natively t)
   (setf org-return-follows-link t)
+  (setf org-reverse-note-order t)
 
   (setf org-ellipsis "⤵")
   (setf org-todo-keywords
@@ -136,6 +146,7 @@ Inserted by installing org-mode or when a release is made."
 	   :background nil
 	   :weight bold)))
 
+  (setf org-loop-over-headlines-in-active-region t)
   )
 
 (defun mmm/org-capture-mode-hook ()
@@ -152,21 +163,72 @@ Inserted by installing org-mode or when a release is made."
 
 (setf org-capture-templates
       '(
-	("m" "meeting" entry (file+headline "~/sync/org/inbox.org" "meetings")
+	("w" "work")
+
+	("wt" "work todo" entry
+	 (file+headline "~/sync/org/work.org" "todos")
+	 "* TODO %?\n"
+	 :prepend t)
+
+
+	("wj" "Journal entry" plain
+	 (file+olp+datetree "~/sync/org/journal-work.org")
+	 "%i\n\n**** %?\n"
+	 :empty-lines 1)
+
+	("wm" "meeting" entry (file+headline "~/sync/org/work.org" "meetings")
 	 "* TODO %? :meeting:\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"
 	 :prepend t)
-	("T" "todo" entry (file+headline "~/sync/org/inbox.org" "todos")
-	 "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"
+
+	("wn" "Note" entry
+	 (file+headline "~/sync/org/work.org" "notes")
+	 "* %?\n%u"
 	 :prepend t)
-	("j" "Journal entry" plain
-	 (file+olp+datetree "~/sync/org/journal/journal.org")
-	 "%i\n\n**** %?\n" :empty-lines 1)
-	("t" "TODO" entry
-	 (file+headline "~/sync/org/inbox.org" "todos")
-	 "* TODO %?\n%u" :prepend t)
-	("n" "Note" entry
-	 (file+headline "~/sync/org/inbox.org" "notes")
-	 "* %?\n%u" :prepend t)
+
+	("p" "private")
+
+	("pt" "work todo" entry
+	 (file+headline "~/sync/org/private.org" "todos")
+	 "* TODO %?\n"
+	 :prepend t)
+
+
+	("pj" "Journal entry" plain
+	 (file+olp+datetree "~/sync/org/journal-private.org")
+	 "%i\n\n**** %?\n"
+	 :empty-lines 1)
+
+	("pm" "meeting" entry (file+headline "~/sync/org/private.org" "meetings")
+	 "* TODO %? :meeting:\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"
+	 :prepend t)
+
+	("pn" "Note" entry
+	 (file+headline "~/sync/org/private.org" "notes")
+	 "* %?\n%u"
+	 :prepend t)
+
+	("s" "solkatten")
+
+	("st" "work todo" entry
+	 (file+headline "~/sync/org/solkatten.org" "todos")
+	 "* TODO %?\n"
+	 :prepend t)
+
+
+	("sj" "Journal entry" plain
+	 (file+olp+datetree "~/sync/org/journal-solkatten.org")
+	 "%i\n\n**** %?\n"
+	 :empty-lines 1)
+
+	("sm" "meeting" entry (file+headline "~/sync/org/solkatten.org" "meetings")
+	 "* TODO %? :meeting:\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"
+	 :prepend t)
+
+	("sn" "Note" entry
+	 (file+headline "~/sync/org/solkatten.org" "notes")
+	 "* %?\n%u"
+	 :prepend t)
+
 	)
       )
 

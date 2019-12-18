@@ -4,3 +4,4 @@ irc/
 mail/
 org/
 lisp/
+*.elc

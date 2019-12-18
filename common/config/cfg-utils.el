@@ -834,3 +834,147 @@ i.e. change right window to bottom, or change bottom window to right."
 	(split-window-right))
     (split-window-right))
   (balance-windows))
+
+;;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
+(defun unfill-paragraph (&optional region)
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive (progn (barf-if-buffer-read-only) '(t)))
+  (let ((fill-column (point-max))
+	;; This would override `fill-column' if it's an integer.
+	(emacs-lisp-docstring-fill-column t))
+    (fill-paragraph nil region)))
+
+(defun list-env-paths ()
+  (interactive)
+  "Dumps a newline separated list of all items in $PATH."
+  (message (replace-regexp-in-string (regexp-quote ":") "\n" (getenv "PATH") nil 'literal)))
+
+(defun describe-thing-in-popup ()
+  (interactive)
+  (let* ((thing (symbol-at-point))
+         (help-xref-following t)
+         (description (with-temp-buffer
+                        (help-mode)
+                        (describe-variable thing)
+                        (describe-symbol thing)
+                        (buffer-string))))
+    (popup-tip description
+               :point (point)
+               :around t
+               :height 30
+               :scroll-bar t
+               :margin t)))
+
+(defun mmm/switch-buffer-dwim ()
+  (interactive)
+  (if (projectile-project-p)
+      (projectile-switch-to-buffer)
+    (ivy-switch-buffer)))
+
+(defun fhd/counsel-everything ()
+  "list everything recursively"
+  (interactive)
+  (let* ((cands (split-string
+                 (shell-command-to-string "fdfind .") "\n" t)))
+    (ivy-read "File: " cands
+              :action #'find-file
+              :caller 'fhd/counsel-everything)))
+
+(defun mmm/print-current-font ()
+  (interactive)
+  (message "%s" (face-attribute 'default :font nil 'default)))
+
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (progn (widen)
+						  (recenter)))
+	((region-active-p)
+	 (narrow-to-region (region-beginning)
+			   (region-end)))
+	((derived-mode-p 'org-mode)
+	 ;; `org-edit-src-code' is not a real narrowing
+	 ;; command. Remove this first conditional if
+	 ;; you don't want it.
+	 (cond ((ignore-errors (org-edit-src-code) t)
+		(delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+	((derived-mode-p 'latex-mode)
+	 (LaTeX-narrow-to-environment))
+	(t (narrow-to-defun))))
+
+(define-prefix-command 'endless/toggle-map)
+;; The manual recommends C-c for user keys, but C-x t is
+;; always free, whereas C-c t is used by some modes.
+(define-key ctl-x-map "t" 'endless/toggle-map)
+(define-key endless/toggle-map "c" #'column-number-mode)
+(define-key endless/toggle-map "d" #'toggle-debug-on-error)
+(define-key endless/toggle-map "e" #'toggle-debug-on-error)
+(define-key endless/toggle-map "f" #'auto-fill-mode)
+(define-key endless/toggle-map "l" #'toggle-truncate-lines)
+(define-key endless/toggle-map "q" #'toggle-debug-on-quit)
+(define-key endless/toggle-map "t" #'endless/toggle-theme)
+
+;;; Generalized version of `read-only-mode'.
+(define-key endless/toggle-map "r" #'dired-toggle-read-only)
+(autoload 'dired-toggle-read-only "dired" nil t)
+(define-key endless/toggle-map "w" #'whitespace-mode)
+
+(define-key endless/toggle-map "n"
+  #'narrow-or-widen-dwim)
+;; This line actually replaces Emacs' entire narrowing
+;; keymap, that's how much I like this command. Only
+;; copy it if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+
+(defun save-buffer-kill ()
+  (interactive)
+  (if (and (buffer-modified-p)
+	   (yes-or-no-p "Save? "))
+      (save-buffer)
+    (not-modified))
+  (kill-buffer-and-window))
+
+;; Easily create .dir-locals
+(defmacro project-specifics (name &rest body)
+  (declare (indent 1))
+  `(progn
+     (add-hook 'find-file-hook
+               (lambda ()
+                 (when (string-match-p ,name (buffer-file-name))
+                   ,@body)))
+     (add-hook 'dired-after-readin-hook
+               (lambda ()
+                 (when (string-match-p ,name (dired-current-directory))
+                   ,@body)))))
+
+;; Example usage
+;; (project-specifics "projects/zombietdd"
+;; 		   (set (make-local-variable 'slime-js-target-url) "http://localhost:3000/")
+;; 		   (ffip-local-patterns "*.js" "*.jade" "*.css" "*.json" "*.md"))
+
+(provide 'cfg-utils)
+;;; cfg-utils.el ends here
+
+(defun clean-fawlty-logs ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "\\(\0\\)" nil t)
+      (replace-match ""))
+
+    (goto-char (point-min))
+    (while (re-search-forward "\\(\\)" nil t)
+      (replace-match ""))
+
+    (goto-char (point-min))
+    (while (re-search-forward "\\([[].m\\)" nil)
+      (replace-match ""))))

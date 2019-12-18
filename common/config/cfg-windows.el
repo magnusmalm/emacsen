@@ -27,8 +27,8 @@
 
 (use-package ace-window
   :bind (("M-b" . ace-window)
-	 ("C-M-S-k" . ace-swap-window)
-	 ("C-M-S-o" . ace-window))
+	 ("C-M-K" . ace-swap-window)
+	 ("C-M-O" . ace-window))
   :config
   (ace-window-display-mode 1)
   (defvar aw-dispatch-alist
@@ -95,3 +95,5 @@
   (setf resize-mini-windows t)
   (file-name-shadow-mode 1)
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
+
+(use-package windresize)

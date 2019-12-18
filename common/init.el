@@ -90,6 +90,7 @@ Your installed Emacs reports:
 (when (or (server-is "devel")
 	  (server-is "lisp"))
   (measure-time (my-load "cfg-c-devel"))
+  ;; (measure-time (my-load "cfg-rust-devel"))
   (measure-time (my-load "cfg-python-devel"))
   (measure-time (my-load "cfg-lisp-devel")))
 

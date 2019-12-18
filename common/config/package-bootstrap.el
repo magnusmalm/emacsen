@@ -46,6 +46,8 @@
 
 (straight-use-package 'use-package)
 
+(setf use-package-verbose t)
+
 (straight-use-package 'use-package-ensure-system-package)
 
 (use-package general)

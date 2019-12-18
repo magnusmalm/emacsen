@@ -72,7 +72,7 @@ and set the focus back to Emacs frame"
   (setf flycheck-display-errors-delay 0.3)
   (setf flycheck-idle-change-delay 1.0)
   (setf flycheck-indication-mode 'left-fringe)
-  (setf flycheck-display-errors-function nil)
+  (setf flycheck-display-errors-funcjtion 'flycheck-display-error-messages)
   :hook (prog-mode . flycheck-mode))
 
 ;;;; INDENTING
@@ -128,6 +128,14 @@ and set the focus back to Emacs frame"
 
 (use-package json-mode)
 
+(use-package jq-mode
+  :straight (:host github
+	     :repo "ljos/jq-mode")
+  :bind (:map json-mode-map
+	 ("C-c C-j" . 'jq-interactively))
+  :config
+  (setf jq-interactive-default-options "--sort-keys"))
+
 ;;; LSP
 
 (use-package ccls
@@ -138,18 +146,23 @@ and set the focus back to Emacs frame"
   :config
   (setf lsp-print-io nil)
   (setf lsp-trace nil)
+  (setf lsp-enable-indentation nil)
+  (setf lsp-enable-on-type-formatting nil)
   (setf lsp-print-performance nil)
   (setf lsp-enable-snippet nil)
   (setf lsp-prefer-flymake nil)
   (setf lsp-auto-guess-root t)
   (setf lsp-document-sync-method 'incremental) ;; none, full, incremental, or nil
   (setf lsp-response-timeout 10)
+  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
   :hook ((go-mode c-mode python-mode) . lsp)
   :commands lsp)
 
 (use-package lsp-ui
   :commands lsp-ui-mode
   :config
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
   (setf lsp-ui-doc-enable nil)
   (setf lsp-ui-doc-header t)
   (setf lsp-ui-doc-include-signature nil)
@@ -163,14 +176,15 @@ and set the focus back to Emacs frame"
   (setf lsp-ui-flycheck-live-reporting t)
   (setf lsp-ui-sideline-enable t)
   (setf lsp-ui-sideline-ignore-duplicate t)
-  (setf lsp-ui-sideline-show-symbol t)
+  (setf lsp-ui-sideline-show-symbol nil)
   (setf lsp-ui-sideline-show-hover t)
-  (setf lsp-ui-sideline-show-diagnostics nil)
+  (setf lsp-ui-sideline-show-diagnostics t)
   (setf lsp-ui-sideline-show-code-actions t)
   :hook
   (lsp-mode . lsp-ui-mode)
   (lsp-mode . lsp-ui-sideline-mode)
-  (lsp-after-open . (lambda () (lsp-ui-flycheck-enable 1))))
+  ;; (lsp-after-open . (lambda () (lsp-ui-flycheck-enable 1)))
+  )
 
 
 ;; Lsp completion
@@ -183,12 +197,6 @@ and set the focus back to Emacs frame"
 (defun my-devel-mode-hook-func ()
   ;; Show the current function name in the header line
   (which-function-mode)
-  (setq-default header-line-format
-		'((which-func-mode ("" which-func-format " "))))
-  (setq mode-line-misc-info
-        ;; We remove Which Function Mode from the mode line, because it's mostly
-        ;; invisible here anyway.
-        (assq-delete-all 'which-func-mode mode-line-misc-info))
 
   (rainbow-identifiers-mode -1))
 
@@ -202,3 +210,18 @@ and set the focus back to Emacs frame"
 (use-package treemacs)
 
 (use-package treemacs-projectile)
+
+;; (use-package fill-function-arguments
+;;   :hook (prog-mode . (lambda ()
+;; 		       (unless (eq 'org-mode major-mode)
+;; 			 (local-set-key (kbd "M-q") #'fill-function-arguments-dwim))))
+;;   :config
+;;   (add-hook 'emacs-lisp-mode-hook (lambda ()
+;;                                     (setq-local fill-function-arguments-first-argument-same-line t)
+;;                                     (setq-local fill-function-arguments-second-argument-same-line t)
+;;                                     (setq-local fill-function-arguments-last-argument-same-line t)
+;;                                     (setq-local fill-function-arguments-argument-separator " ")))
+;;   (add-hook 'sgml-mode-hook (lambda ()
+;;                               (setq-local fill-function-arguments-first-argument-same-line t)
+;;                               (setq-local fill-function-arguments-argument-sep " ")
+;;                               (local-set-key (kbd "M-q") #'fill-function-arguments-dwim))))

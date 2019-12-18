@@ -172,3 +172,90 @@
 (setf erc-join-buffer 'bury)
 
 (set-face-attribute 'erc-distinct-1-face nil :foreground "deep sky blue")
+(set-face-attribute 'erc-distinct-3-face nil :foreground "green")
+(set-face-attribute 'erc-notice-face nil :foreground "BFEBBF")
+
+(defun mmm/change-nick (suffix)
+  (interactive "sNick suffix: ")
+  (if (string= "" suffix)
+      (insert (format "/nick malm"))
+    (insert (format "/nick malm_%s" suffix))))
+(bind-key "C-n" #'mmm/change-nick erc-mode-map)
+
+(defun mmm/me-text (text)
+  (interactive "sMe text: ")
+  (unless (string= "" text)
+    (insert (format "/me %s" text))))
+(bind-key "C-e" #'mmm/me-text erc-mode-map)
+
+
+(define-prefix-command 'emoji-map)
+(global-set-key (kbd "C-c C-s") emoji-map)
+
+(defmacro reg-emoji (name emoji)
+  (let ((func-name (intern (concat "mmm/insert-" name))))
+    `(progn
+       (defun ,func-name ()
+         ,(format "Insert the emoji %s." name)
+         (interactive)
+	 (insert ,emoji))
+       #',func-name)))
+
+(bind-key "+" (reg-emoji "thumbs-up" "👍") emoji-map)
+(bind-key "-" (reg-emoji "thumbs-down" "👎") emoji-map)
+(bind-key "g" (reg-emoji "thumbs-up" "👍") emoji-map)
+(bind-key "b" (reg-emoji "thumbs-down" "👎") emoji-map)
+(bind-key "s" (reg-emoji "smile" "🙂") emoji-map)
+(bind-key "S" (reg-emoji "big-smile" "😃") emoji-map)
+(bind-key "c" (reg-emoji "confused-smile" "😕") emoji-map)
+(bind-key "a" (reg-emoji "angry-smile" "😠") emoji-map)
+(bind-key "f" (reg-emoji "facepalm" "🤦") emoji-map)
+(bind-key "p" (reg-emoji "ponder" "🤔") emoji-map)
+
+(bind-key "C" (reg-emoji "coffee" "☕") emoji-map)
+(bind-key "P" (reg-emoji "pizza" "🍕") emoji-map)
+(bind-key "F" (reg-emoji "food" "🍲") emoji-map)
+(bind-key "T" (reg-emoji "cake" "🎂") emoji-map)
+(bind-key "U" (reg-emoji "uncertain" "¯\\_(\u30c4)_/¯") emoji-map)
+(bind-key "u" (reg-emoji "shrug" "🤷") emoji-map)
+(bind-key "y" (reg-emoji "yay" "\\o/") emoji-map)
+
+(defun call-figlet (string)
+  (interactive "sText: ")
+  (unless (string= "" string)
+    (push-mark)
+    (call-process "figlet" nil (current-buffer) nil string)))
+
+(bind-key "|" 'call-figlet emoji-map)
+
+(defun call-crazy-cow (string)
+  (interactive "sText: ")
+  (unless (string= "" string)
+    (push-mark)
+    (call-process "cowsay" nil (current-buffer) nil
+		  "-e" "oO" "-T" "U" string)))
+
+(bind-key "/" 'call-crazy-cow emoji-map)
+
+(defun call-fortune (who)
+  (interactive "sWho: ")
+  (push-mark
+   (insert (shell-command-to-string
+	    (format "fortune | cowsay -f %s" (if (string= "" who) "default" who))))))
+
+(defun say-it (who text)
+  (interactive "sWho:
+sText: ")
+  (push-mark
+   (insert
+    (shell-command-to-string
+     (format "%s | cowsay -f %s"
+	     (if (string= "" text) "fortune -s linux" (format "echo %s" text))
+	     (if (string= "" who) "tux" who))))))
+
+(defun pipe-it (cmd)
+  (interactive "sCommand: ")
+  (push-mark
+   (insert
+    (shell-command-to-string
+     (format "%s" cmd)))))

@@ -9,6 +9,7 @@
   (magit-hash ((t (:foreground "spring green"))))
 
   :config
+  (transient-bind-q-to-quit)
   (setenv "GIT_PAGER" "")
   (setf magit-blame-echo-style 'lines)
   (setf magit-repository-directories '(("~/src" . 1) ("~/devel" . 3)))
@@ -66,6 +67,7 @@
 
   (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (setf magit-save-repository-buffers 'dontask))
+  ;; :hook ((git-commit-mode . (lambda () (add-to-list 'fill-column 72)))))
 
 (use-package magit-popup)
 
@@ -242,3 +244,22 @@ instead.  The optional BRANCH argument is for internal use only."
 (use-package magit-pretty-graph
   :straight (:host github
 	     :repo "georgek/magit-pretty-graph"))
+
+(use-package forge
+  :after magit)
+
+(use-package vc-msg
+  :bind (("H-b" . vc-msg-show))
+  :config
+  (setq vc-msg-git-show-commit-function 'magit-show-commit)
+  ;; show code of commit
+  (setq vc-msg-git-show-commit-function 'magit-show-commit)
+  ;; open file of certain revision
+  (push '("m"
+          "[m]agit-find-file"
+          (lambda ()
+            (let* ((info vc-msg-previous-commit-info)
+                   (git-dir (locate-dominating-file default-directory ".git")))
+              (magit-find-file (plist-get info :id )
+                               (concat git-dir (plist-get info :filename))))))
+        vc-msg-git-extra))

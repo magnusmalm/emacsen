@@ -76,8 +76,8 @@
 (delete-selection-mode 1)
 
 ;;;; Clipboard
-(setf select-enable-clipboard t
-      select-enable-primary t)
+;; (setf select-enable-clipboard t
+;;       select-enable-primary t)
 
 
 ;;;; UTF-8
@@ -151,7 +151,9 @@
 	    ;; functions.
 	    (narrow-to-defun)
 	    (iedit-start (current-word) (point-min) (point-max)))))))
-  :bind (("C-;" . iedit-dwim)))
+  :bind (("M-;" . iedit-dwim)
+	 :map iedit-mode-keymap
+	 ("M-;" . iedit-dwim)))
 
 (use-package clipmon
   :config
@@ -313,37 +315,39 @@
 	 ("TAB" . popup-next)
 	 ("S-TAB" . popup-previous)))
 
-(defun ap/iedit-or-flyspell ()
-  "Call `iedit-mode' or correct misspelling with flyspell, depending..."
-  (interactive)
-  (if (or iedit-mode
-	  (and (derived-mode-p 'prog-mode)
-	       (not (or (nth 4 (syntax-ppss))
-			(nth 3 (syntax-ppss))))))
-      ;; prog-mode is active and point is in a comment, string, or
-      ;; already in iedit-mode
-      (iedit-mode)
-    ;; Not prog-mode or not in comment or string
-    (if (not (equal flyspell-previous-command this-command))
-	;; FIXME: This mostly works, but if there are two words on the
-	;; same line that are misspelled, it doesn't work quite right
-	;; when correcting the earlier word after correcting the later
-	;; one
-
-	;; First correction; autocorrect
-	(call-interactively 'flyspell-auto-correct-previous-word)
-      ;; First correction was not wanted; use popup to choose
-      (progn
-	(save-excursion
-	  (undo))  ; This doesn't move point, which I think may be the problem.
-	(flyspell-region (line-beginning-position) (line-end-position))
-	(call-interactively 'flyspell-correct-previous-word-generic)))))
-
 (use-package flyspell-correct
   ;; :straight (:host github
   ;;		   :repo "d12frosted/flyspell-correct")
   :config
   (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
+
+(use-package flyspell
+  :config
+  (defun ap/iedit-or-flyspell ()
+    "Call `iedit-mode' or correct misspelling with flyspell, depending..."
+    (interactive)
+    (if (or iedit-mode
+	    (and (derived-mode-p 'prog-mode)
+		 (not (or (nth 4 (syntax-ppss))
+			  (nth 3 (syntax-ppss))))))
+	;; prog-mode is active and point is in a comment, string, or
+	;; already in iedit-mode
+	(iedit-mode)
+      ;; Not prog-mode or not in comment or string
+      (if (not (equal flyspell-previous-command this-command))
+	  ;; FIXME: This mostly works, but if there are two words on the
+	  ;; same line that are misspelled, it doesn't work quite right
+	  ;; when correcting the earlier word after correcting the later
+	  ;; one
+
+	  ;; First correction; autocorrect
+	  (call-interactively 'flyspell-auto-correct-previous-word)
+	;; First correction was not wanted; use popup to choose
+	(progn
+	  (save-excursion
+	    (undo))  ; This doesn't move point, which I think may be the problem.
+	  (flyspell-region (line-beginning-position) (line-end-position))
+	  (call-interactively 'flyspell-correct-previous-word-generic))))))
 
 (use-package ediff
   :ensure nil
@@ -373,3 +377,10 @@
 
 (use-package string-edit)
 
+(use-package wc-mode)
+
+(use-package wrap-region
+  :config
+  (wrap-region-add-wrapper "`" "`" nil '(markdown-mode))
+  (wrap-region-add-wrapper "<b>" "</b>" "b" '(markdown-mode))
+  )
