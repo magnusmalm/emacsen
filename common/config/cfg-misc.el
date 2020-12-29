@@ -35,7 +35,7 @@
 
 (use-package discover-my-major)
 
-(use-package discover)
+;; (use-package discover)
 
 (use-package helpful)
 
@@ -95,10 +95,11 @@ one by line."
                                  (password-store-copy entry)
                                  (mmm/password-store-url entry))) "Copy to clipboard & browse url")))))
 
+(use-package ivy-pass)
+
 (use-package back-button
-  :bind (("H-<right>" . back-button-local-forward)
-	 ("H-<left>"  . back-button-local-backward))
-  :blackout
+  :bind (("H-S-<right>" . back-button-local-forward)
+	 ("H-S-<left>"  . back-button-local-backward))
   :config
   (back-button-mode 1))
 
@@ -175,4 +176,41 @@ one by line."
 (use-package git-undo)
 ;; :straight (:host github :repo " https://github.com/jwiegley/git-undo-el"))
 
-(use-package zone-nyan)
+(use-package zone-nyan
+  :config
+  (setq zone-programs [zone-nyan]))
+
+(use-package chronos
+  :config
+  (setf chronos-expiry-functions '(chronos-desktop-notifications-notify)))
+
+;; (use-package mount-mode
+;;   :straight (:host github
+;; 	     :repo "zellerin/mount-mode")
+;;   :config
+;;   (setf mount-devices-mask "^sd[b-z][0-9]"))
+
+(use-package ascii-art-to-unicode)
+
+(use-package keychain-environment
+  :config
+  (keychain-refresh-environment))
+
+;;;  Long line handling
+(setq-default bidi-paragraph-direction 'left-to-right)
+(setq-default bidi-inhibit-bpa t)
+
+(global-so-long-mode 1)
+
+(use-package debian-el)
+(use-package dpkg-dev-el)
+
+(use-package lorem-ipsum)
+
+(use-package dsvn
+  :config
+  (require 'vc-svn))
+
+(use-package ytdl)
+
+(use-package csv-mode)

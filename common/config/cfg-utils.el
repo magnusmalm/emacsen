@@ -310,7 +310,6 @@ If there's no text, delete the previous line ending."
         (linum-mode 1)
         (call-interactively #'goto-line))
     (linum-mode -1)))
-(bind-key "C-s-L" 'goto-line-show)
 
 (defun current-time-microseconds ()
   (let* ((nowtime (current-time))
@@ -455,41 +454,41 @@ columns."
        (if selective-display nil (or col 1))))))
 (define-key global-map (kbd "H-<tab>") 'aj-toggle-fold)
 
-(defun endless/simple-get-word ()
-  (car-safe (save-excursion (ispell-get-word nil))))
+;; (defun endless/simple-get-word ()
+;;   (car-safe (save-excursion (ispell-get-word nil))))
 
-(defun endless/ispell-word-then-abbrev (p)
-  "Call `ispell-word', then create an abbrev for it.
-With prefix P, create local abbrev. Otherwise it will
-be global.
-If there's nothing wrong with the word at point, keep
-looking for a typo until the beginning of buffer. You can
-skip typos you don't want to fix with `SPC', and you can
-abort completely with `C-g'."
-  (interactive "P")
-  (let (bef aft)
-    (save-excursion
-      (while (if (setf bef (endless/simple-get-word))
-		 ;; Word was corrected or used quit.
-		 (if (ispell-word nil 'quiet)
-		     nil ; End the loop.
-		   ;; Also end if we reach `bob'.
-		   (not (bobp)))
-	       ;; If there's no word at point, keep looking
-	       ;; until `bob'.
-	       (not (bobp)))
-	(backward-word)
-	(backward-char))
-      (setf aft (endless/simple-get-word)))
-    (if (and aft bef (not (equal aft bef)))
-	(let ((aft (downcase aft))
-	      (bef (downcase bef)))
-	  (define-abbrev
-	    (if p local-abbrev-table global-abbrev-table)
-	    bef aft)
-	  (message "\"%s\" now expands to \"%s\" %sally"
-		   bef aft (if p "loc" "glob")))
-      (user-error "No typo at or before point"))))
+;; (defun endless/ispell-word-then-abbrev (p)
+;;   "Call `ispell-word', then create an abbrev for it.
+;; With prefix P, create local abbrev. Otherwise it will
+;; be global.
+;; If there's nothing wrong with the word at point, keep
+;; looking for a typo until the beginning of buffer. You can
+;; skip typos you don't want to fix with `SPC', and you can
+;; abort completely with `C-g'."
+;;   (interactive "P")
+;;   (let (bef aft)
+;;     (save-excursion
+;;       (while (if (setf bef (endless/simple-get-word))
+;; 		 ;; Word was corrected or used quit.
+;; 		 (if (ispell-word nil 'quiet)
+;; 		     nil ; End the loop.
+;; 		   ;; Also end if we reach `bob'.
+;; 		   (not (bobp)))
+;; 	       ;; If there's no word at point, keep looking
+;; 	       ;; until `bob'.
+;; 	       (not (bobp)))
+;; 	(backward-word)
+;; 	(backward-char))
+;;       (setf aft (endless/simple-get-word)))
+;;     (if (and aft bef (not (equal aft bef)))
+;; 	(let ((aft (downcase aft))
+;; 	      (bef (downcase bef)))
+;; 	  (define-abbrev
+;; 	    (if p local-abbrev-table global-abbrev-table)
+;; 	    bef aft)
+;; 	  (message "\"%s\" now expands to \"%s\" %sally"
+;; 		   bef aft (if p "loc" "glob")))
+;;       (user-error "No typo at or before point"))))
 
 (defun mmm/copy-file-name-to-clipboard (full-path)
   "Copy the current buffer file name to the clipboard."
@@ -621,18 +620,25 @@ Uses `current-date-time-format' for the formatting the date/time."
 (defun gcm-scroll-down ()
   (interactive)
   (scroll-up 1))
+(bind-key "H-k" #'gcm-scroll-down)
 
 (defun gcm-scroll-up ()
   (interactive)
   (scroll-down 1))
+(bind-key "H-i" #'gcm-scroll-up)
 
 (defun gcm-scroll-down-5 ()
   (interactive)
   (scroll-up 5))
+(bind-key "H-K" #'gcm-scroll-down-5)
 
 (defun gcm-scroll-up-5 ()
   (interactive)
   (scroll-down 5))
+(bind-key "H-I" #'gcm-scroll-up-5)
+(bind-key "H-u" #'scroll-up)
+(bind-key "H-o" #'scroll-down)
+
 
 ;; https://raw.githubusercontent.com/Fuco1/.emacs.d/af82072196564fa57726bdbabf97f1d35c43b7f7/site-lisp/redef.el
 ;;
@@ -915,6 +921,7 @@ is already narrowed."
 ;; The manual recommends C-c for user keys, but C-x t is
 ;; always free, whereas C-c t is used by some modes.
 (define-key ctl-x-map "t" 'endless/toggle-map)
+(bind-key "<f8>" 'endless/toggle-map)
 (define-key endless/toggle-map "c" #'column-number-mode)
 (define-key endless/toggle-map "d" #'toggle-debug-on-error)
 (define-key endless/toggle-map "e" #'toggle-debug-on-error)
@@ -926,7 +933,8 @@ is already narrowed."
 ;;; Generalized version of `read-only-mode'.
 (define-key endless/toggle-map "r" #'dired-toggle-read-only)
 (autoload 'dired-toggle-read-only "dired" nil t)
-(define-key endless/toggle-map "w" #'whitespace-mode)
+;; (define-key endless/toggle-map "w" #'whitespace-mode)
+(define-key endless/toggle-map "w" #'leerzeichen-mode)
 
 (define-key endless/toggle-map "n"
   #'narrow-or-widen-dwim)
@@ -934,6 +942,20 @@ is already narrowed."
 ;; keymap, that's how much I like this command. Only
 ;; copy it if that's what you want.
 (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+
+(define-prefix-command 'magma/profiler-map)
+
+(defun profiler-start-both ()
+  (interactive)
+  (profiler-start 'cpu+mem))
+
+(bind-key "c" #'profiler-cpu-stop magma/profiler-map)
+(bind-key "m" #'profiler-memory-start magma/profiler-map)
+(bind-key "b" #'profiler-start-both magma/profiler-map)
+(bind-key "s" #'profiler-stop magma/profiler-map)
+(bind-key "r" #'profiler-report magma/profiler-map)
+
+(bind-key "S-<f9>" 'magma/profiler-map)
 
 (defun save-buffer-kill ()
   (interactive)
@@ -978,3 +1000,141 @@ is already narrowed."
     (goto-char (point-min))
     (while (re-search-forward "\\([[].m\\)" nil)
       (replace-match ""))))
+
+(defun akz/rect-append-string (str b e)
+  "Append any string STR to end of each line in region B E."
+  (interactive "sAppend string: \nr")
+  (goto-char b)
+  (while (<= (point) e)
+    (end-of-line)
+    (insert str)
+    (forward-line 1)))
+
+(defun line-lengths ()
+  (let (lengths)
+    (save-excursion
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(while (not (eobp))
+          (push (- (line-end-position)
+                   (line-beginning-position))
+		lengths)
+          (forward-line)))
+      (nreverse lengths))))
+
+(defun mmm/line-len-stats ()
+  (interactive)
+  (let* ((lens (line-lengths))
+	 (nr-lines (1+ (length lens)))
+	 (avg (/ (reduce #'+ lens) nr-lines))
+	 (min (first (sort lens #'<)))
+	 (max (first (sort lens #'>))))
+    (message "Nr lines %d Min Len %d Max Len %d Avg Len %d"
+	     nr-lines min max avg)))
+
+  (defun mmm/line-len-max ()
+    (interactive)
+    (message "%d" (first (sort (line-lengths) #'>))))
+
+(defun mmm/line-len-min ()
+  (interactive)
+  (message "%d" (first (sort (line-lengths) #'<))))
+
+(defun akz/zone-around-tabs (orig &rest args)
+  "Wrapper to hide some ui elements when zoning.
+`ORIG' is the zone function and `ARGS' are its args."
+  (let (
+	;; (has-tabs (symbol-value 'awesome-tab-mode))
+	(has-fullscreen (frame-parameter nil 'fullscreen)))
+    ;; (awesome-tab-mode -1)
+    (unless has-fullscreen
+      (toggle-frame-fullscreen))
+    (apply orig args)
+    ;; (if has-tabs
+    ;; 	(awesome-tab-mode has-tabs)
+    ;;   (awesome-tab-mode -1))
+    (unless has-fullscreen
+      (toggle-frame-fullscreen))))
+
+(advice-add 'zone :around #'akz/zone-around-tabs)
+
+(defmacro unpackaged/define-chooser (name &rest choices)
+  "Define a chooser command NAME offering CHOICES.
+Each of CHOICES should be a list, the first of which is the
+choice's name, and the rest of which is its body forms."
+  (declare (indent defun))
+  ;; Avoid redefining existing, non-chooser functions.
+  (cl-assert (or (not (fboundp name))
+                 (get name :unpackaged/define-chooser)))
+  (let* ((choice-names (mapcar #'car choices))
+         (choice-list (--map (cons (car it) `(lambda (&rest args)
+                                               ,@(cdr it)))
+                             choices))
+         (prompt (format "Choose %s: " name))
+         (docstring (concat "Choose between: " (s-join ", " choice-names))))
+    `(progn
+       (defun ,name ()
+         ,docstring
+         (interactive)
+         (let* ((choice-name (completing-read ,prompt ',choice-names)))
+           (funcall (alist-get choice-name ',choice-list nil nil #'equal))))
+       (put ',name :unpackaged/define-chooser t))))
+
+
+;; ARCHIVE-EXTRACT-TO-FILE
+;; 
+;; https://emacs.stackexchange.com/a/3843/8743 original code
+;; cpbotha.net made small improvements to ergonomics
+
+;; cpbotha changes:
+;; - by default extract files WITHOUT their relative directories into DIR,
+;;   because that's what I expect in OFMs.
+(defun archive-extract-to-file (archive-name item-name command dir keep-relpath)
+  "Extract ITEM-NAME from ARCHIVE-NAME using COMMAND. Save to
+DIR. If KEEP-RELPATH, extract with relative path otherwise don't."
+  (unwind-protect
+      (let* ((file-name (if keep-relpath
+                            ;; remove the leading / from the file name to force
+                            ;; expand-file-name to interpret its path as relative to dir
+                            (if (string-match "\\`/" item-name)
+                                (substring item-name 1)
+                              item-name)
+                          ;; by default just strip the path completely
+                          (file-name-nondirectory item-name)))
+             (output-file (expand-file-name file-name dir))
+             (output-dir (file-name-directory output-file)))
+        ;; create the output directory (and its parents) if it does
+        ;; not exist yet
+        (unless (file-directory-p output-dir)
+          (make-directory output-dir t))
+        ;; execute COMMAND, redirecting output to output-file
+        (apply #'call-process
+               (car command)            ;program
+               nil                      ;infile
+               `(:file ,output-file)    ;destination
+               nil                      ;display
+               (append (cdr command) (list archive-name item-name))))
+    ;; FIXME: add unwind forms
+    nil))
+
+;; cpbotha changes:
+;; - extract to OTHER dired pane, OR to directory containing archive if there
+;;   is no other dired pane
+(defun archive-extract-marked-to-file (keep-relpath)
+  "Extract marked archive items to OUTPUT-DIR. If KEEP-RELPATH is non-nil
+   or prefix-arg (C-u) is set, keep relative paths of files in archive,
+   otherwise don't."
+  (interactive "P")
+  (let ((output-dir (or (dired-dwim-target-directory) default-directory))
+        (command (symbol-value (archive-name "extract")))
+        (archive (buffer-file-name))
+        (items (archive-get-marked ?* t))) ; get marked items; t means
+                                        ; get item under point if
+                                        ; nothing is marked
+    (mapc
+     (lambda (item)
+       (archive-extract-to-file archive
+                                (aref item 0) ; get the name from the descriptor
+                                command output-dir keep-relpath))
+     items)))

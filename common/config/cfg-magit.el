@@ -1,4 +1,5 @@
 (use-package magit
+
   :bind
   (("C-c m" . magit-status)
    ("<f2>" . magit-status)
@@ -7,22 +8,32 @@
 
   :custom-face
   (magit-hash ((t (:foreground "spring green"))))
+  (magit-log-date ((t (:foreground "spring green"))))
 
   :config
   (transient-bind-q-to-quit)
   (setenv "GIT_PAGER" "")
+  (setf transient-default-level 7)
   (setf magit-blame-echo-style 'lines)
   (setf magit-repository-directories '(("~/src" . 1) ("~/devel" . 3)))
   (setf magit-commit-arguments (quote ("--signoff")))
   (setf magit-set-upstream-on-push t)
   (setf magit-revert-buffers 1)
+  (setf diff-refine-hunk 'all)
   (setf magit-log-show-refname-after-summary t)
   (setf magit-log-arguments '("--graph" "--decorate" "-n128"))
   (setf magit-log-section-arguments '("--decorate" "-n256"))
   (setf magit-completing-read-function 'ivy-completing-read)
   (setf magit-use-sticky-arguments nil)
   (setf magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+  (setf magit-copy-revision-abbreviated t)
+  (setf magit-status-show-hashes-in-headers t)
+  (setf magit-status-goto-file-position t)
+  ;; Not sure if this confuses more than helps?
+  ;; (setf magit-diff-refine-hunk 'all)
+  (setf magit-diff-refine-ignore-whitespace t)
 
+  (setf magit-log-margin '(t age magit-log-margin-width t 18))
   (setf magit-status-margin '(nil age magit-log-margin-width nil 18))
 
   (setf magit-status-headers-hook
@@ -65,9 +76,14 @@
     'magit-log-popup
     ?1 "First parent" "--first-parent")
 
-  (add-hook 'after-save-hook 'magit-after-save-refresh-status)
-  (setf magit-save-repository-buffers 'dontask))
-  ;; :hook ((git-commit-mode . (lambda () (add-to-list 'fill-column 72)))))
+  ;; (add-hook 'after-save-hook 'magit-after-save-refresh-status)
+  (setf magit-save-repository-buffers 'dontask)
+  (defun my-git-commit-hook-fn ()
+    (setq-local git-commit-summary-max-length 50)
+    (setq-local fill-column 72))
+  :hook ((git-commit-setup . git-commit-turn-on-flyspell)
+	 (git-commit-mode . my-git-commit-hook-fn)))
+;; :hook ((git-commit-mode . (lambda () (add-to-list 'fill-column 72)))))
 
 (use-package magit-popup)
 
@@ -146,7 +162,7 @@
 ;;   'magit-log-popup
 ;;   ?s "Always sort by date" "--date-order")
 
-(use-package magit-imerge)
+;; (use-package magit-imerge)
 
 ;; (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
 ;;   "Mode for showing staged and unstaged changes."
@@ -241,16 +257,39 @@ instead.  The optional BRANCH argument is for internal use only."
           (insert (funcall magit-log-format-message-function nil summary))
           (insert ?\n))))))
 
-(use-package magit-pretty-graph
-  :straight (:host github
-	     :repo "georgek/magit-pretty-graph"))
+;; (use-package magit-pretty-graph
+;;   :straight (:host github
+;; 	     :repo "georgek/magit-pretty-graph"))
 
-(use-package forge
-  :after magit)
+;; (use-package forge
+;;   :after magit
+;;   :custom-face
+;;   (forge-topic-closed ((t (:foreground "#7f9f7f"))))
+;;   (forge-topic-unmerged ((t (:foreground "yellow"))))
+;;   (forge-topic-merged ((t (:foreground "spring green"))))
+;;   :config
+;;   ;; Show max 30 issues, hide closed/merged pull/merge requests in magit status buffer
+;;   (setf forge-topic-list-limit '(30 . -1))
+;;   ;; Add Westermo's gitlab host as a valid forge
+;;   (add-to-list 'forge-alist '("gitlab.westermo.com" "gitlab.westermo.com/api/v4" "gitlab.westermo.com" forge-gitlab-repository)))
 
 (use-package vc-msg
   :bind (("H-b" . vc-msg-show))
   :config
+  (defun magma/vc-msg-git-format (info)
+    "Format the message for popup from INFO."
+    (let* ((author (plist-get info :author)))
+      (cond
+       ((string-match-p "Not Committed Yet" author)
+	"* Not Committed Yet*")
+       (t
+	(format "Commit: %s\nAuthor: %s\nDate: %s\n\n%s"
+		(vc-msg-sdk-short-id (plist-get info :id))
+		author
+		(vc-msg-sdk-format-datetime (plist-get info :author-time))
+		(plist-get info :summary))))))
+
+  (setf vc-msg-plugins '((:type "git" :execute vc-msg-git-execute :format magma/vc-msg-git-format :extra vc-msg-git-extra)))
   (setq vc-msg-git-show-commit-function 'magit-show-commit)
   ;; show code of commit
   (setq vc-msg-git-show-commit-function 'magit-show-commit)
@@ -263,3 +302,9 @@ instead.  The optional BRANCH argument is for internal use only."
               (magit-find-file (plist-get info :id )
                                (concat git-dir (plist-get info :filename))))))
         vc-msg-git-extra))
+
+(use-package orgit)
+
+(use-package magit-svn)
+
+(use-package git-link)

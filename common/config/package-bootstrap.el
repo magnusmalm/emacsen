@@ -52,12 +52,5 @@
 
 (use-package general)
 
-;(use-package use-package-hydra
-;  :straight (:host gitlab
-;	     :repo "to1ne/use-package-hydra"))
-
-;(use-package blackout
-;  :straight (:host github :repo "raxod502/blackout"))
-
 (provide 'package-bootstrap)
 ;;; package-bootstrap.el ends here

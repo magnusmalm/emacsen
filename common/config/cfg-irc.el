@@ -2,15 +2,17 @@
 (require 'erc-match)
 (require 'erc-imenu)
 
-(add-to-list 'erc-modules 'log)
-(add-to-list 'erc-modules 'notifications)
+;; (add-to-list 'erc-modules 'log)
+;; (add-to-list 'erc-modules 'notifications)
 
 (setf erc-auto-query 'window-noselect)
 (setf erc-hide-list '("PART" "QUIT"))
 (setf erc-modules '(log fill notifications move-to-prompt stamp
-			spelling hl-nicks netsplit fill button match track
-			completion readonly networks ring autojoin noncommands
-			irccontrols move-to-prompt stamp menu list))
+			;; spelling
+			hl-nicks netsplit fill button
+			match track completion readonly networks
+			ring autojoin noncommands irccontrols
+			move-to-prompt stamp menu list))
 (setf erc-pcomplete-order-nickname-completions nil)
 
 
@@ -18,9 +20,10 @@
 
 (defun my-erc-mode-hook-func ()
   (emojify-mode)
-  (flyspell-mode 1)
-  (erc-spelling-mode 1)
-  (bind-key "M-RET" 'counsel-irc-query-nick erc-mode-map))
+  ;; (flyspell-mode 1)
+  ;; (erc-spelling-mode 1)
+  (bind-key "M-RET" 'counsel-irc-query-nick erc-mode-map)
+  (bind-key "M-<return>" 'counsel-irc-query-nick erc-mode-map))
 
 (add-hook 'erc-mode-hook 'my-erc-mode-hook-func)
 
@@ -33,9 +36,6 @@
 (setf erc-server-reconnect-timeout 5)
 (setf erc-server-reconnect-attempts t)
 
-(setf erc-track-exclude-types
-      '("NICK" "333" "353"))
-
 (defface erc-header-line-disconnected
   '((t (:inherit magit-diff-removed)))
   "Face to use when ERC has been disconnected.")
@@ -43,8 +43,8 @@
 (defun erc-update-header-line-show-disconnected ()
   "Use a different face in the header-line when disconnected."
   (erc-with-server-buffer
-    (cond ((erc-server-process-alive) 'erc-header-line)
-	  (t 'erc-header-line-disconnected))))
+   (cond ((erc-server-process-alive) 'erc-header-line)
+	 (t 'erc-header-line-disconnected))))
 
 (setf erc-header-line-face-method 'erc-update-header-line-show-disconnected)
 (setf erc-hide-list nil)
@@ -72,8 +72,6 @@
       erc-datestamp-format " === [%Y-%m-%d %a] ===\n" ; mandatory ascii art
       erc-fill-prefix "      "
       erc-insert-timestamp-function 'ks-timestamp)
-
-(setf erc-auto-query 'window-noselect)
 
 (use-package erc-hl-nicks)
 
@@ -139,6 +137,14 @@
      (add-hook 'erc-send-completed-hook (lambda (str)
 					  (erc-bar-update-overlay)))))
 
+(setq erc-current-nick-highlight-type 'nick)
+(setq erc-track-exclude-types '("JOIN" "PART" "QUIT" "NICK" "MODE"
+				"324" "329" "477" "333" "353"))
+(setq erc-track-use-faces t)
+(setq erc-track-faces-priority-list
+      '(erc-current-nick-face erc-keyword-face))
+(setq erc-track-priority-faces-only 'all)
+
 (defun switch-to-irc ()
   "Switch to an IRC buffer, or run `erc-select'.
     When called repeatedly, cycle through the buffers."
@@ -188,6 +194,12 @@
     (insert (format "/me %s" text))))
 (bind-key "C-e" #'mmm/me-text erc-mode-map)
 
+;; (defun mmm/correct-word ()
+;;   (interactive)
+;;   (let ((word (avy-goto-char-2))
+;; 	(let ((ispell-dictionary "british"))
+;; 	  (insert (format "s/%s" word))
+;; 	  (flyspell-popup-correct)))))
 
 (define-prefix-command 'emoji-map)
 (global-set-key (kbd "C-c C-s") emoji-map)
@@ -259,3 +271,48 @@ sText: ")
    (insert
     (shell-command-to-string
      (format "%s" cmd)))))
+
+(defun unwrap-line ()
+  "Remove all newlines until we get to two consecutive ones.
+    Or until we reach the end of the buffer.
+    Great for unwrapping quotes before sending them on IRC."
+  (interactive)
+  (let ((start (point))
+        (end (copy-marker (or (search-forward "\n\n" nil t)
+                              (point-max))))
+        (fill-column (point-max)))
+    (fill-region start end)
+    (goto-char end)
+    (newline)
+    (goto-char start)))
+
+(bind-key "M-q" #'unwrap-line)
+
+(defun erc-cmd-HOWMANY (&rest ignore)
+  (interactive)
+  "Display how many users (and ops) the current channel has."
+  (erc-display-message nil 'notice (current-buffer)
+                       (let ((hash-table (with-current-buffer
+                                             (erc-server-buffer)
+                                           erc-server-users))
+                             (users 0)
+                             (ops 0))
+                         (maphash (lambda (k v)
+                                    (when (member (current-buffer)
+                                                  (erc-server-user-buffers v))
+                                      (incf users))
+                                    (when (erc-channel-user-op-p k)
+                                      (incf ops)))
+                                  hash-table)
+                         (format
+                          "There are %s users (%s ops) on the current channel"
+                          users ops))))
+
+(defun erc-cmd-FLUSH (&rest ignore)
+  "Erase the current buffer."
+  (let ((inhibit-read-only t))
+    (buffer-disable-undo)
+    (erase-buffer)
+    (buffer-enable-undo)
+    (message "Flushed contents of channel")
+    t))

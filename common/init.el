@@ -1,4 +1,11 @@
-(setq gc-cons-threshold most-positive-fixnum)
+(setf enable-local-variables :safe)
+
+(defvar file-name-handler-alist-old file-name-handler-alist)
+
+(add-to-list 'safe-local-variable-values
+	     '(projectile-git-command . "fdfind . --print0 --color never"))
+(add-to-list 'safe-local-variable-values
+	     '(counsel-rg-base-command . "rg -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' %s"))
 
 (defvar status-fname (format "/tmp/emacs-status-%s" server-name))
 
@@ -33,7 +40,10 @@
   (string-equal name server-name))
 
 (defun my-load (file &optional absolute-path)
-  (let ((f (if absolute-path file (expand-file-name (concat "config/" file ".el") user-emacs-directory))))
+  (let ((f (if absolute-path file
+	     (expand-file-name
+	      (concat "config/" file ".el")
+	      user-emacs-directory))))
     (when (file-exists-p f)
       (my-log (format "Loading %s @ %s" file (current-time-string)) t)
       (load file nil t))))
@@ -59,7 +69,6 @@ Your installed Emacs reports:
   (save-buffers-kill-emacs t))
 
 
-
 ;; Load user's secrets file
 ;; Ensure that the secrets file is not part of any public repo!
 (measure-time (my-load "~/.secrets/emacs-secrets.el" t))
@@ -69,9 +78,9 @@ Your installed Emacs reports:
 (measure-time (my-load "cfg-themes"))
 
 ;; The stuff we want for all servers
+(measure-time (my-load "cfg-visuals"))
 (measure-time (my-load "cfg-org"))
 (measure-time (my-load "cfg-basics"))
-(measure-time (my-load "cfg-visuals"))
 (measure-time (my-load "cfg-utils"))
 (measure-time (my-load "cfg-shell"))
 (measure-time (my-load "cfg-windows"))
@@ -83,7 +92,7 @@ Your installed Emacs reports:
 
 ;; The stuff we want for general devel servers
 (when (or (server-is "devel")
-	  (server-is "lisp"))
+ 	  (server-is "lisp"))
   (measure-time (my-load "cfg-devel")))
 
 ;; The stuff we want for devel servers
@@ -98,6 +107,8 @@ Your installed Emacs reports:
 ;; (when (server-is "mail")
 ;; (my-load "cfg-mail")
 
+(my-load "cfg-new-mail")
+
 ;; The stuff we want for IRC
 (when (server-is "irc")
   (measure-time (my-load "cfg-irc")))
@@ -106,20 +117,38 @@ Your installed Emacs reports:
 (measure-time (my-load "cfg-misc"))
 
 ;; Host specific configuration (cfg-<hostname>.el)
-(measure-time (my-load (format "cfg-%s" (system-name))))
+(let ((host-cfg (format "cfg-%s" (system-name))))
+  (measure-time (my-load host-cfg)))
 
 ;; user specific configuration (cfg-<logged in name>.el)
-(measure-time (my-load (format "cfg-%s" (user-login-name))))
+(let ((user-cfg (format "cfg-%s" (user-login-name))))
+  (measure-time (my-load user-cfg)))
 
 ;; Place custom stuff in separate file
+(my-log (format "Loading custom file %s" custom-file))
 (measure-time (my-load custom-file))
 
-;; End Init
-(message "Done loading init.el. Took %.06f" *total-time*)
+;; (load-theme 'modus-vivendi :no-confirm)
 
-
-(setq gc-cons-threshold 800000)
+;; (setq gc-cons-threshold 800000)
 
 (defun package--save-selected-packages (&rest opt) nil)
 
 (my-log (format "Running @ %s" (current-time-string)) t)
+
+(setq file-name-handler-alist file-name-handler-alist-old)
+
+(dolist (var '("EDITOR" "VISUAL" "ALTERNATE_EDITOR"))
+  (setenv var
+	  (format "emacsclient -c -s /tmp/emacs-magnus-okinawa/%s"
+		  server-name)))
+
+;; Set default font
+(set-face-attribute 'default nil
+                    :family "Source Code Pro"
+                    :height 105
+                    :weight 'normal
+                    :width 'normal)
+
+;; End Init
+(message "Done loading init.el. Took %.06f" *total-time*)

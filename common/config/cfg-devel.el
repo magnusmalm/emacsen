@@ -4,34 +4,6 @@
   :straight nil
   :ensure nil
   :config
-  (defhydra unpackaged/smerge-hydra
-    (:color pink :hint nil :post (smerge-auto-leave))
-    "
-^Move^       ^Keep^               ^Diff^                 ^Other^
-^^-----------^^-------------------^^---------------------^^-------
-_n_ext       _b_ase               _<_: upper/base        _C_ombine
-_p_rev       _u_pper              _=_: upper/lower       _r_esolve
-^^           _l_ower              _>_: base/lower        _k_ill current
-^^           _a_ll                _R_efine
-^^           _RET_: current       _E_diff
-"
-    ("n" smerge-next)
-    ("p" smerge-prev)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("R" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("k" smerge-kill-current)
-    ("q" nil "cancel" :color blue))
   :hook (magit-diff-visit-file . (lambda ()
                                    (when smerge-mode
                                      (unpackaged/smerge-hydra/body)))))
@@ -42,7 +14,11 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 (use-package yaml-mode
   :config
-  (add-hook 'yaml-mode-hook (lambda () (prettify-symbols-mode -1))))
+  (defun my-yaml-mode-hook-func ()
+    (prettify-symbols-mode -1)
+    ;; (prism-whitespace-mode 1)
+    )
+  (add-hook 'yaml-mode-hook 'my-yaml-mode-hook-func))
 
 (use-package yaml-tomato)
 
@@ -66,7 +42,6 @@ and set the focus back to Emacs frame"
 	     'notify-compilation-result)
 
 (use-package flycheck
-  :blackout flymake-mode
   :config
   (setf flycheck-cppcheck-suppressions '("variableScope"))
   (setf flycheck-display-errors-delay 0.3)
@@ -77,7 +52,6 @@ and set the focus back to Emacs frame"
 
 ;;;; INDENTING
 (use-package aggressive-indent
-  :blackout
   :config
   (global-aggressive-indent-mode 1)
   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
@@ -93,7 +67,6 @@ and set the focus back to Emacs frame"
 (use-package elf-mode)
 
 (use-package dtrt-indent
-  :blackout
   :config
   (setf dtrt-indent-global-mode t)
   (setf dtrt-indent-ignore-single-chars-flag t)
@@ -105,7 +78,8 @@ and set the focus back to Emacs frame"
 
 (use-package lua-mode
   :config
-  (setf lua-default-application "luajit"))
+  ;; (setf lua-default-application "luajit")
+  (setf lua-default-application "lua"))
 
 (use-package go-guru)
 
@@ -126,7 +100,14 @@ and set the focus back to Emacs frame"
 
 (use-package json-reformat)
 
-(use-package json-mode)
+(use-package json-mode
+  :config
+  (defun my-json-mode-hook-func ()
+    (make-local-variable 'js-indent-level)
+    (setq js-indent-level 2)
+    (setq indent-tabs-mode nil))
+  (add-hook 'json-mode-hook 'my-json-mode-hook-func))
+
 
 (use-package jq-mode
   :straight (:host github
@@ -134,7 +115,9 @@ and set the focus back to Emacs frame"
   :bind (:map json-mode-map
 	 ("C-c C-j" . 'jq-interactively))
   :config
-  (setf jq-interactive-default-options "--sort-keys"))
+  ;; (setf jq-interactive-default-options "--sort-keys")
+  (setf jq-interactive-default-options "")
+  )
 
 ;;; LSP
 
@@ -142,60 +125,65 @@ and set the focus back to Emacs frame"
   :config
   (setf ccls-executable "~/scripts/ccls"))
 
-(use-package lsp-mode
+;; (use-package lsp-mode
+;;   :config
+;;   (setf lsp-print-io nil)
+;;   (setf lsp-trace nil)
+;;   (setf lsp-enable-indentation nil)
+;;   (setf lsp-enable-on-type-formatting nil)
+;;   (setf lsp-print-performance nil)
+;;   (setf lsp-enable-snippet nil)
+;;   (setf lsp-prefer-flymake nil)
+;;   (setf lsp-auto-guess-root t)
+;;   (setf lsp-document-sync-method 'incremental) ;; none, full, incremental, or nil
+;;   (setf lsp-response-timeout 10)
+;;   (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
+;;   :hook ((go-mode c-mode python-mode) . lsp)
+;;   :commands lsp)
+
+;; (use-package lsp-ui
+;;   :commands lsp-ui-mode
+;;   :config
+;;   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+;;   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+;;   (setf lsp-ui-doc-enable nil)
+;;   (setf lsp-ui-doc-header t)
+;;   (setf lsp-ui-doc-include-signature nil)
+;;   (setf lsp-ui-doc-position 'top) ;; top, bottom, or at-point
+;;   (setf lsp-ui-doc-use-childframe t)
+;;   (setf lsp-ui-doc-use-webkit nil) ;; TODO: Frame with height 0!? Buggy?
+;;   (setf lsp-ui-peek-list-width 60)
+;;   (setf lsp-ui-peek-peek-height 25)
+;;   (setf lsp-ui-flycheck-enable t)
+;;   (setf lsp-ui-flycheck-list-position 'right)
+;;   (setf lsp-ui-flycheck-live-reporting t)
+;;   (setf lsp-ui-sideline-enable t)
+;;   (setf lsp-ui-sideline-ignore-duplicate t)
+;;   (setf lsp-ui-sideline-show-symbol nil)
+;;   (setf lsp-ui-sideline-show-hover t)
+;;   (setf lsp-ui-sideline-show-diagnostics t)
+;;   (setf lsp-ui-sideline-show-code-actions t)
+;;   :hook
+;;   (lsp-mode . lsp-ui-mode)
+;;   (lsp-mode . lsp-ui-sideline-mode)
+;;   ;; (lsp-after-open . (lambda () (lsp-ui-flycheck-enable 1)))
+;;   )
+
+
+;; ;; Lsp completion
+;; (use-package company-lsp
+;;   :commands company-lsp)
+
+;; (use-package lsp-treemacs
+;;   :commands lsp-treemacs-errors-list)
+
+(use-package eglot
   :config
-  (setf lsp-print-io nil)
-  (setf lsp-trace nil)
-  (setf lsp-enable-indentation nil)
-  (setf lsp-enable-on-type-formatting nil)
-  (setf lsp-print-performance nil)
-  (setf lsp-enable-snippet nil)
-  (setf lsp-prefer-flymake nil)
-  (setf lsp-auto-guess-root t)
-  (setf lsp-document-sync-method 'incremental) ;; none, full, incremental, or nil
-  (setf lsp-response-timeout 10)
-  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
-  :hook ((go-mode c-mode python-mode) . lsp)
-  :commands lsp)
-
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :config
-  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (setf lsp-ui-doc-enable nil)
-  (setf lsp-ui-doc-header t)
-  (setf lsp-ui-doc-include-signature nil)
-  (setf lsp-ui-doc-position 'top) ;; top, bottom, or at-point
-  (setf lsp-ui-doc-use-childframe t)
-  (setf lsp-ui-doc-use-webkit nil) ;; TODO: Frame with height 0!? Buggy?
-  (setf lsp-ui-peek-list-width 60)
-  (setf lsp-ui-peek-peek-height 25)
-  (setf lsp-ui-flycheck-enable t)
-  (setf lsp-ui-flycheck-list-position 'right)
-  (setf lsp-ui-flycheck-live-reporting t)
-  (setf lsp-ui-sideline-enable t)
-  (setf lsp-ui-sideline-ignore-duplicate t)
-  (setf lsp-ui-sideline-show-symbol nil)
-  (setf lsp-ui-sideline-show-hover t)
-  (setf lsp-ui-sideline-show-diagnostics t)
-  (setf lsp-ui-sideline-show-code-actions t)
-  :hook
-  (lsp-mode . lsp-ui-mode)
-  (lsp-mode . lsp-ui-sideline-mode)
-  ;; (lsp-after-open . (lambda () (lsp-ui-flycheck-enable 1)))
-  )
-
-
-;; Lsp completion
-(use-package company-lsp
-  :commands company-lsp)
-
-(use-package lsp-treemacs
-  :commands lsp-treemacs-errors-list)
+  (add-hook 'c-mode-hook 'eglot-ensure)
+  (add-hook 'python-mode-hook 'eglot-ensure))
 
 (defun my-devel-mode-hook-func ()
-  ;; Show the current function name in the header line
+  "Show the current function name in the header line."
   (which-function-mode)
 
   (rainbow-identifiers-mode -1))
@@ -206,22 +194,27 @@ and set the focus back to Emacs frame"
   :straight (makefile-runner :type git :host github :repo "danamlund/emacs-makefile-runner")
   :bind ("<C-f11>" . makefile-runner))
 
+(use-package smartparens
+  :bind (:map smartparens-mode-map
+	 ("M-<left>" . sp-previous-sexp)
+	 ("M-<right>" . sp-next-sexp)
+	 ("M-<up>" . sp-up-sexp)
+	 ("M-<down>" . sp-down-sexp))
+  )
 
-(use-package treemacs)
+(use-package flymake-diagnostic-at-point
+  :after flymake
+  :config
+  (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))
 
-(use-package treemacs-projectile)
+(use-package transient-dwim
+  :straight (:host github
+	     :repo "conao3/transient-dwim.el"))
 
-;; (use-package fill-function-arguments
-;;   :hook (prog-mode . (lambda ()
-;; 		       (unless (eq 'org-mode major-mode)
-;; 			 (local-set-key (kbd "M-q") #'fill-function-arguments-dwim))))
-;;   :config
-;;   (add-hook 'emacs-lisp-mode-hook (lambda ()
-;;                                     (setq-local fill-function-arguments-first-argument-same-line t)
-;;                                     (setq-local fill-function-arguments-second-argument-same-line t)
-;;                                     (setq-local fill-function-arguments-last-argument-same-line t)
-;;                                     (setq-local fill-function-arguments-argument-separator " ")))
-;;   (add-hook 'sgml-mode-hook (lambda ()
-;;                               (setq-local fill-function-arguments-first-argument-same-line t)
-;;                               (setq-local fill-function-arguments-argument-sep " ")
-;;                               (local-set-key (kbd "M-q") #'fill-function-arguments-dwim))))
+(use-package dired-git-info
+  :bind (:map dired-mode-map
+	 (")" . dired-git-info-mode))
+  :hook
+  (dired-after-readin-hook . dired-git-info-auto-enable)
+  :config
+  (setq dgi-auto-hide-details-p nil))

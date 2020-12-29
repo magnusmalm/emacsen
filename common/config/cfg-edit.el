@@ -1,5 +1,9 @@
 (bind-key "M-e" 'backward-kill-word)
 (bind-key "M-r" 'kill-word)
+(bind-key "M-d" 'delete-backward-char)
+(bind-key "M-f" 'delete-forward-char)
+
+(setf sentence-end-double-space nil)
 
 (use-package editing
   :straight nil
@@ -12,17 +16,20 @@
 	 ("M-q" . fill-paragraph)
 	 ("M-S-SPC" . mark-paragraph)
 	 ("M-SPC" . set-mark-command)
-	 ("M-Z" . zap-to-char)
-	 ("M-z" . undo)
-	 ("C-z" . undo)
 	 ))
 
-(use-package hungry-delete
-  :blackout
-  :init
-  (global-hungry-delete-mode)
-  :bind (("M-d" . hungry-delete-backward)
-	 ("M-f" . hungry-delete-forward)))
+(use-package undo-fu
+  :straight (:host gitlab :repo "ideasman42/emacs-undo-fu")
+  :bind (("M-z" . undo-fu-only-undo)
+	 ("M-Z" . undo-fu-only-redo)
+	 ("C-z" . undo-fu-only-undo)
+	 ("C-S-z" . undo-fu-only-redo)))
+
+;; (use-package hungry-delete
+;;   :init
+;;   (global-hungry-delete-mode)
+;;   :bind (("M-d" . hungry-delete-backward)
+;; 	 ("M-f" . hungry-delete-forward)))
 
 (use-package browse-kill-ring
   :bind ("M-Y" . browse-kill-ring))
@@ -66,7 +73,6 @@
 (use-package ace-mc)
 
 (use-package easy-escape
-  :blackout easy-escape-minor-mode
   :config
   (add-hook 'lisp-mode-hook 'my-lisp-mode-hook-fn)
   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook-fn))
@@ -101,97 +107,106 @@
 (use-package comment-dwim-2
   :bind ("M-'" . comment-dwim-2))
 
-(use-package ws-butler
-  :blackout
-  :config
-  (ws-butler-global-mode))
+;; (use-package ws-butler
+;;   :config
+;;   (ws-butler-global-mode))
 
 (use-package edit-at-point
-  :bind (("M-C" . hydra-edit-at-point/body))
-  :config
-  (defhydra hydra-edit-at-point (:color blue :hint nil :column t)
-    "Copy/Cut/Duplicate/Move thing"
-    ("w"  edit-at-point-word-copy "word" :column "Copy")
-    ("i"  edit-at-point-symbol-copy "identifier")
-    ("s"  edit-at-point-str-copy "string")
-    ("e"  edit-at-point-paren-copy "expression")
-    ("l"  edit-at-point-line-copy "line")
-    ("f"  edit-at-point-defun-copy "function")
-
-    ("W"  edit-at-point-word-cut "word" :column "Cut")
-    ("I"  edit-at-point-symbol-cut "identifier")
-    ("S"  edit-at-point-str-cut "string")
-    ("E"  edit-at-point-paren-cut "expression")
-    ("L"  edit-at-point-line-cut "line")
-    ("F"  edit-at-point-defun-cut "function")
-
-    ("dl"  edit-at-point-line-dup "line" :column "Duplicate")
-    ("de"  edit-at-point-paren-dup "expression")
-    ("df"  edit-at-point-defun-dup "function")
-
-    ("ml"  edit-at-point-line-up "line up" :column "Move" :color red)
-    ("Ml"  edit-at-point-line-down "line down"  :color red)
-
-    ("q"  nil)))
-
-(use-package iedit
-  :config
-  (defun iedit-dwim (arg)
-    "Starts iedit but uses \\[narrow-to-defun] to limit its scope."
-    (interactive "P")
-    (if arg
-	(iedit-mode)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  ;; this function determines the scope of `iedit-start'.
-	  (if iedit-mode
-	      (iedit-done)
-	    ;; `current-word' can of course be replaced by other
-	    ;; functions.
-	    (narrow-to-defun)
-	    (iedit-start (current-word) (point-min) (point-max)))))))
-  :bind (("M-;" . iedit-dwim)
-	 :map iedit-mode-keymap
-	 ("M-;" . iedit-dwim)))
-
-(use-package clipmon
-  :config
-  (add-to-list 'after-init-hook 'clipmon-mode-start))
-
-(use-package selected
-  :init (selected-minor-mode)
-  :bind (:map selected-keymap
-	 ("M-Q" . selected-off)
-	 ("M-U" . upcase-region)
-	 ("M-D" . downcase-region)
-	 ("M-L" . mc/edit-lines)
-	 ("C-M-L" . mc/mark-all-like-this)
-	 ("M-M" . apply-macro-to-region-lines)))
+  :bind (("M-C" . hydra-edit-at-point/body)))
 
 (use-package subword
   :ensure nil
-  :blackout subword-mode
   :config
   (global-subword-mode +1)
   (setf c-subword-mode t))
 
-(use-package smart-tab
-  :blackout
-  :config
-  (global-smart-tab-mode 1))
+;; (use-package smart-tab
+;;   :config
+;;   (global-smart-tab-mode 1))
 
-(use-package guess-language
-  :blackout
-  :config
-  (setf guess-language-languages '(en sv))
-  (setf guess-language-langcodes '((en . ("british" . nil))
-				   (sv . ("svenska" . nil))))
-  (setf guess-language-min-paragraph-length 35)
-  (defun my-guess-lang-mode-hook-function ()
-    (guess-language-mode 1))
-  (add-hook 'text-mode-hook #'my-guess-lang-mode-hook-function)
-  (add-hook 'prog-mode-hook #'my-guess-lang-mode-hook-function))
+;; (use-package wcheck-mode
+;;   :ensure-system-package enchant
+;;   :commands (wcheck-mode)
+;;   :init
+;;   (custom-set-faces
+;;    '(wcheck-default-face ((t (:underline (:color: "red" :style wave)))))
+;;    )
+
+;;   (setq wcheck-language-data
+;; 	'
+;; 	(
+;; 	 ("British English"
+;;           (program . "/usr/bin/enchant")
+;;           (args "-l" "-d" "en_GB")
+;;           (action-program . "/usr/bin/enchant")
+;;           (action-args "-a" "-d" "en_GB")
+;;           (action-parser . enchant-suggestions-menu)
+;;           (read-or-skip-faces
+;;            ;; Only check comments & strings.
+;;            ((emacs-lisp-mode c-mode)
+;;             read font-lock-comment-face
+;;             read font-lock-string-face
+;;             )
+;;            (nil))
+;;           )
+;; 	 ("Svenska"
+;;           (program . "/usr/bin/enchant")
+;;           (args "-l" "-d" "sv_SE")
+;;           (action-program . "/usr/bin/enchant")
+;;           (action-args "-a" "-d" "sv_SE")
+;;           (action-parser . enchant-suggestions-menu)
+;;           (read-or-skip-faces
+;;            ;; Only check comments & strings.
+;;            ((emacs-lisp-mode c-mode)
+;;             read font-lock-comment-face
+;;             read font-lock-string-face
+;;             )
+;;            (nil))
+;;           )
+;; 	 )
+;; 	)
+;;   (setq wcheck-language "British English")
+;;   (setq wcheck-language-data-defaults
+;; 	'((read-or-skip-faces
+;;            ((emacs-lisp-mode lisp-mode)
+;;             read font-lock-comment-face font-lock-doc-face)
+;;            (sh-mode
+;;             read font-lock-comment-face)
+;;            (message-mode
+;;             read nil message-header-subject message-cited-text)
+;;            (latex-mode
+;;             read nil font-latex-sectioning-1-face
+;;             font-latex-sectioning-2-face
+;;             font-latex-sectioning-3-face
+;;             font-latex-sectioning-4-face font-latex-bold-face
+;;             font-latex-italic-face font-lock-constant-face)
+;;            (org-mode
+;;             read nil org-level-1 org-level-2 org-level-3 org-level-4
+;;             org-level-5 org-level-6 org-level-7 org-level-8)
+;;            (git-commit-mode
+;;             read nil git-commit-summary-face))))
+;;   (defun enchant-suggestions-menu (marked-text)
+;;     (cons (cons "[Add to dictionary]" 'enchant-add-to-dictionary)
+;;           (wcheck-parser-ispell-suggestions)))
+
+;;   (defvar enchant-dictionaries-dir "~/.config/enchant")
+
+;;   (defun enchant-add-to-dictionary (marked-text)
+;;     (let* ((word (aref marked-text 0))
+;;            (language (aref marked-text 4))
+;;            (file (let ((code (nth 1 (member "-d" (wcheck-query-language-data
+;;                                                   language 'action-args)))))
+;;                    (when (stringp code)
+;;                      (concat (file-name-as-directory enchant-dictionaries-dir)
+;;                              code ".dic")))))
+
+;;       (when (and file (file-writable-p file))
+;; 	(with-temp-buffer
+;;           (insert word) (newline)
+;;           (append-to-file (point-min) (point-max) file)
+;;           (message "Added word \"%s\" to the %s dictionary"
+;;                    word language)))))
+;;   )
 
 (use-package define-word)
 (use-package synosaurus
@@ -205,6 +220,15 @@
   :bind ("<H-tab>" . ialign))
 
 ;; (use-package yasnippet
+;;   :config
+;;   (yas-global-mode 1)
+;;   (defun activate-extra-mode ()
+;;     (yas-activate-extra-mode 'fundamental-mode))
+;;   :hook (yas-minor-mode . activate-extra-mode)
+;;   :custom
+;;   (yas-snippet-dirs (list (expand-file-name "config/yasnippets/snippets" user-emacs-directory))))
+
+;; (use-package yasnippet
 ;;   :blackout yas-minor-mode
 ;;   :custom
 ;;   (yas-snippet-dirs (list (expand-file-name "config/yasnippets/snippets" user-emacs-directory))))
@@ -214,140 +238,58 @@
 ;;   :after yasnippet
 ;;   :config (yasnippet-snippets-initialize))
 
-(setf flyspell-issue-welcome-flag nil)
+;; (setf flyspell-issue-welcome-flag nil)
 
-(use-package ispell
-  :bind ("C-c M-s" . cycle-ispell-languages)
-  :init
-  ;; You should have aspell-sv and aspell-en packages installed
-  (let ((langs '("american" "svenska")))
-    (setf lang-ring (make-ring (length langs)))
-    (dolist (elem langs) (ring-insert lang-ring elem)))
+;; (use-package ispell
+;;   ;; :after auto-capitalize
+;;   :bind ("C-c M-s" . mmm/toggle-ispell-language)
+;;   :init
+;;   (defvar mmm/auto-capitalize-words-old nil)
+;;   ;; You should have aspell-sv and aspell-en packages installed
+;;   (let ((langs '("british" "svenska")))
+;;     (setf lang-ring (make-ring (length langs)))
+;;     (dolist (elem langs) (ring-insert lang-ring elem)))
 
-  (defun cycle-ispell-languages ()
-    (interactive)
-    (let ((lang (ring-ref lang-ring -1)))
-      (ring-insert lang-ring lang)
-      (ispell-change-dictionary lang)))
-
-  ;; if (aspell installed) { use aspell}
-  ;; else if (hunspell installed) { use hunspell }
-  (defun flyspell-detect-ispell-args (&optional run-together)
-    "if RUN-TOGETHER is true, spell check the CamelCase words."
-    (let (args)
-      (cond
-       ((string-match  "aspell$" ispell-program-name)
-	;; force the English dictionary, support Camel Case spelling check (tested with aspell 0.6)
-	(setf args (list "--sug-mode=ultra" "--lang=en_US"))
-	(if run-together
-	    (setf args (append args '("--run-together" "--run-together-limit=5" "--run-together-min=2")))))
-       ((string-match "hunspell$" ispell-program-name)
-	(setf args nil)))
-      args))
-
-  (cond
-   ((executable-find "ispell")
-    (setf ispell-program-name "ispell"))
-   ((executable-find "hunspell")
-    (setf ispell-program-name "hunspell")
-    ;; just reset dictionary to the safe one "en_US" for hunspell.
-    ;; if we need use different dictionary, we specify it in command line arguments
-    (setf ispell-local-dictionary "en_US")
-    (setf ispell-local-dictionary-alist
-	  '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil nil nil utf-8))))
-   (t (setf ispell-program-name nil)))
-
-  ;; ispell-cmd-args is useless, it's the list of *extra* arguments we will append to the ispell process when "ispell-word" is called.
-  ;; ispell-extra-args is the command arguments which will *always* be used when start ispell process
-  (setq-default ispell-extra-args (flyspell-detect-ispell-args t))
-  ;; (setf ispell-cmd-args (flyspell-detect-ispell-args))
-  (defadvice ispell-word (around my-ispell-word activate)
-    (let ((old-ispell-extra-args ispell-extra-args))
-      (ispell-kill-ispell t)
-      (setf ispell-extra-args (flyspell-detect-ispell-args))
-      ad-do-it
-      (setf ispell-extra-args old-ispell-extra-args)
-      (ispell-kill-ispell t)))
-
-  (defadvice flyspell-auto-correct-word (around my-flyspell-auto-correct-word activate)
-    (let ((old-ispell-extra-args ispell-extra-args))
-      (ispell-kill-ispell t)
-      ;; use emacs original arguments
-      (setf ispell-extra-args (flyspell-detect-ispell-args))
-      ad-do-it
-      ;; restore our own ispell arguments
-      (setf ispell-extra-args old-ispell-extra-args)
-      (ispell-kill-ispell t)))
-
-  (defun text-mode-hook-setup ()
-    ;; Turn off RUN-TOGETHER option when spell check text-mode
-    (setq-local ispell-extra-args (flyspell-detect-ispell-args)))
-  (add-hook 'text-mode-hook 'text-mode-hook-setup)
-
-  :config
-  (progn (setf ispell-program-name "/usr/bin/ispell")
-	 (setf ispell-dictionary "svenska")
-	 ;; (setf ispell-personal-dictionary
-	 ;;       (expand-file-name "dict/" user-emacs-directory))
-	 ))
-
-(use-package abbrev
-  :blackout
-  :straight nil
-  :ensure nil
-  :config
-  (if (file-exists-p abbrev-file-name)
-      (quietly-read-abbrev-file))
-;;;; ispell + abbrev = cool auto-complete
-  ;; (setf abbrev-file-name
-  ;;	(expand-file-name "personal_abbrev.txt" user-emacs-directory))
-  (setf save-abbrevs t)
-
-  (setf save-abbrevs 'silently)
-  (setq-default abbrev-mode t))
-
-;; (use-package auto-dictionary
 ;;   :config
-;;   (add-hook 'flyspell-mode-hook (lambda () (auto-dictionary-mode 1))))
+;;   (defun mmm/toggle-ispell-language ()
+;;     (interactive)
+;;     (if (string-equal "svenska" ispell-dictionary)
+;; 	(progn (ispell-change-dictionary "british" t)
+;; 	       (setf auto-capitalize-words '("I"))
+;; 	       (message "british"))
+;;       (progn (ispell-change-dictionary "svenska" t)
+;; 	     (setf auto-capitalize-words nil)
+;; 	     (message "svenska"))))
 
-(use-package flyspell-correct-popup
-  :bind (:map popup-menu-keymap
-	 ("TAB" . popup-next)
-	 ("S-TAB" . popup-previous)))
+;;   (progn (setf ispell-program-name "/usr/bin/ispell")
+;; 	 (setf ispell-dictionary "svenska")
+;; 	 (setf ispell-personal-dictionary
+;; 	       (expand-file-name "dict" user-emacs-directory))
+;; 	 (setf ispell-silently-savep t)
+;; 	 ))
 
-(use-package flyspell-correct
-  ;; :straight (:host github
-  ;;		   :repo "d12frosted/flyspell-correct")
-  :config
-  (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
+;; (use-package flyspell
+;;   ;; :defer 1
+;;   :custom
+;;   (flyspell-abbrev-p t)
+;;   (flyspell-issue-message-flag nil)
+;;   (flyspell-issue-welcome-flag nil)
+;;   (flyspell-mode 1))
 
-(use-package flyspell
-  :config
-  (defun ap/iedit-or-flyspell ()
-    "Call `iedit-mode' or correct misspelling with flyspell, depending..."
-    (interactive)
-    (if (or iedit-mode
-	    (and (derived-mode-p 'prog-mode)
-		 (not (or (nth 4 (syntax-ppss))
-			  (nth 3 (syntax-ppss))))))
-	;; prog-mode is active and point is in a comment, string, or
-	;; already in iedit-mode
-	(iedit-mode)
-      ;; Not prog-mode or not in comment or string
-      (if (not (equal flyspell-previous-command this-command))
-	  ;; FIXME: This mostly works, but if there are two words on the
-	  ;; same line that are misspelled, it doesn't work quite right
-	  ;; when correcting the earlier word after correcting the later
-	  ;; one
+;; (use-package flyspell-correct
+;;   :after flyspell
+;;   :bind (:map flyspell-mode-map
+;;          ("C-;" . 'flyspell-correct-at-point))
+;;   :custom (flyspell-correct-interface 'flyspell-correct-avy-menu))
 
-	  ;; First correction; autocorrect
-	  (call-interactively 'flyspell-auto-correct-previous-word)
-	;; First correction was not wanted; use popup to choose
-	(progn
-	  (save-excursion
-	    (undo))  ; This doesn't move point, which I think may be the problem.
-	  (flyspell-region (line-beginning-position) (line-end-position))
-	  (call-interactively 'flyspell-correct-previous-word-generic))))))
+;; (use-package flyspell-correct-ivy
+;;   :after flyspell-correct)
+
+;; (use-package flyspell-correct-popup
+;;   :after flyspell-correct)
+
+;; (use-package flyspell-correct-avy-menu
+;;   :after flyspell-correct)
 
 (use-package ediff
   :ensure nil
@@ -377,10 +319,32 @@
 
 (use-package string-edit)
 
-(use-package wc-mode)
+;; (use-package auto-capitalize
+;;   :straight (:host github :repo "yuutayamada/auto-capitalize-el")
+;;   :config
+;;   (setf auto-capitalize-predicate 'auto-capitalize-default-predicate-function)
+;;   (setf auto-capitalize-aspell-file (format "%s" "/.aspell.en.pws"))
+;;   (auto-capitalize-setup))
+
+;; (use-package wc-mode)
 
 (use-package wrap-region
   :config
   (wrap-region-add-wrapper "`" "`" nil '(markdown-mode))
   (wrap-region-add-wrapper "<b>" "</b>" "b" '(markdown-mode))
   )
+
+(use-package visual-regexp)
+
+(use-package visual-regexp-steroids)
+
+(use-package writegood-mode
+  :bind ("C-c g" . writegood-mode))
+
+;; (use-package spell-fu
+;;   :straight (:host gitlab :repo "ideasman42/emacs-spell-fu")
+;;   :hook ((markdown-mode org-mode text-mode) . spell-fu-mode)
+;;   :init
+;;   (setq spell-fu-faces-exclude '(org-meta-line org-link org-code))
+;;   :config
+;;   (global-spell-fu-mode))

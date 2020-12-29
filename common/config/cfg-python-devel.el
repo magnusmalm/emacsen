@@ -13,6 +13,10 @@
 (use-package pyvenv)
 
 (defun my-python-mode-hook-func ()
-  (setf fill-column 79))
+  (setf fill-column 79)
+  ;; (prism-whitespace-mode 1)
+  )
 
 (add-hook 'python-mode-hook 'my-python-mode-hook-func)
+
+(use-package indent-tools)

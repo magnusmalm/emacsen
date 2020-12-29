@@ -72,7 +72,7 @@ for d in devel org irc lisp; do
 	mv -v "$d" "$tmp"
     fi
     mkdir "$d"
-    for l in config init.el lisp straight; do
+    for l in config early-init.el init.el lisp straight .abbrev_defs; do
 	ln -vs "$(pwd)"/common/"$l" "$d"
     done
 done

@@ -18,18 +18,21 @@
     (insert ";"))
   :bind (:map c-mode-base-map ("C-RET" . insert-semicolon)))
 
+
 (defun my-c-mode-hook-func ()
   (setf fill-column 132)
+  ;; (prism-mode 1)
   ;; (yas-minor-mode)
   ;; (electrci-pair-mode 1)
   ;; (company-mode 1)
   ;; (flycheck-mode 1)
   (key-chord-mode 1)
-  (ws-butler-mode 1)
+  ;; (ws-butler-mode 1)
   ;; (setq company-transformers nil)
   (setq company-transformers nil
-	company-lsp-async t
-	company-lsp-cache-candidates nil)
+	;; company-lsp-async t
+	;; company-lsp-cache-candidates nil
+	)
   (bind-key "M-j" 'backward-char c-mode-map)
   (bind-key "M-e" 'backward-kill-word c-mode-map)
   ;; (bind-key "M-q" 'fill-function-arguments-dwim)

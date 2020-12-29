@@ -1,8 +1,8 @@
 (use-package windmove
-  :bind* (("H-i" . windmove-up)
-	  ("H-k" . windmove-down)
-	  ("H-j" . windmove-left)
-	  ("H-l" . windmove-right))
+  :bind* (("C-M-i" . windmove-up)
+	  ("C-M-k" . windmove-down)
+	  ("C-M-j" . windmove-left)
+	  ("C-M-l" . windmove-right))
   :config
   (setf windmove-wrap-around t))
 
@@ -14,7 +14,11 @@
 (use-package windsize)
 
 (use-package zygospore
-  :bind* ("M-1" . zygospore-toggle-delete-other-windows))
+  ;; (bind-key "H-f" 'zygospore-toggle-delete-other-windows)
+  :bind (("M-1" . zygospore-toggle-delete-other-windows)
+	 ("C-M-1" . zygospore-toggle-delete-other-windows))
+  
+  )
 
 
 (bind-key "M->" 'split-window-vertically)
@@ -22,8 +26,6 @@
 
 (bind-key "H-h" 'split-window-vertically)
 (bind-key "H-v" 'split-window-horizontally)
-
-(bind-key "H-f" 'zygospore-toggle-delete-other-windows)
 
 (use-package ace-window
   :bind (("M-b" . ace-window)
@@ -47,6 +49,23 @@
   (setf aw-keys '(?a ?s ?d ?f ?j ?k ?l))
   (setf aw-leading-char-style 'path))
 
+(defun my-display-buffer (buffer alist)
+  (require 'ace-window)
+  (let ((aw-ignore-current (cdr (assq 'inhibit-same-window alist)))
+        (aw-scope (pcase (cdr (assq 'reusable-frames alist))
+                    ((pred not) 'frame)
+                    ('visible 'visible)
+                    (_ 'global))))
+    (unless (<= (length (aw-window-list)) 1)
+      (window--display-buffer
+       buffer (aw-select "my-display-buffer") 'reuse))))
+
+(setq display-buffer-base-action '((display-buffer-reuse-window
+                                    my-display-buffer))
+      display-buffer-alist `(,(cons "\\*helm" display-buffer-fallback-action)
+                             ("magit-diff:" (my-display-buffer)
+                              (inhibit-same-window . t))))
+
 (defun delete-window-balance ()
   "Delete window and rebalance the remaining ones."
   (interactive)
@@ -67,24 +86,16 @@
   (balance-windows)
   (other-window 1))
 
-(bind-key "s-=" #'delete-window-balance)
-(bind-key "s-1" #'delete-other-windows)
-(bind-key "s-2" #'split-window-below-focus)
-(bind-key "s-3" #'split-window-right-focus)
+(bind-key "H-=" #'delete-window-balance)
+(bind-key "H-1" #'delete-other-windows)
 
-;; Window layout management
-;; (use-package eyebrowse
-;;   :defer 1
-;;   :config
-;;   (setf eyebrowse-close-window-config-prompt t)
-;;   (setf eyebrowse-mode-line-left-delimiter "{")
-;;   (setf eyebrowse-mode-line-right-delimiter "}")
-;;   (setf eyebrowse-mode-line-separator "|")
-;;   (setf eyebrowse-new-workspace nil)
-;;   (setf eyebrowse-switch-back-and-forth t)
-;;   (setf eyebrowse-wrap-around t)
-;;   (setq-default eyebrowse-new-workspace t)
-;;   (eyebrowse-mode 1))
+(bind-key "H-h" #'split-window-below-focus)
+(bind-key "H-2" #'split-window-below-focus)
+
+(bind-key "H-v" #'split-window-right-focus)
+(bind-key "H-3" #'split-window-right-focus)
+
+(bind-key "H-0" #'window-toggle-split-direction)
 
 (use-package minibuffer
   :straight nil
@@ -92,7 +103,6 @@
   :config
   (setf read-file-name-completion-ignore-case t)
   (setf completion-ignore-case t)
-  (setf resize-mini-windows t)
   (file-name-shadow-mode 1)
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
 

@@ -1,7 +1,3 @@
-(if (fboundp 'tool-bar-mode)   (tool-bar-mode   -1))
-(if (fboundp 'menu-bar-mode)   (menu-bar-mode   -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
-
 (require 'which-func)
 
 (use-package key-chord
@@ -11,7 +7,7 @@
 
 (use-package movement
   :straight nil
-  :ensure nil
+  ;; :ensure nil
   :after crux
   :bind* (
 	  ("M-j" . backward-char)
@@ -22,14 +18,16 @@
 	  ("M-o" . forward-word)
 	  ("M-J" . backward-paragraph)
 	  ("M-L" . forward-paragraph)
-	  ("M-h" . crux-move-beginning-of-line)
-	  ("M-H" . move-end-of-line)
 	  ("M-I" . scroll-down-command)
 	  ("M-K" . scroll-up-command)
 	  ("M-U" . beginning-of-buffer)
 	  ("M-O" . end-of-buffer)
 	  ("M-g" . goto-line-show)
-	  ))
+	  )
+  :bind (
+	 ("M-h" . crux-move-beginning-of-line)
+	 ("M-H" . move-end-of-line)
+	 ))
 
 (use-package auto-compile
   :demand   t
@@ -38,9 +36,6 @@
   (auto-compile-on-save-mode))
 
 (use-package flx)
-
-(use-package blackout
-  :straight (:host github :repo "raxod502/blackout"))
 
 (use-package no-littering
   :init
@@ -113,8 +108,9 @@
       kept-old-versions 2
       version-control t)
 
+;;; This is used in my-emacs.sh script
 (defconst emacs-tmp-dir
-  (format "%s%s%s@%s/" temporary-file-directory "emacs-" (user-real-login-name) system-name))
+  (format "%s%s%s-%s/" temporary-file-directory "emacs-" (user-real-login-name) system-name))
 
 (setf server-socket-dir emacs-tmp-dir)
 
@@ -122,10 +118,12 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (use-package which-key
-  :blackout
+  :bind (("C-h C-h" . which-key-show-top-level))
   :config
   (which-key-mode)
   (which-key-setup-side-window-bottom)
+  (setf which-key-idle-delay 0.3)
+  (setf which-key-compute-remaps t)
   (setf which-key-use-C-h-for-paging t)
   (setf which-key-prevent-C-h-from-cycling t)
   (setf which-key-max-display-columns nil)
@@ -136,8 +134,10 @@
 
 ;;;; Imenu
 (defun my-shell-mode-setup-imenu ()
-  (setf imenu-generic-expression (append '((nil "^\\([A-Z_]+\\)=.*" 1))
-                                         (nthcdr 1 (car sh-imenu-generic-expression)))))
+  (setf imenu-generic-expression
+	(append '((nil "^\\([A-Z_]+\\)=.*" 1))
+                (nthcdr 1 (car sh-imenu-generic-expression)))))
+
 (add-hook 'sh-mode-hook 'my-shell-mode-setup-imenu)
 (add-hook 'sh-mode-hook 'flycheck-mode)
 
@@ -161,10 +161,11 @@
 
 (add-hook 'imenu-after-jump-hook 'recenter-no-redraw)
 
-(use-package flimenu
-  :config
-  (progn
-    (flimenu-global-mode)))
+(use-package imenu+)
+;; (use-package flimenu
+;;   :config
+;;   (progn
+;;     (flimenu-global-mode)))
 
 ;; Turn on iMenu for code outlines for all prog and text modes, if possible
 (dolist (hook '(prog-mode-hook text-mode-hook))
@@ -194,14 +195,13 @@
   ;; Allow cross-buffer 'next'
   (setf bm-cycle-all-buffers t)
 
+  (setf bm-recenter t)
+
   ;; save bookmarks
   (setq-default bm-buffer-persistence t)
 
   ;; Loading the repository from file when on start up.
   (add-hook' after-init-hook 'bm-repository-load)
-
-  ;; Restoring bookmarks when on file find.
-  (add-hook 'find-file-hooks 'bm-buffer-restore)
 
   ;; Saving bookmarks
   (add-hook 'kill-buffer-hook #'bm-buffer-save)
@@ -219,7 +219,7 @@
   (add-hook 'after-save-hook #'bm-buffer-save)
 
   ;; Restoring bookmarks
-  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'find-file-hook   #'bm-buffer-restore)
   (add-hook 'after-revert-hook #'bm-buffer-restore)
 
   ;; The `after-revert-hook' is not necessary to use to achieve persistence,
@@ -260,16 +260,13 @@
 (use-package google-this
   :bind (:map google-this-mode-submap
 	 ("C-x g" . google-this-mode-submap))
-  :blackout
   :config
   (google-this-mode 1))
 
 (use-package anzu
-  :blackout
   :bind (("M-%" . anzu-query-replace)
 	 ("C-M-%" . anzu-query-replace-regexp))
-  :init (global-anzu-mode +1)
-  :blackout)
+  :init (global-anzu-mode +1))
 
 (use-package phi-search
   :bind ("π" . phi-search))
@@ -293,7 +290,52 @@
 ;; (setf scroll-margin 2)
 ;; (setf scroll-step 1)
 ;; (setf scroll-conservatively 10000)
-;; (setf scroll-error-top-bottom t)
+;; (setf scroll-error-top-bottom t
+
+;; (use-package fill-column-indicator
+;;   :demand t
+;;   :init
+;;   (defvar sanityinc/fci-mode-suppressed nil)
+;;   (defadvice popup-create (before suppress-fci-mode activate)
+;;     "Suspend fci-mode while popups are visible"
+;;     (set (make-local-variable 'sanityinc/fci-mode-suppressed) fci-mode)
+;;     (when fci-mode
+;;       (turn-off-fci-mode)))
+
+;;   (defadvice popup-delete (after restore-fci-mode activate)
+;;     "Restore fci-mode when all popups have closed"
+;;     (when (and (not popup-instances) sanityinc/fci-mode-suppressed)
+;;       (setf sanityinc/fci-mode-suppressed nil)
+;;       (turn-on-fci-mode)))
+
+;;   (defvar i42/fci-mode-suppressed nil)
+
+;;   (make-variable-buffer-local 'i42/fci-mode-suppressed)
+
+;;   (defun fci-width-workaround (frame)
+;;     (let ((fci-enabled (symbol-value 'fci-mode))
+;;           (fci-column (if fci-rule-column fci-rule-column fill-column))
+;;           (current-window-list (window-list frame 'no-minibuf)))
+;;       (dolist (window current-window-list)
+;; 	(with-selected-window window
+;;           (if i42/fci-mode-suppressed
+;;               (when (and (eq fci-enabled nil)
+;; 			 (< fci-column
+;;                             (+ (window-width) (window-hscroll))))
+;; 		(setq i42/fci-mode-suppressed nil)
+;; 		(turn-on-fci-mode)
+;; 		;; i42/fci-mode-suppressed == nil
+;; 		(when (and fci-enabled fci-column
+;; 			   (>= fci-column
+;;                                (+ (window-width) (window-hscroll))))
+;; 		  (setq i42/fci-mode-suppressed t)
+;; 		  (turn-off-fci-mode))
+;; 		:config
+;; 		(add-hook 'prog-mode-hook #'fci-mode)
+;; 		(add-hook 'window-size-change-functions 'fci-width-workaround)
+;; 		(setf fci-rule-color "tan"))))))))
+
+(global-display-fill-column-indicator-mode)
 
 ;;;; COMPANY
 (use-package company
@@ -339,7 +381,7 @@
     (when company-fci-mode-on-p (fci-mode 1)))
 
   (setq company-backends '((company-capf
-			    company-ispell
+			    ;; company-ispell
 			    company-keywords)
 			   ;; company-yasnippet)
 			   (company-abbrev company-dabbrev)))
@@ -357,7 +399,7 @@
   :after company
   :config
   (add-hook 'company-mode-hook (lambda ()
-                                 (add-to-list 'company-backends 'company-capf)))
+				 (add-to-list 'company-backends 'company-capf)))
   (company-flx-mode +1))
 
 (use-package company-quickhelp
@@ -389,10 +431,10 @@
 
 (use-package eldoc
   :straight nil
-  :blackout
   :config
-  (setf eldoc-print-after-edit t))
+  (setf eldoc-print-after-edit nil))
 
+;; (add-hook 'eglot--managed-mode-hook #'eldoc-box-hover-mode t)
 (use-package ripgrep)
 
 (use-package deadgrep)
@@ -426,21 +468,21 @@
 
 (use-package counsel
   :bind* (
-          ("C-M-S" . counsel-projectile-rg)
+	  ("C-M-S" . counsel-projectile-rg)
 	  ("M-s-s" . counsel-projectile-rg)
-          ("M-a" . counsel-M-x)
+	  ("M-a" . counsel-M-x)
 	  ("C-S-p" . counsel-M-x)
-          ("C-h v" . counsel-describe-variable)
-          ("C-h f" . counsel-describe-function)
-          ("C-*" . counsel-descbinds)
-          ("C-o" . counsel-find-file)
+	  ("C-h v" . counsel-describe-variable)
+	  ("C-h f" . counsel-describe-function)
+	  ("C-*" . counsel-descbinds)
 	  ("<f6>" . counsel-minor)
+	  ("C-o" . counsel-find-file)
 	  ("S-<f6>" . counsel-major)
-          ("C-M-y" . counsel-yank-pop))
+	  ("C-M-y" . counsel-yank-pop))
   :bind (("C-'" . counsel-semantic-or-imenu)
 	 ("C-M-p" . counsel-semantic-or-imenu)
-         ("M-S" . mmm/ripgrep-in-current-directory)
-	 ("M-s" . counsel-grep-or-swiper))
+	 ("M-S" . mmm/ripgrep-in-current-directory)
+	 ("M-s" . swiper))
   :bind (:map counsel-mode-map
 	 ("M-k" . ivy-next-line)
 	 ("M-i" . ivy-previous-line)
@@ -448,13 +490,16 @@
 	 ("M-K" . ivy-scroll-up-command))
 
   :config
+  (setf counsel-describe-variable-function 'helpful-variable)
+  (setf counsel-describe-function-function 'helpful-function)
+  (setf counsel-descbinds-function 'helpful-function)
   (put 'counsel-find-symbol 'no-counsel-M-x t)
   (setf counsel-find-file-ignore-regexp
 	(concat
-         ;; File names beginning with # or .
-         "\\(?:\\`[#.]\\)"
-         ;; File names ending with # or ~
-         "\\|\\(?:\\`.+?[#~]\\'\\)"
+	 ;; File names beginning with # or .
+	 "\\(?:\\`[#.]\\)"
+	 ;; File names ending with # or ~
+	 "\\|\\(?:\\`.+?[#~]\\'\\)"
 	 ;; File names ending with .o
 	 "\\|\\(?:\\`.+?o\\'\\)"
 	 ;; File names ending with .d
@@ -469,37 +514,37 @@
     (let (hist-cmd collection val)
       (shell-command "history -r")	; reload history
       (setf collection
-            (nreverse
-             (split-string (with-temp-buffer (insert-file-contents (file-truename "~/.bash_history"))
-                                             (buffer-string))
-                           "\n"
-                           t)))
+	    (nreverse
+	     (split-string (with-temp-buffer (insert-file-contents (file-truename "~/.bash_history"))
+					     (buffer-string))
+			   "\n"
+			   t)))
       (when (and collection (> (length collection) 0)
 		 (setf val (if (= 1 (length collection)) (car collection)
-                             (ivy-read (format "Bash history:") collection))))
-        (kill-new val)
-        (message "%s => kill-ring" val))))
+			     (ivy-read (format "Bash history:") collection))))
+	(kill-new val)
+	(message "%s => kill-ring" val))))
 
   (defun mmm/counsel-rg (arg)
     "C-u prefix => No initial input, proj scope
    C-0 prefix => No initial input, CWD scope"
     (interactive "P")
     (if arg
-        (cond ((and (numberp arg) (= arg 0))
-               (setf current-prefix-arg nil)
+	(cond ((and (numberp arg) (= arg 0))
+	       (setf current-prefix-arg nil)
 	       (message "%s" arg)
 	       (let ((dir (file-name-directory buffer-file-name)))
 		 (counsel-ag nil dir nil
 			     (format "%s " dir))))
-              ((= (car arg) 4)
-               (setf current-prefix-arg nil)
-               (counsel-projectile-rg))
+	      ((= (car arg) 4)
+	       (setf current-prefix-arg nil)
+	       (counsel-projectile-rg))
 	      ;; (counsel-rg nil (projectile-project-root) nil
 	      ;; (format "%s " (projectile-project-name)))
-              (nil))
+	      (nil))
       (counsel-ag (symbol-name (symbol-at-point))
-                  (projectile-project-root) nil
-                  (format "%s " (projectile-project-name)))))
+		  (projectile-project-root) nil
+		  (format "%s " (projectile-project-name)))))
 
   (defun mmm/ripgrep-in-current-directory (arg)
     (interactive "P")
@@ -510,17 +555,19 @@
 
   (ivy-set-prompt 'counsel-projectile-rg #'counsel-prompt-function-dir)
   (setf counsel-grep-base-command
-        "rg -i -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
+	"rg -i -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
   (setf counsel-rg-base-command
-        "rg -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' %s ."))
+	"rg -M 250 --no-heading --line-number --color never --no-ignore --ignore-file '/home/magnus/.ripgrep-ignore' %s"))
 
 (use-package crux
   :bind (("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
-         ("C-c C-d" . crux-duplicate-current-line-or-region)
-         ("C-x M-r" . crux-rename-file-and-buffer)
-         ;; ("C-<return>" . crux-smart-open-line-above)
-         ("C-c I" . crux-find-user-init-file)
-         ("M-h" . crux-move-beginning-of-line))
+	 ("C-c C-d" . crux-duplicate-current-line-or-region)
+	 ("C-x M-r" . crux-rename-file-and-buffer)
+	 ("RET" . newline)
+	 ("M-RET" . crux-smart-open-line)
+	 ("M-S-RET" . crux-smart-open-line-above)
+	 ("C-c I" . crux-find-user-init-file)
+	 ("M-h" . crux-move-beginning-of-line))
   :init (require 'crux)
   :config
   (crux-with-region-or-buffer indent-region)
@@ -534,20 +581,20 @@
   (setq avy-styles-alist '((avy-goto-char-2 . post)))
   (setq avy-keys '(?a ?j ?s ?k ?d ?l ?f ?h))
   (setf avy-single-candidate-jump nil)
-  (setf avy-background t)
+  (setf avy-background nil)
   (defun avy-show-dispatch-help ()
     "Display action shortucts in echo area."
     (interactive)
     (message "%s" (mapconcat
-		   (lambda (action)
-		     (cl-destructuring-bind (key . fn) action
-		       (format "%s: %s"
-			       (propertize
-				(char-to-string key)
-				'face 'avy-lead-face)
-			       fn)))
-		   avy-dispatch-alist
-		   "\n")))
+		   (lambda (action
+			    (cl-destructuring-bind (key . fn) action
+			      (format "%s: %s"
+				      (propertize
+				       (char-to-string key)
+				       'face 'avy-lead-face)
+				      fn)
+			      avy-dispatch-alist
+			      "\n"))))))
   (defun avy-goto-open-paren-followed-by-char-or-num (&optional arg)
     "Jump to an open bracket followed by a letter or a number.
  The window scope is determined by `avy-all-windows' (ARG negates it)."
@@ -557,47 +604,29 @@
        "([[:alnum:]]"
        arg
        avy-style)))
+
   (defun my-avy-action-copy-and-yank (pt)
     "Copy and yank sexp starting on PT."
     (avy-action-copy pt)
     (yank))
+
+  (defun my-avy-action-copy-and-correct-for-erc (pt)
+    "Copy and yank sexp starting on PT."
+    (avy-action-copy pt)
+    (let ((w (car kill-ring)))
+      (insert (format "/s%s/%s" w w))))
+
   (setq avy-dispatch-alist '((?x . avy-action-kill-move)
 			     (?X . avy-action-kill-stay)
 			     (?m . avy-action-mark)
 			     (?p . my-avy-action-copy-and-yank)
 			     (?P . avy-action-teleport)
 			     (?n . avy-action-copy)
-			     (?y . avy-action-yank)))
-  (defhydra hydra-avy (:exit t :hint nil :column t)
-    "avy"
-    ("c" avy-goto-char "char" :column "Char")
-    ("C" avy-goto-char-2 "Char 2 tier")
-    ("ac" avy-goto-char-2-above "Char 2 tier above point")
-    ("bc" avy-goto-char-2-below "Char 2 tier below point")
-    ("lc" avy-goto-char-in-line "Char in current line")
-    ("tc" avy-goto-char-timer "Char timed")
-
-    ("w" avy-goto-word-1 "Word" :column "Word")
-    ("aw" avy-goto-word-1-above "Word above point")
-    ("bw" avy-goto-word-1-below "Word below")
-
-    ("i" avy-goto-symbol-1 "Identifier" :column "Identifier")
-    ("ai" avy-goto-symbol-1-above "Identifier above point")
-    ("bi" avy-goto-symbol-1-below "Identifier below point")
-
-    ("l" avy-goto-line "Line" :column "Line")
-    ("al" avy-goto-line-above "Line above point")
-    ("bl" avy-goto-line-below "Line below point")
-    ("el" avy-goto-end-of-line "End of line")
-
-    ("x" avy-goto-open-paren-followed-by-char-or-num "" :column "Other")
-
-    ("?" avy-show-dispatch-help "Show actions" :foreign-keys run)
-
-    ("q"  nil)))
+			     (?y . avy-action-yank)
+			     (?Y . my-avy-action-copy-and-correct-for-erc))))
 
 (use-package link-hint
-  :defer 1
+  ;; :defer 1
   :config
   (let
       ((sub-keymap (make-sparse-keymap)))
@@ -612,7 +641,6 @@
   (defun projectile-project-find-function (dir)
     (let* ((root (projectile-project-root dir)))
       (and root (cons 'transient root))))
-  :blackout
   :bind (("H-p" . projectile-command-map)
 	 ("M-P M-P" . counsel-projectile-switch-project)
 	 ("C-M-P" . counsel-projectile-switch-project)
@@ -626,20 +654,22 @@
 	 ("M-P M-W" . git-messenger:popup-message)
 	 ("M-P M-D" . projectile-dired))
   :config
-  (setf projectile-git-command "fdfind . -0")
-  (setf projectile-generic-command "fdfind . -0")
+  ;; (setf projectile-git-command "fdfind . -0")
+  (setf projectile-git-command "fdfind . --print0 --no-ignore-vcs --color never")
+  (setf projectile-generic-command "find . -type f -print0")
   (setf projectile-enable-caching t)
+  (setf projectile-indexing-method 'alien)
   (setf projectile-mode-line '(:eval (format " Proj:%s" (projectile-project-name))))
   (setf projectile-keymap-prefix (kbd "C-x p"))
   (setf projectile-switch-project-action
-        #'projectile-commander)
+	#'projectile-commander)
   (setf projectile-project-root-files-top-down-recurring
-        (append '("compile_commands.json"
-                  ".ccls")
-                projectile-project-root-files-top-down-recurring))
+	(append '("compile_commands.json"
+		  ".ccls")
+		projectile-project-root-files-top-down-recurring))
   (setf projectile-completion-system 'ivy)
   (setf projectile-globally-ignored-directories
-        '(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" ".ccls-cache" "kernel-dev"))
+	'(".workdir" ".cquery_cached_index" ".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" ".ccls-cache" "kernel-dev"))
   (def-projectile-commander-method ?s
     "Open a *shell* buffer for the project."
     (projectile-run-shell))
@@ -653,23 +683,23 @@
     "Jump to a buffer in the current project."
     (interactive)
     (let ((ivy-update-fns-alist
-           '((ivy-switch-buffer . counsel--switch-buffer-update-fn)))
-          (ivy-unwind-fns-alist
-           '((ivy-switch-buffer . counsel--switch-buffer-unwind))))
+	   '((ivy-switch-buffer . counsel--switch-buffer-update-fn)))
+	  (ivy-unwind-fns-alist
+	   '((ivy-switch-buffer . counsel--switch-buffer-unwind))))
       (if (and (eq projectile-require-project-root 'prompt)
-               (not (projectile-project-p)))
-          (counsel-projectile-switch-to-buffer-action-switch-project)
+	       (not (projectile-project-p)))
+	  (counsel-projectile-switch-to-buffer-action-switch-project)
 	(ivy-read (projectile-prepend-project-name "Switch to buffer: ")
-                  ;; We use a collection function so that it is called each
-                  ;; time the `ivy-state' is reset. This is needed for the
-                  ;; "kill buffer" action.
-                  #'counsel-projectile--project-buffers
-                  :matcher #'ivy--switch-buffer-matcher
-                  :require-match t
-                  :sort counsel-projectile-sort-buffers
-                  :action counsel-projectile-switch-to-buffer-action
-                  :keymap counsel-projectile-switch-to-buffer-map
-                  :caller 'counsel-projectile-switch-to-buffer))))
+		  ;; We use a collection function so that it is called each
+		  ;; time the `ivy-state' is reset. This is needed for the
+		  ;; "kill buffer" action.
+		  #'counsel-projectile--project-buffers
+		  :matcher #'ivy--switch-buffer-matcher
+		  :require-match t
+		  :sort counsel-projectile-sort-buffers
+		  :action counsel-projectile-switch-to-buffer-action
+		  :keymap counsel-projectile-switch-to-buffer-map
+		  :caller 'counsel-projectile-switch-to-buffer))))
   )
 
 (use-package counsel-projectile
@@ -700,31 +730,12 @@
   :bind (:map  ivy-minibuffer-map
 	 ("C-7" . swiper-mc)
 	 ("M-s" . insert-symbol-at-point)
-         ("M-S" . insert-word-at-point)
+	 ("M-S" . insert-word-at-point)
 	 :map swiper-map
 	 ("M-I" . ivy-scroll-down-command)
 	 ("M-K" . ivy-scroll-up-command)
 	 ("M-s" . insert-symbol-at-point)
 	 ("M-S" . insert-word-at-point))
-
-  :custom-face
-  ;; (swiper-match-face-1 ((nil :box nil :background "#4F4F4F" :foreground nil)))
-  ;; (swiper-match-face-2 ((nil :box nil :background "#5F7F5F" :foreground nil)))
-  ;; (swiper-match-face-3 ((nil :box nil :background "#7F9F7F" :foreground nil)))
-  ;; (swiper-match-face-4 ((nil :box nil :background "#8FB28F" :foreground nil)))
-
-  (swiper-match-face-1 ((nil :box (:line-width -1 :color "red") :background nil)))
-  (swiper-match-face-2 ((nil :box (:line-width -1 :color "green") :background nil)))
-  (swiper-match-face-3 ((nil :box (:line-width -1 :color "blue") :background nil)))
-  (swiper-match-face-4 ((nil :box (:line-width -1 :color "yellow") :background nil)))
-
-  (swiper-background-match-face-1 ((nil :box (:line-width -1 :color "red") :background nil)))
-  (swiper-background-match-face-2 ((nil :box (:line-width -1 :color "green") :background nil)))
-  (swiper-background-match-face-3 ((nil :box (:line-width -1 :color "blue") :background nil)))
-  (swiper-background-match-face-4 ((nil :box (:line-width -1 :color "yellow") :background nil)))
-
-
-  ;; ((t (:foreground "spring green"))))
 
   :config
   (defun insert-symbol-at-point ()
@@ -739,7 +750,8 @@
   (setf swiper-action-recenter t))
 
 (use-package ivy
-  :blackout
+  :demand t
+  :hook (after-init . ivy-mode)
   :bind* (("M-M" . ivy-switch-buffer)
 	  ("M-m" . counsel-projectile-switch-to-buffer)
   	  ("C-c C-r" . ivy-resume))
@@ -759,13 +771,11 @@
 	 ("M-e" . backward-kill-word)
 	 ("M-r" . kill-word)
 	 ("M-x" . ivy-kill-line)
+	 ("C-M-o" . ivy-dispatching-done)
 	 ("C-S-u" . ivy-rotate-sort)
 	 ("C-S-i" . ivy-rotate-preferred-builders)
-	 ("C-S-o" . ivy-dispatching-done)
-	 ("C-M-S-o" . ivy-dispatching-call)
-	 ("C-M-j" . ivy-immediate-done)
+	 ("C-S-j" . ivy-immediate-done)
 	 ("C-g" . ar/ivy-keyboard-quit-dwim))
-  :blackout
   :init
   :config
   (setf ivy-action-wrap t)
@@ -798,78 +808,24 @@
     "If region active, deactivate. If there's content, clear the minibuffer. Otherwise quit."
     (interactive)
     (cond ((and delete-selection-mode (region-active-p))
-           (setf deactivate-mark t))
-          ((> (length ivy-text) 0)
-           (delete-minibuffer-contents))
-          (t
-           (minibuffer-keyboard-quit))))
+	   (setf deactivate-mark t))
+	  ((> (length ivy-text) 0)
+	   (delete-minibuffer-contents))
+	  (t
+	   (minibuffer-keyboard-quit))))
 
   (ivy-set-actions
    t
    '(("i" ivy-copy-to-buffer-action "insert")
-     ("y" ivy-yank-action "yank")))
-  (ivy-mode 1))
+     ("y" ivy-yank-action "yank"))))
 
-;; (use-package ivy-explorer
-;;   :config
-;;   (ivy-explorer-mode 1))
-
-;; (use-package ivy-historian
-;;   :init (ivy-mode +1)
-;;   (historian-mode +1)
-;;   :config (ivy-historian-mode +1))
+(use-package ivy-hydra
+  :after ivy)
 
 (use-package ivy-xref
   :init (if (< emacs-major-version 27)
-            (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
-          (setq xref-show-definitions-function #'ivy-xref-show-defs)))
-
-;; (use-package ivy-xref
-;;   :init (setf xref-show-xrefs-function #'ivy-xref-show-xrefs))
-
-;; (use-package ivy-rich
-;;   :straight (:host github
-;; 	     :repo "Yevgnen/ivy-rich"
-;; 	     :branch "customize")
-;;   :init
-;;   (setf ivy-rich-path-style 'abbrev)
-;;   :config
-;;   (defun ivy-rich-switch-buffer-icon (candidate)
-;;     (with-current-buffer
-;;    	(get-buffer candidate)
-;;       (let ((icon (all-the-icons-icon-for-mode major-mode)))
-;; 	(if (symbolp icon)
-;; 	    (all-the-icons-icon-for-mode 'fundamental-mode)
-;; 	  icon))))
-;;   (setf ivy-rich--display-transformers-list
-;; 	'(ivy-switch-buffer
-;;           (:columns
-;;            ((ivy-rich-switch-buffer-icon :width 2)
-;;             (ivy-rich-candidate (:width 20))
-;;             (ivy-rich-switch-buffer-size (:width 7))
-;;             (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-;;             (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-;;             (ivy-rich-switch-buffer-project (:width 15 :face success))
-;;             (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-;;            :predicate
-;;            (lambda (cand) (get-buffer cand)))
-;; 	  counsel-M-x
-;; 	  (:columns
-;; 	   ((counsel-M-x-transformer (:width 40))  ; thr original transfomer
-;; 	    (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the command
-;; 	  counsel-describe-function
-;; 	  (:columns
-;; 	   ((counsel-describe-function-transformer (:width 40))  ; the original transformer
-;; 	    (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the function
-;; 	  counsel-describe-variable
-;; 	  (:columns
-;; 	   ((counsel-describe-variable-transformer (:width 40))  ; the original transformer
-;; 	    (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face))))  ; return the docstring of the variable
-;; 	  counsel-recentf
-;; 	  (:columns
-;; 	   ((ivy-rich-candidate (:width 0.8)) ; return the candidate itself
-;; 	    (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))))) ; return the last modified time of the file)
-;;   (ivy-rich-mode 1))
+	    (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+	  (setq xref-show-definitions-function #'ivy-xref-show-defs)))
 
 (use-package ivy-rich
   :config
@@ -894,7 +850,7 @@
 	'(ivy-switch-buffer
 	  (:columns
 	   ((ivy-rich-switch-buffer-icon :width 2)
-	    (ivy-rich-candidate (:width 30))
+	    (ivy-rich-candidate (:width 50))
 	    (ivy-rich-switch-buffer-project (:width 15 :face success))
 	    (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
 	    ;; (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
@@ -925,16 +881,16 @@
   (ivy-rich-mode 1))
 
 ;; (use-package ivy-posframe
+;;   :after ivy
+;;   :demand t
 ;;   :config
-;;   (setq
-;;    ;; ivy-posframe-width (window-width)
-;; 	ivy-posframe-min-width 90
-;; 	ivy-posframe-width 110
-;;         ivy-posframe-hide-minibuffer nil
-;;         ivy-posframe-border-width 1
-;;         ;; ivy-display-function #'ivy-posframe-display-at-frame-bottom-left)
-;;         ivy-display-function #'ivy-posframe-display-at-frame-center)
-;;   (ivy-posframe-enable))
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-point))
+;;         ivy-posframe-height-alist '((t . 20)))
+;;   ;; (if (member "Menlo" (font-family-list))
+;;   ;;     (setq ivy-posframe-parameters '((internal-border-width . 10) (font . "Menlo")))
+;;   (setf ivy-posframe-parameters '((internal-border-width . 1)))
+;;   (setq ivy-posframe-width 170)
+;;   (ivy-posframe-mode 1))
 
 ;; (use-package ivy-explorer
 ;;   :diminish ivy-explorer-mode
@@ -960,13 +916,6 @@
   :ensure-system-package
   (rg . ripgrep))
 
-(use-package ag
-  :ensure-system-package
-  (ag . silversearcher-ag)
-  :config
-  (setf ag-highlight-search t))
-
-
 (setf search-default-mode 'character-fold-to-regexp)
 
 (use-package pandoc-mode)
@@ -975,17 +924,17 @@
   :ensure-system-package pandoc
   :commands (markdown-mode gfm-mode)
   :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
+	 ("\\.md\\'" . markdown-mode)
+	 ("\\.markdown\\'" . markdown-mode))
   :config
-  (setf markdown-command "pandoc"))
+  (setf markdown-command "pandoc")
 
-(setf next-error-highlight t)
-(bind-key "n" 'next-error ivy-occur-grep-mode-map)
-(setf next-error-highlight t)
+  (setf next-error-highlight t)
+  (bind-key "n" 'next-error ivy-occur-grep-mode-map)
+  (setf next-error-highlight t)
 
-;; (setf next-error-recenter '(4))
-(setf next-error-recenter nil)
+  ;; (setf next-error-recenter '(4))
+  (setf next-error-recenter nil))
 
 (defun magma/buffer-filename-and-func-name ()
   (interactive)
@@ -996,7 +945,7 @@
 	(kill-new text)
 	(message text))
     (message "Buffer is not visiting a regular file.")))
-(bind-key "C-M-F" 'magma/buffer-filename-and-func-name)
+(bind-key "C-S-F" 'magma/buffer-filename-and-func-name)
 
 (defun magma/buffer-filename-and-pos ()
   (interactive)
@@ -1005,14 +954,15 @@
 	(kill-new text)
 	(message text))
     (message "Buffer is not visiting a regular file.")))
-(bind-key "C-M-L" 'magma/buffer-filename-and-pos)
+(bind-key "C-S-L" 'magma/buffer-filename-and-pos)
 
 (use-package easy-kill
   :config
   (global-set-key [remap kill-ring-save] #'easy-kill)
   (global-set-key [remap mark-sexp] #'easy-mark))
 
-(use-package hydra)
+(use-package hydra
+  :demand t)
 
 (use-package pdf-tools
   :config
