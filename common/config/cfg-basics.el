@@ -562,6 +562,7 @@
 (use-package crux
   :bind (("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
 	 ("C-c C-d" . crux-duplicate-current-line-or-region)
+	 ("C-M-<return>" . crux-duplicate-current-line-or-region)
 	 ("C-x M-r" . crux-rename-file-and-buffer)
 	 ("RET" . newline)
 	 ("M-RET" . crux-smart-open-line)

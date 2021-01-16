@@ -38,6 +38,12 @@ Inserted by installing org-mode or when a release is made."
   ;; :ensure nil
   :ensure org-plus-contrib
   :init
+  (defun my-org-mode-hook-fn ()
+    ;; (unbind-key "M-h")
+    ;; (unbind-key "M-H")
+    (bind-key "M-h" 'org-beginning-of-line 'org-mode-map)
+    (bind-key "M-H" 'org-end-of-line 'org-mode-map))
+
   (defun load-org-agenda-files-recursively (dir) "Find all directories in DIR."
 	 (unless (file-directory-p dir)
 	   (error "Not a directory `%s'" dir))
@@ -48,16 +54,14 @@ Inserted by installing org-mode or when a release is made."
 	     (let ((file (concat dir file "/")))
 	       (when (file-directory-p file)
 		 (load-org-agenda-files-recursively file))))))
-  :bind
-  (("M-h" . crux-move-beginning-of-line)
-   ("M-H" . move-end-of-line)
-   ("C-c M-l" . org-store-link)
-   ("C-c C-l" . org-insert-link)
-   ("C-c a" . org-agenda)
-   ("C-c c" . org-capture)
-   ("<pause>" . org-capture)
-   ("C-c C-e" . org-export-dispatch)
-   )
+  :hook (org-mode . my-org-mode-hook-fn)
+  :bind (("C-c M-l" . org-store-link)
+	 ("C-c C-l" . org-insert-link)
+	 ("M-<return>" . org-insert-heading-respect-content)
+	 ("C-c a" . org-agenda)
+	 ("C-c c" . org-capture)
+	 ("<pause>" . org-capture)
+	 ("C-c C-e" . org-export-dispatch))
   :config
   (require 'org-tempo)
   (setq org-agenda-files '("~/sync/org/work.org"
@@ -72,7 +76,10 @@ Inserted by installing org-mode or when a release is made."
   (setf org-pretty-entities t)
   (setf org-use-sub-superscripts '{})
 
+  (setf org-startup-folded 'overview)
+  
   (setf org-log-into-drawer t)
+  (setf org-special-ctrl-a/e t)
   (setf org-use-speed-commands t
 	org-hide-emphasis-markers t
 	org-src-fontify-natively t ;; Pretty code blocks

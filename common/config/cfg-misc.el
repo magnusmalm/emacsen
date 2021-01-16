@@ -52,10 +52,10 @@
   :straight (:host github
 	     :repo "rafoo/wicd-mode.el"))
 
-(use-package dockerfile-mode)
-(use-package docker-compose-mode)
-(use-package docker-tramp)
-(use-package docker)
+;; (use-package dockerfile-mode)
+;; (use-package docker-compose-mode)
+;; (use-package docker-tramp)
+;; (use-package docker)
 
 (use-package pass
   :config
@@ -214,3 +214,5 @@ one by line."
 (use-package ytdl)
 
 (use-package csv-mode)
+
+(use-package recomplete)

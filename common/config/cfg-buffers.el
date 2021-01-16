@@ -186,7 +186,7 @@ A Emacs buffer is one who's name starts with *.  Else it is a user buffer."
 
 ;;;; *scratch* buffer
 (setf initial-scratch-message nil)
-(setf initial-major-mode 'lisp-interaction-mode)
+(setf initial-major-mode 'text-mode)
 
 (defun mmm/create-scratch-buffer (use-initial-major-mode)
   "Create scratch buffer with current buffer's `major-mode'.

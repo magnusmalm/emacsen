@@ -227,8 +227,8 @@
       '(("magnusmalm@gmail.com"
          :domains ("github.com")
          :dirs ("~/emacsen" "~/src"))
-        ("magnus.malm@westermo.se"
-         :domains ("git.labs.westermo.se")
+        ("magnus.malm@westermo.com"
+         :domains ("git.labs.westermo.com")
          :dirs ("~/devel/etbnd-client" "~/devel/5.x"))))
 
 (defun magit-insert-head-branch-header (&optional branch)
@@ -305,6 +305,6 @@ instead.  The optional BRANCH argument is for internal use only."
 
 (use-package orgit)
 
-(use-package magit-svn)
+;; (use-package magit-svn)
 
 (use-package git-link)

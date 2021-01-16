@@ -55,6 +55,8 @@ and set the focus back to Emacs frame"
   :config
   (global-aggressive-indent-mode 1)
   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
+  (add-to-list 'aggressive-indent-excluded-modes 'lisp-mode)
+  (add-to-list 'aggressive-indent-excluded-modes 'mrepl-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'haml-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'c-mode)
@@ -76,10 +78,10 @@ and set the focus back to Emacs frame"
 (use-package gitlab)
 (use-package ivy-gitlab)
 
-(use-package lua-mode
-  :config
-  ;; (setf lua-default-application "luajit")
-  (setf lua-default-application "lua"))
+;; (use-package lua-mode
+;;   :config
+;;   ;; (setf lua-default-application "luajit")
+;;   (setf lua-default-application "lua"))
 
 (use-package go-guru)
 

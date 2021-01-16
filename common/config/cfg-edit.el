@@ -114,6 +114,8 @@
 (use-package edit-at-point
   :bind (("M-C" . hydra-edit-at-point/body)))
 
+(use-package eno)
+
 (use-package subword
   :ensure nil
   :config
