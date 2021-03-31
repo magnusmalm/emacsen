@@ -22,7 +22,6 @@
   (emojify-mode)
   ;; (flyspell-mode 1)
   ;; (erc-spelling-mode 1)
-  (bind-key "M-RET" 'counsel-irc-query-nick erc-mode-map)
   (bind-key "M-<return>" 'counsel-irc-query-nick erc-mode-map))
 
 (add-hook 'erc-mode-hook 'my-erc-mode-hook-func)
@@ -69,7 +68,7 @@
 
 (setf erc-timestamp-only-if-changed-flag t
       erc-timestamp-format "%H:%M "
-      erc-datestamp-format " === [%Y-%m-%d %a] ===\n" ; mandatory ascii art
+      erc-datestamp-format " \n\n=== [%Y-%m-%d %a] ===\n" ; mandatory ascii art
       erc-fill-prefix "      "
       erc-insert-timestamp-function 'ks-timestamp)
 

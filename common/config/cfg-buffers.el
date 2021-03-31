@@ -200,6 +200,7 @@ If `USE-INITIAL-MAJOR-MODE' is non-nil, set `major-mode' to `initial-major-mode'
 ;; DIRED
 ;; press "S" in a dired buffer to see dired sort in action
 ;; Provided by dired-sort
+(require 'ls-lisp)
 (use-package dired
   :straight nil
   :ensure nil
@@ -217,7 +218,7 @@ If `USE-INITIAL-MAJOR-MODE' is non-nil, set `major-mode' to `initial-major-mode'
   :config ;; after loading dired, do this stuff
   (setf dired-recursive-deletes 'always
 	dired-recursive-copies 'always
-	dired-listing-switches "-alh")
+	dired-listing-switches "--group-directories-first -alh")
   (defun mmm/dired-up-dir ()
     (interactive)
     (find-alternate-file ".."))

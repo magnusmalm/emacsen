@@ -55,8 +55,8 @@
 
 (use-package multiple-cursors
   :bind (("C-S-c C-S-c" . mc/edit-lines)
-	 ("C->" . mc/mark-next-like-this)
-	 ("C-<" . mc/mark-previous-like-this)
+	 ("C-<" . mc/mark-next-like-this-word)
+	 ("C->" . mc/mark-previous-like-this-word)
 	 ("C-c C-<" . mc/mark-all-like-this)
 	 ("C-c C-m l" . mc/edit-lines)
 	 ("C-c C-m ^" . mc/edit-beginnings-of-lines)
@@ -67,7 +67,9 @@
 	 ("C-c C-m #" . mc/insert-numbers)
 	 ("C-c C-m s" . mc/sort-regions)
 	 ("C-c C-m r" . mc/reverse-regions)
+	 ("<mouse-3>" . mc/add-cursor-on-click)
 	 :map mc/keymap
+	 ("<return>" . nil)
 	 ("C-'" . hide-unmatched-lines-mode)))
 
 (use-package ace-mc)
@@ -112,7 +114,14 @@
 ;;   (ws-butler-global-mode))
 
 (use-package edit-at-point
-  :bind (("M-C" . hydra-edit-at-point/body)))
+  :bind (("C-M-w" . edit-at-point-symbol-copy)
+	 ("C-M-S-w" . edit-at-point-symbol-cut)
+	 ("C-M-t" . edit-at-point-str-copy)
+	 ("C-M-S-t" . edit-at-point-str-cut)
+	 ("C-M-p" . edit-at-point-paren-copy)
+	 ("C-M-S-p" . edit-at-point-paren-cut)
+	 ("C-M-d" . edit-at-point-defun-cut)
+	 ("C-M-S-d" . edit-at-point-defun-cut)))
 
 (use-package eno)
 

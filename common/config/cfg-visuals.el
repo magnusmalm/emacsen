@@ -218,7 +218,7 @@
 
 ;; (set-face-attribute 'hl-line nil :box nil :background "black")
 ;; (set-face-attribute 'hl-line nil :box '(:line-width -1 :color "black") :background nil :extend t)
-(set-face-attribute 'hl-line nil :box '(:line-width -1 :color "deep sky blue") :background nil :extend t)
+(set-face-attribute 'hl-line nil :box '(:line-width -1 :color "PaleGoldenrod") :background nil :extend t)
 
 (use-package ansi-color
   :config

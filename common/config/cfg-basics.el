@@ -269,7 +269,7 @@
   :init (global-anzu-mode +1))
 
 (use-package phi-search
-  :bind ("π" . phi-search))
+  :bind (("π" . phi-search)))
 
 ;;;; Startup stuff
 (setf inhibit-startup-message t)

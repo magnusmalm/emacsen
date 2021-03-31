@@ -9,6 +9,11 @@
 ;;   (add-hook 'sly-mode-hook #'enable-lispy-mode))
 
 (use-package sly
+  :init
+  (defun my-sly-mode-hook-fn ()
+    (unless (sly-connected-p)
+      (save-excursion (sly))))
+  :hook (sly-mode . my-sly-mode-hook-fn)
   :config
   (setf inferior-lisp-program "sbcl"))
 

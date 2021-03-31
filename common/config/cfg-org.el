@@ -57,11 +57,12 @@ Inserted by installing org-mode or when a release is made."
   :hook (org-mode . my-org-mode-hook-fn)
   :bind (("C-c M-l" . org-store-link)
 	 ("C-c C-l" . org-insert-link)
-	 ("M-<return>" . org-insert-heading-respect-content)
-	 ("C-c a" . org-agenda)
-	 ("C-c c" . org-capture)
-	 ("<pause>" . org-capture)
-	 ("C-c C-e" . org-export-dispatch))
+	 (:map org-mode-map
+	  ("M-<return>" . org-insert-heading-respect-content)
+	  ("C-c a" . org-agenda)
+	  ("C-c c" . org-capture)
+	  ("<pause>" . org-capture)
+	  ("C-c C-e" . org-export-dispatch)))
   :config
   (require 'org-tempo)
   (setq org-agenda-files '("~/sync/org/work.org"
