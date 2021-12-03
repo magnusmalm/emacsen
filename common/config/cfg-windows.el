@@ -107,3 +107,10 @@
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode))
 
 (use-package windresize)
+
+
+(customize-set-variable 'display-buffer-base-action
+			'((display-buffer-reuse-window display-buffer-same-window)
+			  (reusable-frames . t)))
+;; avoid resizing
+(customize-set-variable 'even-window-sizes nil)

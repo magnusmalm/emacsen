@@ -22,6 +22,7 @@
   (emojify-mode)
   ;; (flyspell-mode 1)
   ;; (erc-spelling-mode 1)
+  (setf fill-column 100)
   (bind-key "M-<return>" 'counsel-irc-query-nick erc-mode-map))
 
 (add-hook 'erc-mode-hook 'my-erc-mode-hook-func)

@@ -132,10 +132,11 @@ one by line."
 (use-package ssh-tunnels
   :config
   (setq ssh-tunnels-configurations
-	'((:name "solkattenarboga-swank"
-	   :local-port 9900
-	   :remote-port 9900
-	   :login "solkattenarboga"))))
+	'((:name "mware"
+	   :type "-R"
+	   :local-port 4269
+	   :remote-port 4269
+	   :login "mware"))))
 
 (use-package nginx-mode)
 
@@ -216,3 +217,12 @@ one by line."
 (use-package csv-mode)
 
 (use-package recomplete)
+
+(use-package company-org-block)
+
+(use-package grip-mode
+  :ensure t
+  :config
+  (setf grip-preview-use-webkit nil)
+  :bind (:map markdown-mode-command-map
+         ("g" . grip-mode)))

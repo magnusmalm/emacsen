@@ -359,3 +359,5 @@
 ;;   (setq spell-fu-faces-exclude '(org-meta-line org-link org-code))
 ;;   :config
 ;;   (global-spell-fu-mode))
+
+(use-package iedit)

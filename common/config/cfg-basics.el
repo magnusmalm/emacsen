@@ -557,7 +557,7 @@
   (setf counsel-grep-base-command
 	"rg -i -M 250 --no-heading --line-number --color never --ignore-file '/home/magnus/.ripgrep-ignore' '%s' %s")
   (setf counsel-rg-base-command
-	"rg -M 250 --no-heading --line-number --color never --no-ignore --ignore-file '/home/magnus/.ripgrep-ignore' %s"))
+	"rg -M 250 --no-heading --line-number --color never --no-ignore --ignore-file '/home/magnus/.ripgrep-ignore' %s 2> /dev/null || true"))
 
 (use-package crux
   :bind (("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
@@ -936,6 +936,14 @@
 
   ;; (setf next-error-recenter '(4))
   (setf next-error-recenter nil))
+
+(use-package org-pandoc-import
+  :straight (:host github
+             :repo "tecosaur/org-pandoc-import"
+             :files ("*.el" "filters" "preprocessors")))
+
+(use-package ox-pandoc)
+(use-package ox-gfm)
 
 (defun magma/buffer-filename-and-func-name ()
   (interactive)

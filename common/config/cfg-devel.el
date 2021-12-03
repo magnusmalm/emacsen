@@ -215,14 +215,48 @@ and set the focus back to Emacs frame"
 ;; (use-package company-lsp
 ;;   :commands company-lsp)
 
-;; (use-package lsp-treemacs
-;;   :commands lsp-treemacs-errors-list)
+(use-package lsp-treemacs
+  :commands lsp-treemacs-errors-list)
 
 ;; TODO: Try out lsp mode
-(use-package eglot
+;; (use-package eglot
+;;   :config
+;;   (add-hook 'c-mode-hook 'eglot-ensure)
+;;   (add-hook 'python-mode-hook 'eglot-ensure))
+
+;; (use-package lsp-mode)
+;; (use-package lsp-ui)
+;; (use-package lsp-)
+;; (use-package lsp-ui)
+
+
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (python-mode . lsp)
+         (c-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp
+  :custom
+  (lsp-headerline-breadcrumb-enable nil))
+
+;; optionally
+(use-package lsp-ui :commands lsp-ui-mode)
+;; if you are ivy user
+(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+;; optional if you want which-key integration
+(use-package which-key
   :config
-  (add-hook 'c-mode-hook 'eglot-ensure)
-  (add-hook 'python-mode-hook 'eglot-ensure))
+  (which-key-mode))
+
 
 (defun my-devel-mode-hook-func ()
   "Show the current function name in the header line."

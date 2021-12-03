@@ -26,6 +26,9 @@
  ("munen" . ((user-emacs-directory . "~/emacs-munen")
 	     (server-name . "munen")))
  ("andemacs" . ((user-emacs-directory . "~/sync/andemacs")
-	     (server-name . "andemacs")))
+		(server-name . "andemacs")))
+
+ ("testing" . ((user-emacs-directory . "~/emacsen/testing")
+	       (server-name . "testing")))
 
  )

@@ -49,6 +49,8 @@
   (propertize user-real-login-name 'face 'font-lock-string-face)
   "@"
   (propertize (system-name) 'face 'font-lock-keyword-face)
+  ":"
+  (propertize server-name 'face 'font-lock-string-face)
   " "
   '(:eval (when (derived-mode-p 'prog-mode)
 	    '(which-func-mode ("" which-func-format " "))))
@@ -197,9 +199,16 @@
 (add-to-list 'default-frame-alist '(cursor-color . "green"))
 
 (setf frame-title-format
-      '("emacs%@" (:eval (system-name)) ": " (:eval (if (buffer-file-name)
-							(abbreviate-file-name (buffer-file-name))
-						      "%b")) " [%*]"))
+      '("emacs%@"
+	(:eval (system-name))
+	":"
+	server-name
+	": "
+	(:eval (if (buffer-file-name)
+		   (abbreviate-file-name (buffer-file-name))
+		 "%b"))
+	" [%*]"))
+
 (defun my/disable-scroll-bars (frame)
   (modify-frame-parameters frame
 			   '((vertical-scroll-bars . nil)
@@ -245,8 +254,8 @@
 (use-package visual-ascii-mode)
 
 (use-package git-gutter
-  :bind (("M-<next>" . git-gutter:next-hunk)
-	 ("M-<prior>" . git-gutter:previous-hunk))
+  :bind (("H-<next>" . git-gutter:next-hunk)
+	 ("H-<prior>" . git-gutter:previous-hunk))
   :config
   (global-git-gutter-mode +1))
 
@@ -472,3 +481,19 @@
 ;;   )
 
 (use-package origami)
+
+(use-package transpose-frame
+  :config
+  (defhydra hydra-transpose-frame (global-map "<f5>")
+    "transpose frame"
+    ("t" transpose-frame "transpose")
+    ("v" flip-frame "Flip frame (vertically)")
+    ("h" flop-frame "Flop frame (horizontally")
+    ("T" rotate-frame "Turn (rotate) 180 degrees")
+    ("r" rotate-frame-clockwise "Rotate 90 degrees clockwise")
+    ("R" rotate-frame-anticlockwise "Rotate 90 degrees counter-clockwise")))
+
+;; (defhydra hydra-zoom (global-map "<f2>")
+;; "zoom"
+;; ("g" text-scale-increase "in")
+;; ("l" text-scale-decrease "out"))
